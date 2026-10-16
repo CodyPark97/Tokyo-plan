@@ -1747,13 +1747,14 @@
       recalcAllTransits(true);
       renderAll();
     }
-    /********************************************************************
-     * ★ 확정형 클라우드 동기화 엔진 (접속 시 서버 우선 로드 + 버튼 클릭 시 확정 저장) ★
+     /********************************************************************
+     * ★ 확정형 클라우드 동기화 엔진 + 전체 화면 렌더링 함수 통합 복구본 ★
      ********************************************************************/
     const MY_CLOUD_API_URL = "https://api.npoint.io/d3a4e2fcabe6f2e063a2";
 
     let isPullingCloud = false;
     let hasUnsavedChanges = false;
+    let lastSearchItems = [];
 
     function updateSyncBadge(text, bg, color, border) {
       const el = document.getElementById('syncStatusBadge');
@@ -1766,7 +1767,7 @@
 
     function markUnsaved() {
       hasUnsavedChanges = true;
-      updateSyncBadge("🟠 수정됨 (상단 [☁️ 서버 저장]을 눌러주세요)", "#fef3c7", "#b45309", "#fde68a");
+      updateSyncBadge("🟠 수정됨 ([☁️ 서버 저장] 필요)", "#fef3c7", "#b45309", "#fde68a");
       const btn = document.getElementById('cloudSaveBtn');
       if (btn) {
         btn.style.background = "#ea580c";
@@ -1786,46 +1787,60 @@
       }
     }
 
-    // [☁️ 서버 저장] 버튼을 눌렀을 때만 내 기기 화면을 서버에 확정 업로드
-    async function manualPushToCloud() {
+    // [☁️ 서버 저장] 클릭 시에만 서버 데이터를 내 화면 기준으로 확정 덮어쓰기
+    async function manualPushToCloud(isSilent) {
       try {
         updateSyncBadge("🔼 서버에 저장하는 중...", "#dbeafe", "#1d4ed8", "#93c5fd");
         const payload = {
+          init: false,
           updatedAt: Date.now(),
           appState: appState
         };
 
         const res = await fetch(MY_CLOUD_API_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify(payload)
         });
 
         if (res.ok) {
           localStorage.setItem('universal_travel_planner_v9', JSON.stringify(appState));
           markSaved();
-          alert("✅ 서버에 저장되었습니다! 이제 다른 기기(아이폰·아이패드·갤럭시·PC)에서 접속하거나 새로고침하면 이 화면 그대로 보입니다.");
+          if (!isSilent) {
+            alert("✅ 서버 저장 완료! 이제 다른 기기(아이폰·아이패드·PC)에서 새로고침하면 이 화면 그대로 나옵니다.");
+          }
         } else {
-          updateSyncBadge("⚠️ 서버 저장 실패 (다시 눌러주세요)", "#fef2f2", "#b91c1c", "#fecaca");
+          updateSyncBadge("⚠️ 서버 저장 실패", "#fef2f2", "#b91c1c", "#fecaca");
+          if (!isSilent) alert("서버 응답 오류가 발생했습니다. 잠시 후 다시 눌러주세요.");
         }
       } catch (err) {
         updateSyncBadge("⚠️ 네트워크 오류", "#fef2f2", "#b91c1c", "#fecaca");
-        alert("네트워크 연결을 확인해주세요.");
+        if (!isSilent) alert("인터넷 연결이나 차단 여부를 확인해주세요.");
       }
     }
 
-    // 사이트 접속 시 또는 [🔄 최신 불러오기] 클릭 시 무조건 서버 데이터를 우선으로 가져옴
+    // 접속 시 또는 [🔄 최신 불러오기] 클릭 시 무조건 서버 데이터를 1순위로 가져옴
     async function manualPullFromCloud(isSilent) {
       try {
         isPullingCloud = true;
-        updateSyncBadge("🔄 서버에서 최신 일정 불러오는 중...", "#dbeafe", "#1d4ed8", "#93c5fd");
-        const res = await fetch(MY_CLOUD_API_URL + `?t=${Date.now()}`, { cache: 'no-store' });
-        if (!res.ok) { isPullingCloud = false; return false; }
+        updateSyncBadge("🔄 서버에서 불러오는 중...", "#dbeafe", "#1d4ed8", "#93c5fd");
+        const res = await fetch(MY_CLOUD_API_URL + `?t=${Date.now()}`, {
+          method: 'GET',
+          cache: 'no-store'
+        });
+        if (!res.ok) {
+          isPullingCloud = false;
+          return false;
+        }
         const data = await res.json();
 
+        // 최초 1회 서버가 비어있거나 {"init": true} 상태일 때만 초기 데이터를 서버로 올림
         if (!data || data.init === true || !data.appState || !data.appState.plans) {
           isPullingCloud = false;
-          await manualPushToCloud();
+          await manualPushToCloud(true);
           return true;
         }
 
@@ -1844,10 +1859,628 @@
         return true;
       } catch (e) {
         isPullingCloud = false;
-        updateSyncBadge("⚠️ 오프라인 모드 (기기 내부 데이터 표시중)", "#fef2f2", "#b91c1c", "#fecaca");
+        updateSyncBadge("⚠️ 오프라인 (기기 내부 데이터 표시)", "#fef2f2", "#b91c1c", "#fecaca");
         return false;
       }
     }
+
+    function getDaysMetaList() {
+      const sStr = appState.config.startDate || "2026-11-28";
+      const eStr = appState.config.endDate || "2026-12-01";
+      const sParts = sStr.split('-').map(Number);
+      const eParts = eStr.split('-').map(Number);
+      const sDate = new Date(sParts[0], sParts[1] - 1, sParts[2]);
+      const eDate = new Date(eParts[0], eParts[1] - 1, eParts[2]);
+
+      let diff = Math.round((eDate - sDate) / 86400000) + 1;
+      if (isNaN(diff) || diff < 1) diff = 1;
+      if (diff > 14) diff = 14;
+
+      const weeks = ['일', '월', '화', '수', '목', '금', '토'];
+      const meta = [];
+      for (let i = 0; i < diff; i++) {
+        const d = new Date(sParts[0], sParts[1] - 1, sParts[2] + i);
+        meta.push({
+          idx: i,
+          shortDate: `${d.getMonth()+1}/${d.getDate()}(${weeks[d.getDay()]})`,
+          fullLabel: `Day ${i + 1} · ${d.getMonth()+1}/${d.getDate()}(${weeks[d.getDay()]})`
+        });
+      }
+      return meta;
+    }
+
+    function upgradeVagueSpotInfo(spot) {
+      spot.category = normalizeCategory(spot.category, spot.name);
+      const isVaguePay = !spot.payment || spot.payment.includes("확인") || spot.payment === "-";
+      const isVagueTip = !spot.tip || spot.tip.includes("확인") || spot.tip.includes("검색으로 추가됨") || spot.tip.includes("보관 장소");
+      if (isVaguePay || isVagueTip) {
+        const deep = buildDeepSpotIntelligence(spot.name, spot.category, null, null);
+        if (isVaguePay) spot.payment = deep.payment;
+        if (isVagueTip) spot.tip = deep.tip;
+      }
+    }
+
+    function syncDaysLength() {
+      const meta = getDaysMetaList();
+      const targetLen = meta.length;
+      [1, 2, 3].forEach(p => {
+        if (!Array.isArray(appState.plans[p].days)) appState.plans[p].days = [[], [], [], []];
+        while (appState.plans[p].days.length < targetLen) appState.plans[p].days.push([]);
+        (appState.plans[p].wish || []).forEach(w => upgradeVagueSpotInfo(w));
+        appState.plans[p].days.forEach(dList => dList.forEach(s => upgradeVagueSpotInfo(s)));
+      });
+      if (currentDayIndex >= targetLen) currentDayIndex = 0;
+    }
+
+    function updateDateRange() {
+      const sVal = document.getElementById('startDateInput').value;
+      const eVal = document.getElementById('endDateInput').value;
+      if (!sVal || !eVal) return;
+      if (new Date(eVal) < new Date(sVal)) { alert("도착일은 출발일과 같거나 그 이후여야 합니다."); return; }
+      appState.config.startDate = sVal;
+      appState.config.endDate = eVal;
+      syncDaysLength();
+      saveData();
+      renderAll();
+    }
+
+    function openWishModal() {
+      renderWishSection();
+      document.getElementById('wishSheetModal').classList.add('open');
+    }
+    function closeWishModal() { document.getElementById('wishSheetModal').classList.remove('open'); }
+
+    function openSearchModal() {
+      document.getElementById('searchSheetModal').classList.add('open');
+      setTimeout(() => document.getElementById('searchKeyword').focus(), 120);
+    }
+    function closeSearchModal() { document.getElementById('searchSheetModal').classList.remove('open'); }
+
+    function loadGoogleScript(key) {
+      if (window.google && window.google.maps) { initGoogleMap(); return; }
+      const existing = document.getElementById('gmap-sdk');
+      if (existing) existing.remove();
+
+      const s = document.createElement('script');
+      s.id = 'gmap-sdk';
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&v=weekly&language=ko&callback=initGoogleMap`;
+      s.async = true;
+      document.head.appendChild(s);
+    }
+
+    window.initGoogleMap = function() {
+      const msgEl = document.getElementById('mapStatusMsg');
+      if (msgEl) msgEl.innerHTML = `<span style="color:#10b981; font-weight:700;">✅ Google Maps 실시간 연동 완료</span>`;
+      const h = appState.config.hotel;
+      map = new google.maps.Map(document.getElementById('map'), { center: { lat: h.lat, lng: h.lng }, zoom: 13, mapTypeControl: false, streetViewControl: false });
+      infoWindow = new google.maps.InfoWindow();
+      updateHotelMarkerOnMap();
+      renderMapMarkers();
+    };
+
+    function updateHotelMarkerOnMap() {
+      if (!map || !window.google) return;
+      const h = appState.config.hotel;
+      if (hotelMarker) hotelMarker.setMap(null);
+      hotelMarker = new google.maps.Marker({ position: { lat: h.lat, lng: h.lng }, map: map, title: h.name, label: { text: "🏨", fontSize: "14px" } });
+    }
+
+    async function executeSmartSearch() {
+      const city = appState.config.city || "";
+      const region = document.getElementById('regionInput').value.trim();
+      const kw = document.getElementById('searchKeyword').value.trim();
+      if (!kw) { alert("검색어를 입력해주세요!"); return; }
+
+      const fullQuery = `${city} ${region} ${kw}`.trim();
+      const listEl = document.getElementById('searchResultList');
+      listEl.innerHTML = `<div style="grid-column:1/-1; padding:14px; font-size:12.5px; color:#1d4ed8; font-weight:700;">🔎 '${fullQuery}' 분석 중...</div>`;
+
+      const h = appState.config.hotel;
+      if (window.google && window.google.maps) {
+        try {
+          const { Place } = await google.maps.importLibrary("places");
+          if (Place && typeof Place.searchByText === "function") {
+            let places = null;
+            try {
+              const resRich = await Place.searchByText({ textQuery: fullQuery, fields: ["displayName", "formattedAddress", "location", "rating", "regularOpeningHours", "primaryTypeDisplayName", "paymentOptions", "reservable", "editorialSummary", "reviews"], locationBias: { center: { lat: h.lat, lng: h.lng }, radius: 30000 }, language: "ko" });
+              places = resRich.places;
+            } catch (eRich) {
+              const resBasic = await Place.searchByText({ textQuery: fullQuery, fields: ["displayName", "formattedAddress", "location", "rating", "regularOpeningHours", "primaryTypeDisplayName"], locationBias: { center: { lat: h.lat, lng: h.lng }, radius: 30000 }, language: "ko" });
+              places = resBasic.places;
+            }
+            if (places && places.length > 0) {
+              const normalized = await Promise.all(places.slice(0, 6).map(async (p) => {
+                const pName = p.displayName || kw;
+                const latVal = typeof p.location.lat === 'function' ? p.location.lat() : p.location.lat;
+                const lngVal = typeof p.location.lng === 'function' ? p.location.lng() : p.location.lng;
+                const nearSt = findNearestStation(latVal, lngVal);
+                const stText = nearSt && nearSt.distKm < 2.5 ? `${nearSt.name}(${nearSt.exit}) 도보 ${nearSt.walkMin}분 · ` : "";
+                const cat = normalizeCategory(p.primaryTypeDisplayName, pName);
+                const osmTags = await fetchOsmTagsAround(latVal, lngVal);
+                const deep = buildDeepSpotIntelligence(pName + " " + kw, cat, p, osmTags);
+                return { name: pName, address: stText + (p.formattedAddress || city), lat: latVal, lng: lngVal, rating: p.rating ? String(p.rating) : "4.2", category: cat, hours: deep.hours, payment: deep.payment, tip: deep.tip };
+              }));
+              renderSearchResults(normalized);
+              return;
+            }
+          }
+        } catch (e) {}
+      }
+
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&extratags=1&q=${encodeURIComponent(fullQuery)}&limit=6&accept-language=ko,ja,en`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data && data.length > 0) {
+          const normalized = data.map(item => {
+            const tags = item.extratags || {};
+            const latVal = parseFloat(item.lat);
+            const lngVal = parseFloat(item.lon);
+            const nearSt = findNearestStation(latVal, lngVal);
+            const stText = nearSt && nearSt.distKm < 2.5 ? `${nearSt.name}(${nearSt.exit}) 도보 ${nearSt.walkMin}분 · ` : "";
+            const pName = item.display_name.split(',')[0];
+            const cat = normalizeCategory(item.type, pName);
+            const deep = buildDeepSpotIntelligence(pName, cat, null, tags);
+            return { name: pName, address: stText + item.display_name, lat: latVal, lng: lngVal, rating: "4.2", category: cat, hours: deep.hours, payment: deep.payment, tip: deep.tip };
+          });
+          renderSearchResults(normalized);
+          return;
+        }
+      } catch (e) {}
+
+      listEl.innerHTML = `<div style="grid-column:1/-1; padding:12px; font-size:12px; color:#ef4444;">검색 결과가 없습니다.</div>`;
+    }
+
+    function renderSearchResults(items) {
+      lastSearchItems = items;
+      const listEl = document.getElementById('searchResultList');
+      listEl.innerHTML = '';
+      searchMarkers.forEach(m => m.setMap(null));
+      searchMarkers = [];
+
+      const bounds = (window.google && window.google.maps) ? new google.maps.LatLngBounds() : null;
+      const daysMeta = getDaysMetaList();
+      const dayOptionsHtml = daysMeta.map(d => `<option value="${d.idx}" ${d.idx === currentDayIndex ? 'selected' : ''}>${d.fullLabel}</option>`).join('');
+
+      items.forEach((item, idx) => {
+        if (map && bounds) {
+          const m = new google.maps.Marker({ position: { lat: item.lat, lng: item.lng }, map: map, title: item.name, label: { text: String(idx + 1), color: "white", fontWeight: "bold" } });
+          searchMarkers.push(m);
+          bounds.extend({ lat: item.lat, lng: item.lng });
+          m.addListener('click', () => focusSpotOnMap(item.lat, item.lng, item.name, item.address, item.rating));
+        }
+
+        const div = document.createElement('div');
+        div.className = 's-item';
+        div.innerHTML = `
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:start; gap:4px;">
+              <span class="s-item-title">${idx + 1}. ${escapeHtml(item.name)}</span>
+              <div style="display:flex; gap:4px; flex-shrink:0;"><span class="badge badge-cat">${item.category}</span><span class="badge badge-rate">⭐ ${item.rating}</span></div>
+            </div>
+            <div style="font-size:11px; color:var(--muted); margin:3px 0;">📍 ${escapeHtml(item.address)}</div>
+            <div style="font-size:11px; color:#0f172a;">🕒 ${escapeHtml(item.hours)}</div>
+            <div style="font-size:11px; color:#1d4ed8;">💳 ${escapeHtml(item.payment)}</div>
+            <div style="font-size:11px; color:#b45309; background:#fffbeb; padding:4px 6px; border-radius:4px; margin-top:3px;">💡 ${escapeHtml(item.tip)}</div>
+          </div>
+          <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap; padding-top:6px; border-top:1px dashed #cbd5e1;">
+            <button class="btn btn-wish" style="padding:5px 9px; font-size:11px;" onclick="addSearchResultToWish(${idx})">⭐ 위시 담기</button>
+            <select id="sDay-${idx}" style="font-size:11px; padding:4px; border:1px solid var(--border); border-radius:5px; flex:1; background:white;">${dayOptionsHtml}</select>
+            <button class="btn btn-primary" style="padding:5px 9px; font-size:11px;" onclick="addSearchResultToDay(${idx})">+ 일정 투입</button>
+          </div>
+        `;
+        listEl.appendChild(div);
+      });
+      if (map && bounds && items.length > 0) map.fitBounds(bounds);
+    }
+
+    function addSearchResultToWish(idx) {
+      const item = lastSearchItems[idx];
+      if (!item) return;
+      appState.plans[currentPlan].wish.unshift({ id: Date.now(), ...item });
+      saveData();
+      renderAll();
+      closeSearchModal();
+      openWishModal();
+    }
+
+    function addSearchResultToDay(idx) {
+      const item = lastSearchItems[idx];
+      if (!item) return;
+      const targetDayIdx = Number(document.getElementById(`sDay-${idx}`).value);
+      syncDaysLength();
+      const targetList = appState.plans[currentPlan].days[targetDayIdx];
+      const newId = Date.now();
+      targetList.push({ id: newId, time: getNextSuggestedTime(targetList), userMemo: "", transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: "", ...item });
+      currentDayIndex = targetDayIdx;
+      lastAddedSpotId = newId;
+      recalcAllTransits(true);
+      closeSearchModal();
+      renderAll();
+      scrollToSpotCard(newId);
+    }
+
+    function scrollToSpotCard(spotId) {
+      setTimeout(() => {
+        const el = document.getElementById(`spot-card-${spotId}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+    }
+
+    function getNextSuggestedTime(dayList) {
+      if (!dayList || dayList.length === 0) return "11:00";
+      const lastTime = dayList[dayList.length - 1].time || "12:00";
+      const [hh, mm] = lastTime.split(':').map(Number);
+      return `${String(Math.min(23, hh + 2)).padStart(2, '0')}:${String(mm || 0).padStart(2, '0')}`;
+    }
+
+    function getCurrentDayList() { syncDaysLength(); return appState.plans[currentPlan].days[currentDayIndex] || []; }
+
+    function renderAll() {
+      syncDaysLength();
+      renderHeaderConfig();
+      renderDayTabs();
+      renderWishSection();
+      renderTimeline();
+      renderChecklist();
+      renderMapMarkers();
+    }
+
+    function renderHeaderConfig() {
+      const cfg = appState.config;
+      document.getElementById('headerTripTitle').innerText = cfg.tripTitle || "🗼 도쿄 여행 올인원 대시보드";
+      document.getElementById('headerCityBadge').innerText = cfg.city || "Tokyo";
+      document.getElementById('headerHotelName').innerText = cfg.hotel.name;
+      document.getElementById('headerHotelTip').innerText = cfg.hotel.tip || cfg.hotel.address;
+      document.getElementById('startDateInput').value = cfg.startDate;
+      document.getElementById('endDateInput').value = cfg.endDate;
+    }
+
+    function setWishFilter(cat) { wishFilter = cat; renderWishSection(); }
+
+    function renderWishSection() {
+      const wishes = appState.plans[currentPlan].wish || [];
+      const badge = document.getElementById('wishCountBadge');
+      if (badge) badge.innerText = wishes.length;
+
+      const filterCats = ['all', "🍴 식당", "☕ 카페/디저트", "🛍️ 쇼핑", "🗼 관광명소"];
+      document.getElementById('wishFilterBar').innerHTML = filterCats.map(c => {
+        const cnt = c === 'all' ? wishes.length : wishes.filter(w => w.category === c).length;
+        return `<button class="w-chip ${wishFilter === c ? 'active' : ''}" onclick="setWishFilter('${escapeQuotes(c)}')">${c === 'all' ? `전체 (${cnt})` : `${c} (${cnt})`}</button>`;
+      }).join('');
+
+      const filtered = wishFilter === 'all' ? wishes : wishes.filter(w => w.category === wishFilter);
+      const grid = document.getElementById('wishCardsGrid');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1; padding:24px; text-align:center; color:var(--muted); background:#f8fafc; border-radius:8px; border:1px dashed #f472b6; font-size:12.5px;">담긴 위시 장소가 없습니다. 상단 [🔍 검색으로 추가] 버튼을 눌러 맛집을 담아보세요!</div>`;
+        return;
+      }
+
+      const daysMeta = getDaysMetaList();
+      const dayOptionsHtml = daysMeta.map(d => `<option value="${d.idx}" ${d.idx === currentDayIndex ? 'selected' : ''}>📅 ${d.fullLabel}</option>`).join('');
+
+      grid.innerHTML = filtered.map(w => {
+        const gmapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(w.name + ' ' + (w.address || ''))}`;
+        return `
+          <div class="wish-detail-card">
+            <div>
+              <div class="wish-card-head">
+                <div style="display:flex; gap:4px; align-items:center;"><span class="badge badge-cat">${w.category}</span><span class="badge badge-rate">⭐ ${w.rating || '4.0'}</span></div>
+                <div style="display:flex; gap:4px;"><a href="${gmapUrl}" target="_blank" class="btn btn-outline" style="padding:2px 6px; font-size:10px;">구글맵↗</a><button class="btn btn-danger" style="padding:2px 6px; font-size:10px;" onclick="deleteWishItem(${w.id})">삭제</button></div>
+              </div>
+              <div class="wish-card-title">${escapeHtml(w.name)}</div>
+              <div class="wish-meta-box" style="margin-top:6px;">
+                <div class="wish-meta-row"><span>📍 위치</span><div class="auto-text" contenteditable="true" onblur="updateWishField(${w.id}, 'address', this.innerText)">${escapeHtml(w.address || '')}</div></div>
+                <div class="wish-meta-row"><span>🕒 영업</span><div class="auto-text" contenteditable="true" onblur="updateWishField(${w.id}, 'hours', this.innerText)">${escapeHtml(w.hours || '')}</div></div>
+                <div class="wish-meta-row"><span>💳 결제</span><div class="auto-text" contenteditable="true" onblur="updateWishField(${w.id}, 'payment', this.innerText)">${escapeHtml(w.payment || '')}</div></div>
+                <div class="wish-meta-row"><span>💡 특이</span><div class="auto-text" contenteditable="true" onblur="updateWishField(${w.id}, 'tip', this.innerText)">${escapeHtml(w.tip || '')}</div></div>
+              </div>
+            </div>
+            <div class="wish-insert-footer">
+              <select id="wDay-${w.id}">${dayOptionsHtml}</select>
+              <button class="wish-insert-btn" onclick="insertWishCardToTimeline(${w.id})">📥 타임라인 투입</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateWishField(wishId, field, val) {
+      const w = (appState.plans[currentPlan].wish || []).find(i => i.id === wishId);
+      if (!w) return;
+      w[field] = val.trim();
+      saveData();
+    }
+
+    function addBlankWishCard() {
+      const name = prompt("추가할 장소 이름을 입력하세요:");
+      if (!name || !name.trim()) return;
+      const cat = normalizeCategory("", name);
+      const deep = buildDeepSpotIntelligence(name.trim(), cat, null, null);
+      appState.plans[currentPlan].wish.unshift({ id: Date.now(), name: name.trim(), category: cat, address: "위치 입력", lat: appState.config.hotel.lat, lng: appState.config.hotel.lng, rating: "4.1", hours: deep.hours, payment: deep.payment, tip: deep.tip });
+      saveData();
+      renderWishSection();
+    }
+
+    function deleteWishItem(wishId) {
+      appState.plans[currentPlan].wish = appState.plans[currentPlan].wish.filter(w => w.id !== wishId);
+      saveData();
+      renderWishSection();
+    }
+
+    function insertWishCardToTimeline(wishId) {
+      const w = (appState.plans[currentPlan].wish || []).find(i => i.id === wishId);
+      if (!w) return;
+      const targetDayIdx = Number(document.getElementById(`wDay-${wishId}`).value);
+      syncDaysLength();
+      const targetList = appState.plans[currentPlan].days[targetDayIdx];
+      const newId = Date.now();
+      targetList.push({ ...w, id: newId, time: getNextSuggestedTime(targetList), userMemo: "", transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: "" });
+      currentDayIndex = targetDayIdx;
+      lastAddedSpotId = newId;
+      recalcAllTransits(true);
+      closeWishModal();
+      renderAll();
+      scrollToSpotCard(newId);
+    }
+
+    function moveSpotBackToWish(spotId) {
+      const list = getCurrentDayList();
+      const found = list.find(i => i.id === spotId);
+      if (!found) return;
+      appState.plans[currentPlan].wish.unshift({ id: Date.now(), name: found.name, category: normalizeCategory(found.category, found.name), address: found.address, lat: found.lat, lng: found.lng, rating: found.rating, hours: found.hours, payment: found.payment, tip: found.tip });
+      appState.plans[currentPlan].days[currentDayIndex] = list.filter(i => i.id !== spotId);
+      recalcAllTransits(true);
+      renderAll();
+    }
+
+    function renderDayTabs() {
+      const daysMeta = getDaysMetaList();
+      const container = document.getElementById('dayTabsContainer');
+      container.innerHTML = daysMeta.map(d => {
+        const count = (appState.plans[currentPlan].days[d.idx] || []).length;
+        return `<div class="day-tab ${currentDayIndex === d.idx ? 'active' : ''}" onclick="selectDay(${d.idx})"><div>Day ${d.idx + 1} <span style="font-weight:500; font-size:11px;">${d.shortDate}</span></div><div style="font-size:10.5px; color:var(--muted); margin-top:2px;">일정 ${count}곳</div></div>`;
+      }).join('');
+    }
+
+    function selectDay(idx) { currentDayIndex = idx; renderAll(); }
+
+    function addHotelReturn() {
+      const h = appState.config.hotel;
+      const list = getCurrentDayList();
+      const newId = Date.now();
+      list.push({ id: newId, time: "21:30", name: h.name, category: "🏨 숙소", address: h.address, lat: h.lat, lng: h.lng, rating: h.rating || "4.0", hours: h.hours || "24시간", payment: "결제완료", tip: h.tip || "숙소 복귀", userMemo: "", transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: "" });
+      lastAddedSpotId = newId;
+      recalcAllTransits(true);
+      renderAll();
+      scrollToSpotCard(newId);
+    }
+
+    function renderTimeline() {
+      const daysMeta = getDaysMetaList();
+      const curMeta = daysMeta[currentDayIndex] || { idx: 0, shortDate: '' };
+      document.getElementById('currentDayTitle').innerText = `📅 [스케줄 ${currentPlan}안] Day ${curMeta.idx + 1} (${curMeta.shortDate}) 타임라인`;
+
+      const list = getCurrentDayList();
+      const container = document.getElementById('timelineContainer');
+      if (list.length === 0) {
+        container.innerHTML = `<div style="padding:28px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:10px; font-size:12.5px;">등록된 일정이 없습니다. 상단 <strong>[🔍 장소 검색]</strong>이나 <strong>[⭐ 위시리스트]</strong>를 눌러 일정을 추가해보세요!</div>`;
+        return;
+      }
+
+      let html = '';
+      list.forEach((item, idx) => {
+        const nextItem = list[idx + 1] || null;
+        const isFirst = idx === 0; const isLast = idx === list.length - 1;
+        const gmapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name + ' ' + (item.address || ''))}`;
+        const highlightClass = (item.id === lastAddedSpotId) ? 'just-added' : '';
+
+        html += `
+          <div class="spot-card ${highlightClass}" id="spot-card-${item.id}">
+            <div class="spot-top">
+              <div class="spot-badges">
+                <span class="badge badge-num" onclick="jumpSpotOrder(${idx})" title="클릭하여 순번 점프">#${idx + 1} ⇅</span>
+                <div class="order-btn-group">
+                  <button type="button" class="order-btn" ${isFirst ? 'disabled' : ''} onclick="moveSpotOrder(${idx}, -1)">▲</button>
+                  <button type="button" class="order-btn" ${isLast ? 'disabled' : ''} onclick="moveSpotOrder(${idx}, 1)">▼</button>
+                </div>
+                <input type="time" value="${item.time}" onchange="updateSpotField(${item.id}, 'time', this.value)" style="border:1px solid #cbd5e1; border-radius:4px; padding:2px 5px; font-weight:800; font-size:12px;">
+                <span class="badge badge-cat">${item.category}</span>
+                <span class="badge badge-rate">⭐ ${item.rating || '4.0'}</span>
+              </div>
+              <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                <button class="btn btn-wish" style="padding:3px 7px; font-size:11px;" onclick="moveSpotBackToWish(${item.id})">위시로</button>
+                <a href="${gmapSearchUrl}" target="_blank" class="btn btn-outline" style="padding:3px 7px; font-size:11px;">구글맵↗</a>
+                <button class="btn btn-danger" style="padding:3px 7px; font-size:11px;" onclick="removeSpot(${item.id})">삭제</button>
+              </div>
+            </div>
+
+            <div class="spot-name" onclick="focusSpotOnMap(${item.lat}, ${item.lng}, '${escapeQuotes(item.name)}', '${escapeQuotes(item.address)}', '${item.rating}')">${escapeHtml(item.name)}</div>
+            <div class="spot-addr">📍 ${escapeHtml(item.address || '')}</div>
+
+            <div class="spot-briefing-box">
+              <div class="brief-top-grid">
+                <div><span class="brief-item-label">🕒 영업시간</span><div class="auto-text" contenteditable="true" onblur="updateSpotField(${item.id}, 'hours', this.innerText)">${escapeHtml(item.hours || '')}</div></div>
+                <div><span class="brief-item-label">💳 결제수단</span><div class="auto-text" contenteditable="true" onblur="updateSpotField(${item.id}, 'payment', this.innerText)">${escapeHtml(item.payment || '')}</div></div>
+              </div>
+              <div>
+                <span class="brief-item-label">💡 특이사항 · 웨이팅 팁</span>
+                <div class="auto-text" contenteditable="true" onblur="updateSpotField(${item.id}, 'tip', this.innerText)">${escapeHtml(item.tip || '')}</div>
+              </div>
+            </div>
+
+            <div class="user-memo-row">
+              <strong>✏️ 내 메모:</strong>
+              <div class="auto-text" contenteditable="true" data-ph="개인 메모를 적으세요" onblur="updateSpotField(${item.id}, 'userMemo', this.innerText)">${escapeHtml(item.userMemo || '')}</div>
+            </div>
+          </div>
+        `;
+
+        if (nextItem) {
+          const curMode = item.transitMode || detectBestMode(item, nextItem);
+          const autoInfo = buildDetailedTransitInfo(curMode, item, nextItem);
+          const routeText = item.transitToNext || autoInfo.routeText;
+          const fareText = item.transitFare || autoInfo.fareText;
+          const guideTip = item.transitGuide || autoInfo.guideTip;
+          const gmapMode = TRANSIT_MODES[curMode]?.gmapMode || 'transit';
+          const dirUrl = `https://www.google.com/maps/dir/?api=1&origin=${item.lat || ''},${item.lng || ''}&destination=${nextItem.lat || ''},${nextItem.lng || ''}&travelmode=${gmapMode}`;
+
+          const modeOptionsHtml = Object.keys(TRANSIT_MODES).map(k => `<option value="${k}" ${curMode === k ? 'selected' : ''}>${TRANSIT_MODES[k].label}</option>`).join('');
+
+          html += `
+            <div class="transit-cell">
+              <div class="transit-header">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <select class="transit-mode-select" onchange="changeSpotTransitMode(${item.id}, this.value)">${modeOptionsHtml}</select>
+                  <span class="fare-pill">💴 ${escapeHtml(fareText)}</span>
+                </div>
+                <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                  <button type="button" class="btn-route-popup" onclick="openTransitRoutePopup(${idx})">🗺️ 노선도 팝업</button>
+                  <a href="${dirUrl}" target="_blank" class="btn btn-primary" style="padding:4px 8px; font-size:11px;">길찾기 ↗</a>
+                </div>
+              </div>
+              <div class="transit-route-box">
+                <div class="auto-text transit-route-text" contenteditable="true" onblur="updateSpotField(${item.id}, 'transitToNext', this.innerText)">${escapeHtml(routeText)}</div>
+                <div class="transit-guide-tip">🧭 ${escapeHtml(guideTip)}</div>
+              </div>
+              <div class="user-memo-row" style="background:#f8fafc; border-color:#cbd5e1;">
+                <strong style="color:#1e40af;">✏️ 교통 메모:</strong>
+                <div class="auto-text" contenteditable="true" onblur="updateSpotField(${item.id}, 'transitMemo', this.innerText)">${escapeHtml(item.transitMemo || '')}</div>
+              </div>
+            </div>
+          `;
+        }
+      });
+      container.innerHTML = html;
+    }
+
+    function updateSpotField(id, field, value) {
+      const list = getCurrentDayList();
+      const item = list.find(i => i.id === id);
+      if (!item) return;
+      item[field] = String(value || '').trim();
+      if (field === 'transitToNext') item.transitMode = 'custom';
+      saveData();
+    }
+
+    function removeSpot(id) {
+      appState.plans[currentPlan].days[currentDayIndex] = getCurrentDayList().filter(i => i.id !== id);
+      recalcAllTransits(true);
+      renderAll();
+    }
+
+    function renderChecklist() {
+      const box = document.getElementById('checklistContainer');
+      if (!box) return;
+      if (!appState.checks) appState.checks = {};
+      box.innerHTML = CHECKLIST_ITEMS.map((txt, idx) => {
+        const checked = appState.checks[idx] ? 'checked' : '';
+        const style = appState.checks[idx] ? 'text-decoration:line-through; color:#94a3b8; background:#f1f5f9;' : '';
+        return `<label class="chk-item" style="${style}"><input type="checkbox" ${checked} onchange="toggleCheckItem(${idx}, this.checked)"><span>${txt}</span></label>`;
+      }).join('');
+    }
+
+    function toggleCheckItem(idx, isChecked) {
+      if (!appState.checks) appState.checks = {};
+      appState.checks[idx] = isChecked;
+      saveData();
+      renderChecklist();
+    }
+
+    function renderMapMarkers() {
+      if (!map || !window.google) return;
+      dayMarkers.forEach(m => m.setMap(null));
+      dayMarkers = [];
+      if (routeLine) routeLine.setMap(null);
+
+      const list = getCurrentDayList();
+      if (list.length === 0) return;
+
+      const coords = [];
+      const bounds = new google.maps.LatLngBounds();
+      list.forEach((item, idx) => {
+        if (!item.lat || !item.lng) return;
+        const pos = { lat: Number(item.lat), lng: Number(item.lng) };
+        coords.push(pos);
+        bounds.extend(pos);
+        const m = new google.maps.Marker({ position: pos, map: map, title: item.name, label: { text: String(idx + 1), color: "white", fontWeight: "bold" } });
+        m.addListener('click', () => focusSpotOnMap(pos.lat, pos.lng, item.name, item.address, item.rating));
+        dayMarkers.push(m);
+      });
+
+      if (coords.length > 1) {
+        routeLine = new google.maps.Polyline({ path: coords, geodesic: true, strokeColor: "#2563eb", strokeOpacity: 0.85, strokeWeight: 3 });
+        routeLine.setMap(map);
+      }
+      if (coords.length > 0) map.fitBounds(bounds);
+    }
+
+    function focusSpotOnMap(lat, lng, name, address, rating) {
+      if (!map || !window.google) return;
+      const pos = { lat: Number(lat), lng: Number(lng) };
+      map.panTo(pos); map.setZoom(16);
+      if (infoWindow) {
+        infoWindow.setPosition(pos);
+        infoWindow.setContent(`<div style="font-size:12px; padding:4px;"><strong>${name}</strong> (⭐${rating || '4.0'})<br><span style="color:#64748b; font-size:11px;">${address || ''}</span></div>`);
+        infoWindow.open(map);
+      }
+    }
+
+    function panToHotel() { const h = appState.config.hotel; focusSpotOnMap(h.lat, h.lng, h.name, h.address, h.rating); }
+    function fitCurrentDayBounds() { renderMapMarkers(); }
+
+    function openConfigModal() {
+      const cfg = appState.config;
+      document.getElementById('cfgTripTitle').value = cfg.tripTitle || "";
+      document.getElementById('cfgCityName').value = cfg.city || "";
+      document.getElementById('cfgHotelName').value = cfg.hotel.name || "";
+      document.getElementById('cfgHotelAddr').value = cfg.hotel.address || "";
+      document.getElementById('cfgHotelTip').value = cfg.hotel.tip || "";
+      document.getElementById('configModal').classList.add('open');
+    }
+    function closeConfigModal() { document.getElementById('configModal').classList.remove('open'); }
+
+    async function saveConfigModal() {
+      const cfg = appState.config;
+      cfg.tripTitle = document.getElementById('cfgTripTitle').value.trim() || "🗼 도쿄 여행 올인원 대시보드";
+      cfg.city = document.getElementById('cfgCityName').value.trim() || "Tokyo";
+      cfg.hotel.name = document.getElementById('cfgHotelName').value.trim() || "숙소";
+      cfg.hotel.address = document.getElementById('cfgHotelAddr').value.trim() || "";
+      cfg.hotel.tip = document.getElementById('cfgHotelTip').value.trim() || "";
+      saveData(); closeConfigModal(); updateHotelMarkerOnMap(); renderAll();
+    }
+
+    function switchMainTab(paneId, btnEl) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(paneId).classList.add('active');
+      btnEl.classList.add('active');
+    }
+
+    function switchPlan(slot) {
+      currentPlan = slot;
+      [1, 2, 3].forEach(n => { document.getElementById(`planBtn-${n}`).classList.toggle('active', n === slot); });
+      recalcAllTransits(false);
+      renderAll();
+    }
+
+    function copyCurrentPlanToOther() {
+      const target = prompt(`현재 [${currentPlan}안]을 몇 안으로 복사할까요? (1, 2, 3)`);
+      const tNum = Number(target);
+      if (![1, 2, 3].includes(tNum) || tNum === currentPlan) return;
+      appState.plans[tNum] = JSON.parse(JSON.stringify(appState.plans[currentPlan]));
+      saveData(); switchPlan(tNum); alert(`[${currentPlan}안] 복사 완료!`);
+    }
+
+    function clearCurrentPlan() {
+      if (!confirm(`현재 [${currentPlan}안] 일정을 비우시겠습니까?`)) return;
+      appState.plans[currentPlan].days = getDaysMetaList().map(() => []);
+      saveData(); renderAll();
+    }
+
+    function escapeQuotes(str) { return String(str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+    function escapeHtml(str) { return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
     function saveData() {
       localStorage.setItem('universal_travel_planner_v9', JSON.stringify(appState));
@@ -1857,24 +2490,24 @@
     }
 
     async function loadData() {
-      loadGoogleScript(FIXED_GMAP_API_KEY);
-      document.getElementById('searchKeyword').addEventListener('keydown', (e) => { if (e.key === 'Enter') executeSmartSearch(); });
-
-      // 1순위: 사이트를 켜자마자 무조건 클라우드 서버 데이터부터 받아와서 화면을 그림!
-      const loadedFromServer = await manualPullFromCloud(true);
-
-      if (!loadedFromServer) {
-        const saved = localStorage.getItem('universal_travel_planner_v9');
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (parsed && parsed.config && parsed.plans) appState = parsed;
-          } catch(e) {}
-        }
-        syncDaysLength();
-        recalcAllTransits(false);
-        renderAll();
+      // 1. 먼저 기본/로컬 화면을 즉시 그려서 빈 화면 방지
+      const saved = localStorage.getItem('universal_travel_planner_v9');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.config && parsed.plans) appState = parsed;
+        } catch(e) {}
       }
+      syncDaysLength();
+      recalcAllTransits(false);
+      renderAll();
+
+      loadGoogleScript(FIXED_GMAP_API_KEY);
+      const kwInp = document.getElementById('searchKeyword');
+      if (kwInp) kwInp.addEventListener('keydown', (e) => { if (e.key === 'Enter') executeSmartSearch(); });
+
+      // 2. 이어서 클라우드 서버의 최신 데이터를 받아와 덮어씌움
+      await manualPullFromCloud(true);
     }
 
     function exportBackup() {
