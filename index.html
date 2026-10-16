@@ -50,7 +50,6 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* 멀티라인 자동 줄바꿈 편집 박스 */
     .auto-text {
       display: block;
       width: 100%;
@@ -78,82 +77,139 @@
       color: #94a3b8;
       font-weight: 400;
     }
-  <!-- 0. 최상단 고정 서버 동기화 전용 바 (스크롤 내려도 항상 최상단에 고정됨!) -->
-  <div style="position:sticky; top:0; z-index:90; background:#020617; color:white; padding:8px 14px; border-bottom:1px solid #334155; box-shadow:0 2px 8px rgba(0,0,0,0.25);">
-    <div style="max-width:1380px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-      <span id="syncStatusBadge" class="badge" style="background:#dcfce7; color:#15803d; border:1px solid #86efac; padding:5px 10px; font-size:11.5px;">🟢 서버 동기화 대기중</span>
-      <div style="display:flex; gap:6px; align-items:center;">
-        <button class="btn btn-primary" id="cloudSaveBtn" style="background:#059669; padding:6px 12px; font-size:12px;" onclick="manualPushToCloud()">
-          ☁️ 서버 저장
-        </button>
-        <button class="btn btn-outline" style="background:#1e293b; color:white; border-color:#475569; padding:6px 10px; font-size:12px;" onclick="manualPullFromCloud()">
-          🔄 최신 불러오기
-        </button>
-        <button class="btn btn-outline" style="background:#1e293b; color:#cbd5e1; border-color:#475569; padding:6px 9px; font-size:11.5px;" onclick="exportBackup()">💾 백업</button>
-        <button class="btn btn-outline" style="background:#1e293b; color:#cbd5e1; border-color:#475569; padding:6px 9px; font-size:11.5px;" onclick="document.getElementById('importFileInput').click()">📂 열기</button>
-        <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importBackup(event)">
-      </div>
-    </div>
-  </div>
 
-  <!-- 1. 여행 타이틀 & 숙소/날짜 헤더 -->
-  <header>
-    <div class="header-top">
-      <div class="brand">
-        <h1>
-          <span id="headerTripTitle">🗼 도쿄 여행 올인원 대시보드</span>
-          <span class="city-badge" onclick="openConfigModal()">🌏 <span id="headerCityBadge">Tokyo</span> · 설정 ⚙️</span>
-        </h1>
-        <p>
-          <span>🏨 숙소: <strong id="headerHotelName" style="color:white;">Hotel Sunlite Shinjuku</strong></span>
-          <span>|</span>
-          <span id="headerHotelTip">신주쿠산초메역 E1출구 도보 2분</span>
-        </p>
-      </div>
+    /* 최상단 서버 고정 바 스타일 */
+    .server-top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 95;
+      background: #020617;
+      border-bottom: 2px solid #1e293b;
+      padding: 8px 14px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    }
+    .server-top-inner {
+      max-width: 1380px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
 
-      <div class="top-controls">
-        <div class="ctrl-group">
-          <span>📅 일정:</span>
-          <input type="date" id="startDateInput" onchange="updateDateRange()">
-          <span>~</span>
-          <input type="date" id="endDateInput" onchange="updateDateRange()">
-        </div>
-      </div>
-    </div>
-  </header>
+    /* 상단 헤더 */
+    header {
+      background: #0f172a;
+      color: white;
+      padding: 12px 16px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .header-top {
+      max-width: 1380px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .brand h1 { font-size: 17.5px; font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .brand p { font-size: 11.5px; color: #94a3b8; margin-top: 2px; word-break: keep-all; }
+    .city-badge {
+      background: #3b82f6;
+      color: white;
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 700;
+    }
 
-  <!-- 2. 역할별로 깔끔하게 분리된 컨트롤 바 (스케줄 안 선택 줄 / 검색·위시 전용 줄) -->
-  <div class="quick-bar" style="position:relative; z-index:30; padding:10px 14px;">
-    <div style="max-width:1380px; margin:0 auto; display:flex; flex-direction:column; gap:10px;">
-      
-      <!-- [줄 1] 스케줄 1·2·3안 전환 및 관리 전용 -->
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; overflow-x:auto;" class="no-scrollbar">
-        <div style="display:flex; align-items:center; gap:5px;">
-          <span style="font-size:12px; font-weight:800; color:#475569; margin-right:4px;">🗂️ 스케줄 선택:</span>
-          <button class="btn btn-outline active" id="planBtn-1" onclick="switchPlan(1)">📌 1안</button>
-          <button class="btn btn-outline" id="planBtn-2" onclick="switchPlan(2)">2안</button>
-          <button class="btn btn-outline" id="planBtn-3" onclick="switchPlan(3)">3안</button>
-        </div>
-        <div style="display:flex; align-items:center; gap:5px;">
-          <button class="btn btn-outline" style="font-size:11.5px; padding:5px 9px;" onclick="copyCurrentPlanToOther()">📑 다른 안으로 복사</button>
-          <button class="btn btn-danger" style="font-size:11.5px; padding:5px 9px;" onclick="clearCurrentPlan()">🗑️ 현재 안 비우기</button>
-        </div>
-      </div>
+    .top-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .ctrl-group {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 4px 9px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+    }
+    .ctrl-group input[type="date"] {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      outline: none;
+    }
+    .ctrl-group input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+    }
 
-      <!-- [줄 2] 가장 많이 쓰는 장소 검색 & 위시리스트 큼직한 2분할 전용 버튼 -->
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-        <button class="btn btn-search-top" style="justify-content:center; padding:10px; font-size:13.5px; border-radius:8px;" onclick="openSearchModal()">
-          🔍 구글맵 장소 검색
-        </button>
-        <button class="btn btn-wish" style="justify-content:center; padding:10px; font-size:13.5px; border-radius:8px;" onclick="openWishModal()">
-          ⭐ 위시리스트 보관함 (<span id="wishCountBadge">0</span>)
-        </button>
-      </div>
+    /* 역할별 분리된 컨트롤 패널 */
+    .control-panel {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 14px;
+      box-shadow: 0 2px 6px rgba(15,23,42,0.04);
+    }
+    .control-panel-inner {
+      max-width: 1380px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .plan-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding-bottom: 2px;
+    }
+    .search-wish-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
 
-    </div>
-  </div>
+    .btn {
+      padding: 6px 11px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: transform 0.1s, background 0.15s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-outline { background: white; border-color: var(--border); color: var(--text); }
+    .btn-outline.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .btn-wish { background: var(--wish-light); color: #be185d; border-color: #f472b6; font-weight: 800; }
+    .btn-search-top { background: #eff6ff; color: #1d4ed8; border-color: #93c5fd; font-weight: 800; }
+    .btn-danger { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
 
-    /* 3. 메인 탭 (좌우 슬라이드 고정, 상하 흔들림 0%) */
+    /* 메인 탭 */
     .main-nav {
       max-width: 1380px;
       margin: 10px auto 0;
@@ -183,7 +239,7 @@
     }
     .main-tab.active { background: white; color: var(--primary); }
 
-    /* 4. 워크스페이스 */
+    /* 워크스페이스 */
     .workspace { max-width: 1380px; margin: 0 auto; padding: 12px 14px; }
     .tab-pane { display: none; }
     .tab-pane.active { display: block; }
@@ -218,7 +274,6 @@
       gap: 8px;
     }
 
-    /* Day 탭 (모바일 좌우 슬라이드 완벽 고정) */
     .day-tabs {
       display: flex;
       flex-wrap: nowrap;
@@ -250,7 +305,6 @@
     }
     .day-tab.active { background: var(--primary-light); border: 2px solid var(--primary); color: var(--primary); }
 
-    /* 순서 이동 화살표 버튼 그룹 */
     .order-btn-group {
       display: inline-flex;
       align-items: center;
@@ -271,7 +325,6 @@
     .order-btn:disabled { color: #cbd5e1; cursor: default; }
     .order-btn + .order-btn { border-left: 1px solid #cbd5e1; }
 
-    /* 타임라인 장소 카드 + 투입 시 하이라이트 애니메이션 */
     @keyframes pulseHighlight {
       0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); border-color: #10b981; background: #ecfdf5; }
       70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); border-color: #10b981; background: #ffffff; }
@@ -285,9 +338,7 @@
       background: white;
       transition: all 0.2s;
     }
-    .spot-card.just-added {
-      animation: pulseHighlight 1.8s ease-out;
-    }
+    .spot-card.just-added { animation: pulseHighlight 1.8s ease-out; }
     .spot-top {
       display: flex;
       justify-content: space-between;
@@ -299,7 +350,6 @@
     .spot-badges { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
     .badge { font-size: 11px; font-weight: 700; padding: 3px 7px; border-radius: 5px; white-space: nowrap; }
     .badge-num { background: var(--primary); color: white; cursor: pointer; user-select: none; }
-    .badge-cat { background: #e0e7ff; color: #3730a3; }
     .badge-rate { background: #fef3c7; color: #b45309; }
 
     .spot-name { font-size: 15.5px; font-weight: 800; cursor: pointer; color: #0f172a; word-break: keep-all; }
@@ -332,7 +382,6 @@
     }
     .user-memo-row strong { color: #b45309; white-space: nowrap; font-size: 11.5px; padding-top: 4px; }
 
-    /* 교통 셀 */
     .transit-cell {
       margin: 8px 0 8px 14px;
       padding: 11px 13px;
@@ -389,7 +438,6 @@
     .transit-route-text { font-size: 12.5px; font-weight: 700; color: #1e3a8a; line-height: 1.5; }
     .transit-guide-tip { font-size: 11.5px; color: #334155; margin-top: 5px; padding-top: 5px; border-top: 1px dashed #cbd5e1; line-height: 1.45; }
 
-    /* ★ 모바일/아이패드 친화적 바텀시트 & 모달 시스템 (타임라인 밀림 현상 완전 해결!) ★ */
     .modal-backdrop {
       display: none;
       position: fixed;
@@ -405,10 +453,7 @@
     .modal-backdrop.open { display: flex; }
 
     @media (max-width: 768px) {
-      .modal-backdrop.sheet-mode {
-        align-items: flex-end;
-        padding: 0;
-      }
+      .modal-backdrop.sheet-mode { align-items: flex-end; padding: 0; }
       .modal-backdrop.sheet-mode .modal-card {
         border-radius: 18px 18px 0 0;
         max-height: 86dvh;
@@ -448,194 +493,35 @@
       padding-right: 2px;
     }
 
-    /* 검색 & 위시리스트 카드 그리드 (모달 내부용) */
-    .top-search-bar {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
-    }
-    .top-search-bar input {
-      padding: 9px 11px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 13px;
-      min-width: 0;
-    }
-    .search-result-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 10px;
-      margin-top: 8px;
-    }
-    .s-item {
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 11px;
-      font-size: 12px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 8px;
-    }
+    .top-search-bar { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+    .top-search-bar input { padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; min-width: 0; }
+    .search-result-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; margin-top: 8px; }
+    .s-item { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 11px; font-size: 12px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
     .s-item-title { font-weight: 800; font-size: 14px; color: #0f172a; cursor: pointer; }
 
-    .wish-filter-bar {
-      display: flex;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      overflow-y: hidden;
-      touch-action: pan-x;
-      gap: 6px;
-      margin-bottom: 10px;
-      padding-bottom: 4px;
-      flex-shrink: 0;
-    }
-    .w-chip {
-      padding: 5px 12px;
-      border-radius: 16px;
-      font-size: 11.5px;
-      font-weight: 700;
-      border: 1px solid #fbcfe8;
-      background: white;
-      color: #9d174d;
-      cursor: pointer;
-      flex-shrink: 0;
-      white-space: nowrap;
-    }
-    .w-chip.active { background: var(--wish); color: white; border-color: var(--wish); }
-
-    .wish-cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 10px;
-      padding-bottom: 10px;
-    }
-    .wish-detail-card {
-      background: #fff;
-      border: 1px solid #fbcfe8;
-      border-left: 5px solid var(--wish);
-      border-radius: 10px;
-      padding: 12px;
-      box-shadow: 0 2px 6px rgba(219,39,119,0.06);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 8px;
-      min-width: 0;
-    }
+    .wish-filter-bar { display: none; }
+    .wish-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; padding-bottom: 10px; }
+    .wish-detail-card { background: #fff; border: 1px solid #fbcfe8; border-left: 5px solid var(--wish); border-radius: 10px; padding: 12px; box-shadow: 0 2px 6px rgba(219,39,119,0.06); display: flex; flex-direction: column; justify-content: space-between; gap: 8px; min-width: 0; }
     .wish-card-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
     .wish-card-title { font-size: 14px; font-weight: 800; color: #0f172a; cursor: pointer; margin-top: 4px; word-break: keep-all; }
-    .wish-meta-box {
-      background: #fdf2f8;
-      border: 1px solid #fce7f3;
-      border-radius: 8px;
-      padding: 8px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      font-size: 12px;
-    }
+    .wish-meta-box { background: #fdf2f8; border: 1px solid #fce7f3; border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 5px; font-size: 12px; }
     .wish-meta-row { display: grid; grid-template-columns: 62px 1fr; align-items: start; gap: 6px; }
     .wish-meta-row > span { font-weight: 800; color: #9d174d; font-size: 11.5px; padding-top: 4px; }
 
-    .wish-insert-footer {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: 6px;
-      background: #f8fafc;
-      padding: 7px;
-      border-radius: 8px;
-      border: 1px solid #e2e8f0;
-      width: 100%;
-    }
-    .wish-insert-footer select {
-      width: 100%;
-      min-width: 0;
-      padding: 6px 8px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #1e293b;
-      background: white;
-    }
-    .wish-insert-btn {
-      background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
-      color: white;
-      border: none;
-      padding: 7px 11px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 800;
-      cursor: pointer;
-      white-space: nowrap;
-    }
+    .wish-insert-footer { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px; background: #f8fafc; padding: 7px; border-radius: 8px; border: 1px solid #e2e8f0; width: 100%; }
+    .wish-insert-footer select { width: 100%; min-width: 0; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: 700; color: #1e293b; background: white; }
+    .wish-insert-btn { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); color: white; border: none; padding: 7px 11px; border-radius: 6px; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
 
-    /* 정거장 노선도 스트립 */
-    .bus-board-wrap {
-      background: #f8fafc;
-      border: 2px solid #cbd5e1;
-      border-radius: 12px;
-      padding: 20px 18px 24px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      touch-action: pan-x;
-      -webkit-overflow-scrolling: touch;
-    }
-    .bus-board-canvas {
-      min-width: 540px;
-      padding-top: 115px;
-      padding-bottom: 16px;
-      padding-left: 20px;
-      padding-right: 45px;
-      position: relative;
-    }
-    .bus-track-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: relative;
-      height: 6px;
-      background: #f59e0b;
-      border-radius: 4px;
-    }
+    .bus-board-wrap { background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 12px; padding: 20px 18px 24px; overflow-x: auto; overflow-y: hidden; touch-action: pan-x; -webkit-overflow-scrolling: touch; }
+    .bus-board-canvas { min-width: 540px; padding-top: 115px; padding-bottom: 16px; padding-left: 20px; padding-right: 45px; position: relative; }
+    .bus-track-row { display: flex; justify-content: space-between; align-items: center; position: relative; height: 6px; background: #f59e0b; border-radius: 4px; }
     .bus-track-row.row-2 { margin-top: 145px; }
-    .bus-u-turn {
-      position: absolute;
-      right: 45px;
-      top: 115px;
-      width: 6px;
-      height: 151px;
-      background: #f59e0b;
-      border-radius: 0 4px 4px 0;
-    }
-    .bus-stop-node {
-      position: relative;
-      width: 14px;
-      height: 14px;
-      background: #ffffff;
-      border: 3.5px solid #f59e0b;
-      border-radius: 50%;
-      z-index: 2;
-      flex-shrink: 0;
-    }
+    .bus-u-turn { position: absolute; right: 45px; top: 115px; width: 6px; height: 151px; background: #f59e0b; border-radius: 0 4px 4px 0; }
+    .bus-stop-node { position: relative; width: 14px; height: 14px; background: #ffffff; border: 3.5px solid #f59e0b; border-radius: 50%; z-index: 2; flex-shrink: 0; }
     .bus-stop-node.is-start { width: 18px; height: 18px; background: #2563eb; border-color: #1e3a8a; }
     .bus-stop-node.is-transfer { width: 18px; height: 18px; background: #f59e0b; border-color: #78350f; }
     .bus-stop-node.is-end { width: 18px; height: 18px; background: #dc2626; border-color: #7f1d1d; }
-    .bus-stop-label {
-      position: absolute;
-      bottom: 16px;
-      left: 6px;
-      transform: rotate(-42deg);
-      transform-origin: bottom left;
-      white-space: nowrap;
-      font-size: 12.5px;
-      font-weight: 700;
-      color: #1e293b;
-    }
+    .bus-stop-label { position: absolute; bottom: 16px; left: 6px; transform: rotate(-42deg); transform-origin: bottom left; white-space: nowrap; font-size: 12.5px; font-weight: 700; color: #1e293b; }
     .bus-stop-node.is-start .bus-stop-label { color: #1d4ed8; font-weight: 900; font-size: 13px; }
     .bus-stop-node.is-end .bus-stop-label { color: #dc2626; font-weight: 900; font-size: 13px; }
     .bus-dir-arrow { position: absolute; top: 14px; left: -4px; font-size: 11px; font-weight: 900; color: #dc2626; white-space: nowrap; }
@@ -669,7 +555,27 @@
 </head>
 <body>
 
-  <!-- 1. 상단 헤더 (API 키 입력칸 제거 완료, 깔끔한 여행 정보 & 날짜만 표시) -->
+  <!-- ★ 최상단 서버 동기화 & 저장 전용 고정 바 (스크롤 내려도 화면 맨 위에 항상 고정!) ★ -->
+  <div class="server-top-bar">
+    <div class="server-top-inner no-scrollbar">
+      <span id="syncStatusBadge" class="badge" style="background:#dcfce7; color:#15803d; border:1px solid #86efac; padding:5px 10px; font-size:11.5px;">
+        🟢 서버 동기화 대기중
+      </span>
+      <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
+        <button class="btn btn-primary" id="cloudSaveBtn" style="background:#059669; padding:6px 12px; font-size:12px;" onclick="manualPushToCloud()">
+          ☁️ 서버 저장
+        </button>
+        <button class="btn btn-outline" style="background:#1e293b; color:white; border-color:#475569; padding:6px 10px; font-size:12px;" onclick="manualPullFromCloud()">
+          🔄 최신 불러오기
+        </button>
+        <button class="btn btn-outline" style="background:#1e293b; color:#cbd5e1; border-color:#475569; padding:6px 8px; font-size:11px;" onclick="exportBackup()">💾 백업</button>
+        <button class="btn btn-outline" style="background:#1e293b; color:#cbd5e1; border-color:#475569; padding:6px 8px; font-size:11px;" onclick="document.getElementById('importFileInput').click()">📂 열기</button>
+        <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importBackup(event)">
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. 상단 타이틀 & 숙소/날짜 헤더 -->
   <header>
     <div class="header-top">
       <div class="brand">
@@ -686,43 +592,43 @@
 
       <div class="top-controls">
         <div class="ctrl-group">
-          <span>📅</span>
+          <span>📅 일정:</span>
           <input type="date" id="startDateInput" onchange="updateDateRange()">
           <span>~</span>
           <input type="date" id="endDateInput" onchange="updateDateRange()">
         </div>
-        <span id="syncStatusBadge" class="badge" style="background:#dcfce7; color:#15803d; border:1px solid #86efac; padding:5px 10px; font-size:11.5px;">🟢 실시간 자동 공유중</span>
       </div>
     </div>
   </header>
 
-  <!-- 2. 상단 슬림 고정 퀵 바 (1줄 고정, 화면 밀림 0%) -->
-  <div class="quick-bar">
-    <div class="quick-bar-inner no-scrollbar">
-      <div class="plan-group">
-        <button class="btn btn-outline active" id="planBtn-1" onclick="switchPlan(1)">📌 1안</button>
-        <button class="btn btn-outline" id="planBtn-2" onclick="switchPlan(2)">2안</button>
-        <button class="btn btn-outline" id="planBtn-3" onclick="switchPlan(3)">3안</button>
-        <button class="btn btn-outline" onclick="copyCurrentPlanToOther()">📑 안 복사</button>
-        <button class="btn btn-danger" onclick="clearCurrentPlan()">🗑️ 비우기</button>
+  <!-- 2. 스케줄 안 선택 줄 & 장소검색/위시리스트 전용 2분할 버튼 -->
+  <div class="control-panel">
+    <div class="control-panel-inner">
+      
+      <!-- [윗줄] 1·2·3안 전환 및 복사/비우기 -->
+      <div class="plan-row no-scrollbar">
+        <div style="display:flex; align-items:center; gap:5px;">
+          <span style="font-size:12px; font-weight:800; color:#475569; margin-right:2px;">🗂️ 스케줄:</span>
+          <button class="btn btn-outline active" id="planBtn-1" onclick="switchPlan(1)">📌 1안</button>
+          <button class="btn btn-outline" id="planBtn-2" onclick="switchPlan(2)">2안</button>
+          <button class="btn btn-outline" id="planBtn-3" onclick="switchPlan(3)">3안</button>
+        </div>
+        <div style="display:flex; align-items:center; gap:5px;">
+          <button class="btn btn-outline" style="font-size:11.5px; padding:5px 9px;" onclick="copyCurrentPlanToOther()">📑 안 복사</button>
+          <button class="btn btn-danger" style="font-size:11.5px; padding:5px 9px;" onclick="clearCurrentPlan()">🗑️ 비우기</button>
+        </div>
       </div>
 
-      <div class="action-group">
-        <button class="btn btn-search-top" onclick="openSearchModal()">
-          🔍 장소 검색
+      <!-- [아랫줄] 장소 검색 & 위시리스트 보관함 큼직한 2분할 전용 버튼 -->
+      <div class="search-wish-row">
+        <button class="btn btn-search-top" style="padding:11px; font-size:13.5px; border-radius:9px;" onclick="openSearchModal()">
+          🔍 구글맵 장소 검색
         </button>
-        <button class="btn btn-wish" onclick="openWishModal()">
-          ⭐ 위시리스트 (<span id="wishCountBadge">0</span>)
+        <button class="btn btn-wish" style="padding:11px; font-size:13.5px; border-radius:9px;" onclick="openWishModal()">
+          ⭐ 위시리스트 보관함 (<span id="wishCountBadge">0</span>)
         </button>
-        <button class="btn btn-primary" id="cloudSaveBtn" style="background:#059669;" onclick="manualPushToCloud()">
-          ☁️ 서버 저장
-        </button>
-        <button class="btn btn-outline" onclick="manualPullFromCloud()">
-          🔄 최신 불러오기
-        </button>
-        <button class="btn btn-outline" onclick="exportBackup()">💾 파일백업</button>
-        <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importBackup(event)">
       </div>
+
     </div>
   </div>
 
@@ -1007,7 +913,7 @@
 
   </div>
 
-  <!-- ★ [시트 모달 1] 위시리스트 전용 슬라이드 시트 (타임라인을 밀어내지 않고 깔끔하게 작동!) ★ -->
+  <!-- ★ [시트 모달 1] 위시리스트 전용 슬라이드 시트 ★ -->
   <div id="wishSheetModal" class="modal-backdrop sheet-mode" onclick="if(event.target.id==='wishSheetModal')closeWishModal()">
     <div class="modal-card">
       <div class="modal-header">
@@ -1100,9 +1006,6 @@
   </div>
 
   <script>
-    /********************************************************************
-     * ★ 고정된 Google Maps API 키 (별도 입력 불필요, 전원 즉시 작동) ★
-     ********************************************************************/
     const FIXED_GMAP_API_KEY = "AIzaSyAVbdI4RhCpvl5cVMLS_JDRipSajD5pxPg";
 
     const TOKYO_STATIONS = [
@@ -1154,20 +1057,12 @@
       { kw: ["이마한", "imahan", "今半"], matchSub: "", hours: "11:30 ~ 21:30", payment: "신용카드 · 현금 결제 가능", tip: "디너 코스만 사전 예약 가능, 가성비 런치 세트는 예약 불가(11:30 오픈 40분 전 오픈런 필수) · 직원이 기모노를 입고 테이블에서 최상급 와규 스키야키를 직접 구워줌" },
       { kw: ["마이센", "maisen", "まい泉"], matchSub: "", hours: "11:00 ~ 21:00", payment: "신용카드 · Suica · 현금 모두 가능", tip: "타베로그(Tabelog) 온라인 예약 가능 / 아오야마 본점은 좌석이 넓어 현장 줄도 빠르게 빠짐 · 젓가락으로 잘릴 만큼 부드러운 흑돼지 히레카츠(안심)·로스카츠(등심) 정식 대표" },
       { kw: ["토리키조쿠", "torikizoku", "鳥貴族"], matchSub: "", hours: "17:00 ~ 익일 04:00", payment: "신용카드 · Suica · 현금 모두 가능", tip: "구글맵/홈페이지 예약 가능 또는 매장 앞 대기 태블릿 등록 · 전 메뉴(꼬치 2개·술·사이드) 약 370엔 균일가 · 일반 이자카야와 달리 자릿세(오토시)가 없으며 양배추 샐러드 무한리필, 태블릿 한국어 주문" },
-      { kw: ["이세탄", "isetan", "伊勢丹"], matchSub: "", hours: "10:00 ~ 20:00", payment: "신용카드 · 트래블카드 · 현금 가능 (5,500엔 이상 여권 면세)", tip: "쇼핑 시작 전 1층 안내데스크에서 실물 여권 제시하면 외국인 전용 '5% 즉시 할인 게이트카드' 발급 · 지하 1층 디저트관(에쉬레, 노와쿠키) 및 1층 명품 손수건 코너 필수" },
+      { kw: ["이세탄", "isetan", "伊勢丹"], matchSub: "", hours: "10:00 ~ 20:00", payment: "신용카드 · 트래블카드 · 현금 가능 (5,500엔 이상 여권 면세)", tip: "쇼핑 시작 전 1층 안내데스크에서 실물 여권 제시하면 외국인 전용 '5% 즉시 할인 게이트카드' 발급 · 지하 1층 명품 디저트관(에쉬레, 노와쿠키) & 1층 손수건 코너 필수" },
       { kw: ["돈키호테", "don quijote", "ドン・キホーテ"], matchSub: "", hours: "24시간 연중무휴", payment: "신용카드 · 트래블카드 · 현금 가능", tip: "세금 포함 5,500엔 이상 구매 시 실물 여권 제시하면 10% 면세 등록 + 온라인 5% 추가 할인쿠폰 중복 적용 가능 · 저녁 8~11시는 면세 계산대 줄이 매우 기니 오전이나 심야 방문 추천" },
       { kw: ["시부야 스카이", "shibuya sky", "渋谷スカイ"], matchSub: "", hours: "10:00 ~ 22:30 (최종입장 21:20)", payment: "사전 온라인 QR 예매 전용 (클룩/KKday/공홈, 현장표 매진)", tip: "방문 4주 전 사전 예매 필수 (11월 말 일몰 16:30 기준 15:20~16:00 입장권 최고 명당) · 옥상 안전 규정상 모자, 삼각대, 스카프, 가방 반입 엄격 금지 (14층 무료 락커 보관용 100엔 동전 준비)" }
     ];
 
-    function normalizeCategory(rawCat, placeName) {
-      const str = `${rawCat || ''} ${placeName || ''}`.toLowerCase();
-      if (str.includes('숙소') || str.includes('호텔') || str.includes('hotel')) return "🏨 숙소";
-      if (str.includes('공항') || str.includes('airport') || str.includes('터미널')) return "✈️ 공항";
-      if (str.includes('카페') || str.includes('커피') || str.includes('케이크') || str.includes('디저트') || str.includes('하브스') || str.includes('블루보틀') || str.includes('cafe')) return "☕ 카페/디저트";
-      if (str.includes('쇼핑') || str.includes('백화점') || str.includes('돈키호테') || str.includes('이세탄') || str.includes('store') || str.includes('shop')) return "🛍️ 쇼핑";
-      if (str.includes('관광') || str.includes('명소') || str.includes('전망대') || str.includes('타워') || str.includes('스카이') || str.includes('센소지') || str.includes('팀랩') || str.includes('park')) return "🗼 관광명소";
-      return "🍴 식당";
-    }
+    function normalizeCategory(rawCat, placeName) { return ""; }
 
     async function fetchOsmTagsAround(lat, lng) {
       if (!lat || !lng) return null;
@@ -1188,55 +1083,13 @@
           return { hours: entry.hours, payment: entry.payment, tip: entry.tip };
         }
       }
-
       const tags = osmTags || {};
       const p = gPlaceObj || {};
-
-      let hours = "11:00 ~ 22:00 (연중무휴)";
-      if (p.regularOpeningHours && p.regularOpeningHours.weekdayDescriptions && p.regularOpeningHours.weekdayDescriptions.length > 0) {
-        hours = p.regularOpeningHours.weekdayDescriptions[0].replace(/^월요일:\s*/, '');
-      } else if (tags.opening_hours) {
-        hours = tags.opening_hours;
-      } else if (category === "☕ 카페/디저트") {
-        hours = "09:00 ~ 20:00";
-      } else if (category === "🛍️ 쇼핑") {
-        hours = "10:00 ~ 20:30";
-      } else if (category === "🗼 관광명소") {
-        hours = "09:00 ~ 21:00";
-      }
-
-      let payment = "";
-      if (p.paymentOptions) {
-        const po = p.paymentOptions;
-        if (po.acceptsCashOnly) payment = "현금 전용 매장 (1,000엔권 지폐·동전 필수)";
-        else if (po.acceptsCreditCards) payment = "신용카드(트래블카드) · 교통IC(Suica) · 현금 가능";
-      }
-      if (!payment && Object.keys(tags).length > 0) {
-        if (tags["payment:cash"] === "only" || tags["payment:credit_cards"] === "no") payment = "현금 전용 매장 (1,000엔권 지폐 필수)";
-        else if (tags["payment:credit_cards"] === "yes" || tags["payment:icsf"] === "yes") payment = "신용카드 · 교통IC(Suica) · 현금 가능";
-      }
-      if (!payment) {
-        if (nLow.includes("라멘") || nLow.includes("우동") || nLow.includes("츠케멘")) payment = "입구 식권 자판기 선결제 (현금 및 Suica 가능)";
-        else if (category === "🛍️ 쇼핑") payment = "신용카드 · 트래블카드 · 현금 가능 (5,500엔 이상 여권 지참 시 면세)";
-        else payment = "신용카드(VISA/Master) · 교통IC(Suica) · 현금 결제 가능";
-      }
-
-      let tipParts = [];
-      if (p.reservable === true || tags.reservation === "yes") tipParts.push("구글맵 또는 타베로그 사전 예약 가능");
-      else if (p.reservable === false || tags.reservation === "no" || nLow.includes("라멘") || nLow.includes("우동")) tipParts.push("사전 예약 불가 · 현장 줄서기(피크타임 피해 방문 권장)");
-      else tipParts.push("현장 대기 또는 구글맵 예약 가능");
-
-      if (p.editorialSummary) tipParts.push(p.editorialSummary);
-      else if (p.reviews && p.reviews.length > 0) {
-        const firstLine = (p.reviews[0].text || '').split(/[\n.!?]/)[0].trim();
-        if (firstLine && firstLine.length > 8 && firstLine.length < 70) tipParts.push(`방문자 팁: "${firstLine}"`);
-      }
-
-      if (tipParts.length < 2) {
-        tipParts.push("1인 1메뉴 주문 기본 · 브레이크타임 유의");
-      }
-
-      return { hours, payment, tip: tipParts.join(' · ') };
+      let hours = p.regularOpeningHours?.weekdayDescriptions?.[0]?.replace(/^월요일:\s*/, '') || tags.opening_hours || "11:00 ~ 22:00";
+      let payment = "신용카드 · 교통IC(Suica) · 현금 가능";
+      if (p.paymentOptions?.acceptsCashOnly) payment = "현금 전용 매장";
+      let tip = p.editorialSummary || "구글맵에서 영업시간 및 상세 정보를 확인하세요.";
+      return { hours, payment, tip };
     }
 
     const DEFAULT_CONFIG = {
@@ -1296,126 +1149,36 @@
       return {
         wish: [
           {
-            id: 901, name: "스파게티 노 판쵸 신주쿠점 (Pancho)", category: "🍴 식당",
+            id: 901, name: "스파게티 노 판쵸 신주쿠점 (Pancho)",
             address: "신주쿠역 동쪽출구 도보 4분 / 신주쿠산초메역 B9출구 도보 2분", lat: 35.6908, lng: 139.7032, rating: "4.1",
             hours: "11:00 ~ 23:00 (연중무휴)", payment: "입구 식권 자판기 (현금 및 Suica 교통카드 결제 가능)",
-            tip: "사전 예약 불가 (회전율 빨라 대기 거의 없음) · 나폴리탄 스파게티 소(300g)/중(400g)/대(500g) 가격 동일 · 치즈 및 함박스테이크 토핑 추가 강추"
+            tip: "사전 예약 불가 (회전율 빨라 대기 거의 없음) · 나폴리탄 스파게티 소(300g)/중(400g)/대(500g) 가격 동일"
           },
           {
-            id: 902, name: "라멘 타츠노야 신주쿠 오타키바시도리점", category: "🍴 식당",
+            id: 902, name: "라멘 타츠노야 신주쿠 오타키바시도리점",
             address: "니시신주쿠역 1번출구 도보 4분 / 신주쿠역 서쪽출구 도보 7분", lat: 35.6969, lng: 139.6980, rating: "4.3",
-            hours: "11:00 ~ 22:00", payment: "현금 전용 식권 자판기 (1,000엔권 지폐·동전 필수 지참)",
-            tip: "사전 예약 불가 (현장 줄서기 15~30분 대기) · 곱창 츠케멘(모츠 츠케멘) 시그니처 · 면 다 먹은 후 남은 국물에 뜨거운 죽(와리메시) 추가 필수!"
-          },
-          {
-            id: 903, name: "츠지한 아크힐즈점 (Tsujihan Ark Hills)", category: "🍴 식당",
-            address: "롯폰기잇초메역 3번출구 도보 2분 (아크모리 빌딩 3층)", lat: 35.6672, lng: 139.7401, rating: "4.4",
-            hours: "11:00~15:00 / 17:00~21:00", payment: "신용카드 · 교통IC(Suica) · 현금 모두 결제 가능",
-            tip: "사전 예약 불가 · 니혼바시 본점보다 웨이팅 짧고(15~20분) 실내 대기라 쾌적! 회 2~3점 남기고 셰프에게 도미 육수(타이다시) 무료 추가 요청 필수"
-          },
-          {
-            id: 904, name: "츠지한 니혼바시 본점 (Tsujihan Nihonbashi)", category: "🍴 식당",
-            address: "니혼바시역 B3출구 도보 2분 / 도쿄역 야에스북쪽출구 도보 5분", lat: 35.6801, lng: 139.7730, rating: "4.4",
-            hours: "11:00 ~ 21:00 (브레이크타임 없음)", payment: "현금 전용 (1,000엔권 지폐 준비 필수)",
-            tip: "사전 예약 불가 (오픈 30분 전 대기 권장, 평일/주말 40~60분 웨이팅) · 제이타쿠동 우메(1,350엔~), 마지막에 도미 육수 오차즈케 무료 추가"
-          },
-          {
-            id: 905, name: "신주쿠 우동신 (Udon Shin / うどん慎)", category: "🍴 식당",
-            address: "신주쿠역 남쪽출구 도보 7분", lat: 35.6865, lng: 139.6968, rating: "4.2",
-            hours: "11:00 ~ 22:00", payment: "신용카드 · 현금 모두 결제 가능",
-            tip: "전화 예약 불가 · 매장 앞 키오스크에서 'QR 대기표(정리권)' 먼저 발권 후 QR코드로 내 순서 실시간 확인하며 근처 구경 · 명란 버터 가마타마 우동 시그니처"
-          },
-          {
-            id: 906, name: "하브스 루미네에스트 신주쿠점 (HARBS)", category: "☕ 카페/디저트",
-            address: "신주쿠역 동쪽출구 루미네에스트 지하 2층 (숙소 도보 7분)", lat: 35.6913, lng: 139.7012, rating: "4.3",
-            hours: "11:00 ~ 21:00", payment: "신용카드 · Suica · 현금 결제 가능",
-            tip: "예약 불가 · 밀크레프 케이크 시그니처 · 매장 취식 시 대기 20~30분 및 케이크 외 '1인 1음료 필수' (포장 줄은 대기 없이 즉시 구매해 숙소에서 먹기 좋음)"
-          },
-          {
-            id: 907, name: "이세탄 백화점 신주쿠 본점 (Isetan Shinjuku)", category: "🛍️ 쇼핑",
-            address: "신주쿠산초메역 B4출구 지하 직결 (숙소 도보 5분)", lat: 35.6916, lng: 139.7046, rating: "4.5",
-            hours: "10:00 ~ 20:00", payment: "신용카드 · 트래블카드 · 현금 가능 (여권 지참 시 5% 게이트카드 + 면세)",
-            tip: "1층 안내데스크에서 실물 여권 제시 후 외국인 5% 할인 게이트카드 먼저 발급 · 지하 1층 명품 디저트관(에쉬레, 노와쿠키) & 1층 손수건 코너 필수"
-          },
-          {
-            id: 908, name: "시부야 스카이 (SHIBUYA SKY)", category: "🗼 관광명소",
-            address: "시부야역 B6출구 직결 스크램블스퀘어 14층 엘리베이터", lat: 35.6585, lng: 139.7022, rating: "4.7",
-            hours: "10:00 ~ 22:30 (최종입장 21:20)", payment: "사전 온라인 QR 예매 전용 (클룩/KKday/공홈, 현장표 매진)",
-            tip: "11월 말 일몰 16:30경(15:20~16:00 입장권 최고 명당) · 옥상 안전상 모자·삼각대·스카프·가방 반입 엄격 금지(14층 무료 락커 보관용 100엔 동전 준비)"
+            hours: "11:00 ~ 22:00", payment: "현금 전용 식권 자판기 (1,000엔권 지폐·동전 필수)",
+            tip: "사전 예약 불가 (현장 줄서기 15~30분 대기) · 곱창 츠케멘 시그니처, 마지막 죽 추가 필수"
           }
         ],
         days: [
           [
             {
-              id: 101, time: "14:00", name: "나리타 국제공항 제3터미널", category: "✈️ 공항",
+              id: 101, time: "14:00", name: "나리타 국제공항 제3터미널",
               address: "Narita Airport Terminal 3, Chiba", lat: 35.7796, lng: 140.3860, rating: "4.0",
-              hours: "24시간 운영", payment: "Suica / 신용카드 / 현금", tip: "입국심사 후 1층 밖 파란색 트랙(도보 8분) 또는 1번 정류장 무료셔틀(3분)로 제2터미널 B1층 역 이동",
-              userMemo: "비행기 내리기 전 eSIM 활성화 및 비짓재팬 QR 켜두기",
-              transitMode: "airport", transitToNext: "", transitFare: "", transitMemo: "빨간색 JR 매표소에서 여권 내고 N'EX 왕복티켓(5,000엔) 구매하기"
+              hours: "24시간 운영", payment: "Suica / 신용카드 / 현금", tip: "입국심사 후 1층 밖 파란색 트랙(도보 8분)으로 제2터미널 B1층 역 이동",
+              userMemo: "비행기 내리기 전 eSIM 활성화",
+              transitMode: "airport", transitToNext: "", transitFare: "", transitMemo: "빨간색 JR 매표소에서 N'EX 왕복티켓(5,000엔) 구매"
             },
             {
-              id: 102, time: "16:30", name: "Hotel Sunlite Shinjuku (체크인)", category: "🏨 숙소",
+              id: 102, time: "16:30", name: "Hotel Sunlite Shinjuku (체크인)",
               address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo", lat: 35.6939, lng: 139.7082, rating: "3.9",
-              hours: "체크인 15:00~", payment: "아고다 결제완료 (예약번호 1782306180 · 도시세 별도)", tip: "신주쿠산초메역 E1출구 도보 2분 / 본관 1층 프런트 체크인 후 짐 풀기",
-              userMemo: "체크인 시 도시세 현금 준비, 보조배터리 챙겨서 외출",
-              transitMode: "walk", transitToNext: "", transitFare: "", transitMemo: "신주쿠 거리 구경하면서 걸어가기"
-            },
-            {
-              id: 103, time: "18:00", name: "라멘 타츠노야 신주쿠 오타키바시도리점", category: "🍴 식당",
-              address: "니시신주쿠역 1번출구 도보 4분 / 신주쿠역 서쪽출구 도보 7분", lat: 35.6969, lng: 139.6980, rating: "4.3",
-              hours: "11:00 ~ 22:00", payment: "현금 전용 식권 자판기 (1,000엔권 지폐·동전 필수)", tip: "사전 예약 불가 (현장 줄서기 15~30분 대기) · 곱창 츠케멘(모츠 츠케멘) 시그니처, 다진 마늘 요청 및 마지막에 죽(와리메시) 추가 필수!",
-              userMemo: "곱창 츠케멘 2개 + 반숙계란 추가",
+              hours: "체크인 15:00~", payment: "아고다 결제완료 (도시세 별도)", tip: "신주쿠산초메역 E1출구 도보 2분",
+              userMemo: "도시세 현금 준비",
               transitMode: "walk", transitToNext: "", transitFare: "", transitMemo: ""
             }
           ],
-          [
-            {
-              id: 201, time: "10:00", name: "Hotel Sunlite Shinjuku (숙소 출발)", category: "🏨 숙소",
-              address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo", lat: 35.6939, lng: 139.7082, rating: "3.9",
-              hours: "상시 이용", payment: "결제완료", tip: "신주쿠산초메역 E1출구로 이동해 2일차 일정 시작",
-              userMemo: "여권 실물, 1,000엔권 지폐, 동전지갑 챙겼는지 확인",
-              transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: ""
-            },
-            {
-              id: 202, time: "11:00", name: "츠지한 니혼바시 본점 (Tsujihan Nihonbashi)", category: "🍴 식당",
-              address: "니혼바시역 B3출구 도보 2분 / 도쿄역 야에스북쪽출구 도보 5분", lat: 35.6801, lng: 139.7730, rating: "4.4",
-              hours: "11:00 ~ 21:00", payment: "현금 전용 (1,000엔권 지폐 준비 필수)", tip: "사전 예약 불가 (오픈런 권장) · 제이타쿠동(카이센동) 주문, 회 2점 남기고 셰프에게 도미 육수(타이다시) 무료 리필 요청",
-              userMemo: "우메(기본) 등급으로 주문하고 마지막에 도미 육수 오차즈케 먹기",
-              transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: ""
-            }
-          ],
-          [
-            {
-              id: 301, time: "10:30", name: "Hotel Sunlite Shinjuku (숙소 출발)", category: "🏨 숙소",
-              address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo", lat: 35.6939, lng: 139.7082, rating: "3.9",
-              hours: "상시 이용", payment: "결제완료", tip: "3일차 일정 출발",
-              userMemo: "",
-              transitMode: "walk", transitToNext: "", transitFare: "", transitMemo: ""
-            },
-            {
-              id: 302, time: "12:00", name: "스파게티 노 판쵸 신주쿠점 (Pancho)", category: "🍴 식당",
-              address: "신주쿠역 동쪽출구 도보 4분", lat: 35.6908, lng: 139.7032, rating: "4.1",
-              hours: "11:00 ~ 23:00", payment: "식권 자판기 (현금 · Suica 교통카드 결제 가능)", tip: "예약 불가 (회전율 빨라 바로 입장) · 나폴리탄 소/중/대 가격 동일 + 함박스테이크·치즈 토핑 추천",
-              userMemo: "",
-              transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: ""
-            }
-          ],
-          [
-            {
-              id: 401, time: "10:30", name: "Hotel Sunlite Shinjuku (체크아웃)", category: "🏨 숙소",
-              address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo", lat: 35.6939, lng: 139.7082, rating: "3.9",
-              hours: "체크아웃 11:00", payment: "결제완료", tip: "빠트린 짐 확인 후 신주쿠역으로 이동",
-              userMemo: "면세 물품 캐리어에 잘 넣었는지 확인",
-              transitMode: "airport", transitToNext: "", transitFare: "", transitMemo: "첫날 산 N'EX 왕복패스 귀국권으로 지정석 발권 후 탑승"
-            },
-            {
-              id: 402, time: "13:00", name: "나리타 국제공항 제3터미널", category: "✈️ 공항",
-              address: "Narita Airport Terminal 3, Chiba", lat: 35.7796, lng: 140.3860, rating: "4.0",
-              hours: "출국 수속", payment: "Suica / 신용카드", tip: "공항제2빌딩역 하차 ➔ 빨간색 트랙 따라 3터미널 이동 ➔ 세관 키오스크 여권 스캔(신 면세 확인)",
-              userMemo: "종점(1터미널)까지 가지 말고 무조건 공항제2빌딩역에서 내릴 것!",
-              transitMode: "walk", transitToNext: "", transitFare: "", transitMemo: ""
-            }
-          ]
+          [], [], []
         ]
       };
     }
@@ -1430,9 +1193,6 @@
       }
     };
 
-    /********************************************************************
-     * 2. 노선도 팝업 & 정거장 데이터
-     ********************************************************************/
     function calcDistanceKm(lat1, lng1, lat2, lng2) {
       const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -1465,28 +1225,14 @@
       const endPlace = itemB.name.split('(')[0].trim().slice(0, 12);
 
       if (mode === 'airport' || rawKm > 28) {
-        const isToCity = itemA.name.includes("공항") || (stA && stA.op === 'airport');
-        if (isToCity) {
-          return {
-            title: "🚆 나리타 익스프레스(N'EX) 진입 노선도",
-            stops: ["나리타 3터미널(출발)", "공항제2빌딩역(N'EX 승차)", "치바역", "도쿄역", "시나가와역", "시부야역", "신주쿠역(하차)", `${endPlace}(도착)`]
-          };
-        } else {
-          return {
-            title: "🚆 나리타 익스프레스(N'EX) 귀국 노선도",
-            stops: [`${startPlace}(출발)`, "신주쿠역(N'EX 승차)", "시부야역", "시나가와역", "도쿄역", "공항제2빌딩역(하차)", "나리타 3터미널(도착)"]
-          };
-        }
+        return {
+          title: "🚆 나리타 익스프레스(N'EX) 노선도",
+          stops: ["나리타 3터미널", "공항제2빌딩역", "도쿄역", "신주쿠역", endPlace]
+        };
       }
-
       if (mode === 'walk' || (stA && stB && stA.name === stB.name)) {
-        return { title: "🚶 도보 이동 동선도", stops: [`${startPlace}(출발)`, "도보 이동", `${endPlace}(도착)`] };
+        return { title: "🚶 도보 이동 동선", stops: [startPlace, "도보 이동", endPlace] };
       }
-
-      if (mode === 'bus') {
-        return { title: "🚌 시내버스 정류장 노선도", stops: [`${startPlace}(승차)`, "중간 정류장 경유", `${endPlace}(하차)`] };
-      }
-
       if (stA && stB) {
         const commonLine = findCommonLine(stA, stB);
         if (commonLine && LINE_SEQUENCES[commonLine]) {
@@ -1495,10 +1241,7 @@
           const idxB = seqObj.stops.indexOf(stB.short);
           if (idxA !== -1 && idxB !== -1 && idxA !== idxB) {
             const railStops = idxA < idxB ? seqObj.stops.slice(idxA, idxB + 1) : seqObj.stops.slice(idxB, idxA + 1).reverse();
-            return {
-              title: `🚇 ${commonLine} 정거장 노선도`,
-              stops: [`${startPlace}`, ...railStops.map(s => `${s}역`), `${endPlace}`]
-            };
+            return { title: `🚇 ${commonLine} 정거장 노선도`, stops: [startPlace, ...railStops.map(s => `${s}역`), endPlace] };
           }
         }
       }
@@ -1515,41 +1258,13 @@
 
       const canvas = document.getElementById('rpBoardCanvas');
       const total = stopsArray.length;
-
-      if (total <= 7) {
-        const nodesHtml = stopsArray.map((stName, idx) => {
-          const isStart = idx === 0;
-          const isEnd = idx === total - 1;
-          const cls = isStart ? 'is-start' : (isEnd ? 'is-end' : '');
-          const arrowBadge = isStart ? `<span class="bus-dir-arrow">출발 ➔</span>` : (isEnd ? `<span class="bus-dir-arrow">🏁 하차</span>` : '');
-          return `<div class="bus-stop-node ${cls}"><span class="bus-stop-label">${escapeHtml(stName)}</span>${arrowBadge}</div>`;
-        }).join('');
-        canvas.innerHTML = `<div class="bus-track-row">${nodesHtml}</div>`;
-      } else {
-        const mid = Math.ceil(total / 2);
-        const row1Stops = stopsArray.slice(0, mid);
-        const row2Stops = stopsArray.slice(mid).reverse();
-
-        const row1Html = row1Stops.map((stName, idx) => {
-          const isStart = idx === 0;
-          const cls = isStart ? 'is-start' : '';
-          const arrowBadge = isStart ? `<span class="bus-dir-arrow">출발 ➔</span>` : '';
-          return `<div class="bus-stop-node ${cls}"><span class="bus-stop-label">${escapeHtml(stName)}</span>${arrowBadge}</div>`;
-        }).join('');
-
-        const row2Html = row2Stops.map((stName, idx) => {
-          const isEnd = idx === 0;
-          const cls = isEnd ? 'is-end' : '';
-          const arrowBadge = isEnd ? `<span class="bus-dir-arrow">⬅ 도착</span>` : '';
-          return `<div class="bus-stop-node ${cls}"><span class="bus-stop-label">${escapeHtml(stName)}</span>${arrowBadge}</div>`;
-        }).join('');
-
-        canvas.innerHTML = `
-          <div class="bus-track-row">${row1Html}</div>
-          <div class="bus-u-turn"></div>
-          <div class="bus-track-row row-2">${row2Html}</div>
-        `;
-      }
+      const nodesHtml = stopsArray.map((stName, idx) => {
+        const isStart = idx === 0;
+        const isEnd = idx === total - 1;
+        const cls = isStart ? 'is-start' : (isEnd ? 'is-end' : '');
+        return `<div class="bus-stop-node ${cls}"><span class="bus-stop-label">${escapeHtml(stName)}</span></div>`;
+      }).join('');
+      canvas.innerHTML = `<div class="bus-track-row">${nodesHtml}</div>`;
       document.getElementById('routePopupModal').classList.add('open');
     }
 
@@ -1558,20 +1273,14 @@
       const itemA = list[spotIndex];
       const itemB = list[spotIndex + 1];
       if (!itemA || !itemB) return;
-
       const curMode = itemA.transitMode || detectBestMode(itemA, itemB);
       const rawKm = (itemA.lat && itemB.lat) ? calcDistanceKm(itemA.lat, itemA.lng, itemB.lat, itemB.lng) : 3.0;
       const stA = findNearestStation(itemA.lat, itemA.lng);
       const stB = findNearestStation(itemB.lat, itemB.lng);
-
       const popupData = extractFullStopsForPopup(curMode, itemA, itemB, stA, stB, rawKm);
       const autoInfo = buildDetailedTransitInfo(curMode, itemA, itemB);
-
       const gmapMode = TRANSIT_MODES[curMode]?.gmapMode || 'transit';
-      const originQ = (itemA.lat && itemA.lng) ? `${itemA.lat},${itemA.lng}` : encodeURIComponent(itemA.name);
-      const destQ = (itemB.lat && itemB.lng) ? `${itemB.lat},${itemB.lng}` : encodeURIComponent(itemB.name);
-      const dirUrl = `https://www.google.com/maps/dir/?api=1&origin=${originQ}&destination=${destQ}&travelmode=${gmapMode}`;
-
+      const dirUrl = `https://www.google.com/maps/dir/?api=1&origin=${itemA.lat},${itemA.lng}&destination=${itemB.lat},${itemB.lng}&travelmode=${gmapMode}`;
       renderBusBoardPopup(popupData.title, popupData.stops, autoInfo.fareText, autoInfo.guideTip, dirUrl);
     }
 
@@ -1579,9 +1288,7 @@
       renderBusBoardPopup(title, stopsArr, fareTxt, guideTxt, "");
     }
 
-    function closeRoutePopup() {
-      document.getElementById('routePopupModal').classList.remove('open');
-    }
+    function closeRoutePopup() { document.getElementById('routePopupModal').classList.remove('open'); }
 
     function calcTokyoSubwayFare(distKm, isDirect, opA, opB) {
       const railKm = distKm * 1.25;
@@ -1604,41 +1311,21 @@
         return { routeText: "대중교통 이동", fareText: "180~260엔", guideTip: "IC카드 터치" };
       }
       const rawKm = calcDistanceKm(itemA.lat, itemA.lng, itemB.lat, itemB.lng);
-      const roadKm = rawKm * 1.28;
       const stA = findNearestStation(itemA.lat, itemA.lng);
       const stB = findNearestStation(itemB.lat, itemB.lng);
 
       if (mode === 'airport' || rawKm > 28) {
-        return {
-          routeText: `[제2터미널 B1층] ➔ [JR N'EX] 탑승(75분) ➔ 신주쿠역 하차 후 도보`,
-          fareText: "3,250엔 (왕복패스 5,000엔)",
-          guideTip: "빨간색 JR 매표소에서 여권 제시 후 N'EX 구매"
-        };
+        return { routeText: `[제2터미널 B1층] ➔ [JR N'EX] 탑승(75분)`, fareText: "3,250엔", guideTip: "JR 매표소에서 N'EX 구매" };
       }
       if (mode === 'walk') {
-        const walkMin = Math.max(3, Math.round(roadKm * 15));
-        return { routeText: `🚶 도보 약 ${walkMin}분 소요 (${roadKm.toFixed(1)}km)`, fareText: "0엔", guideTip: "구글맵 도보 길찾기 참고" };
+        return { routeText: `🚶 도보 이동 (${(rawKm*1.28).toFixed(1)}km)`, fareText: "0엔", guideTip: "도보 길참고" };
       }
-      if (mode === 'taxi') {
-        return { routeText: `🚕 택시 이동 약 ${Math.max(5, Math.round(roadKm*2.5))}분`, fareText: "약 1,200엔~", guideTip: "뒷문 자동문" };
-      }
-
-      if (stA && stB) {
-        if (stA.name === stB.name) {
-          return { routeText: `🚶 ${stA.name} 역세권 도보 이동`, fareText: "0엔", guideTip: "전철 불필요" };
-        }
+      if (stA && stB && stA.name !== stB.name) {
         const commonLine = findCommonLine(stA, stB);
-        const stops = Math.max(1, Math.round(rawKm / 1.2));
         const exactFare = calcTokyoSubwayFare(rawKm, Boolean(commonLine), stA.op, stB.op);
-        if (commonLine) {
-          return {
-            routeText: `[${stA.name} ${stA.exit}] 진입 ➔ [${commonLine}] 탑승 (${stops}개 역) ➔ [${stB.name} ${stB.exit}] 하차`,
-            fareText: exactFare,
-            guideTip: `역 안에서 '${commonLine}' 표지판 따라 이동`
-          };
-        }
+        return { routeText: `[${stA.name}] 탑승 ➔ [${stB.name}] 하차`, fareText: exactFare, guideTip: "역 내 표지판 참고" };
       }
-      return { routeText: "인근 역에서 지하철 탑승", fareText: "180~260엔", guideTip: "IC카드 터치" };
+      return { routeText: "지하철 전철 이동", fareText: "180~260엔", guideTip: "IC카드 터치" };
     }
 
     function changeSpotTransitMode(spotId, newMode) {
@@ -1682,7 +1369,6 @@
       if (targetIdx < 0 || targetIdx >= list.length) return;
       const temp = list[idx]; list[idx] = list[targetIdx]; list[targetIdx] = temp;
       lastAddedSpotId = list[targetIdx].id;
-      list.forEach(item => { if (item.transitMode !== 'custom') item.transitToNext = ""; });
       recalcAllTransits(true);
       renderAll();
     }
@@ -1697,7 +1383,6 @@
       const [movedItem] = list.splice(idx, 1);
       list.splice(targetNum - 1, 0, movedItem);
       lastAddedSpotId = movedItem.id;
-      list.forEach(item => { if (item.transitMode !== 'custom') item.transitToNext = ""; });
       recalcAllTransits(true);
       renderAll();
     }
@@ -1706,15 +1391,11 @@
       const list = getCurrentDayList();
       if (list.length <= 1) return;
       list.sort((a, b) => (a.time || "12:00").localeCompare(b.time || "12:00"));
-      list.forEach(item => { if (item.transitMode !== 'custom') item.transitToNext = ""; });
       recalcAllTransits(true);
       renderAll();
     }
-     /********************************************************************
-     * ★ 확정형 클라우드 동기화 엔진 + 전체 화면 렌더링 함수 통합 복구본 ★
-     ********************************************************************/
-    const MY_CLOUD_API_URL = "https://api.npoint.io/d3a4e2fcabe6f2e063a2";
 
+    const MY_CLOUD_API_URL = "https://api.npoint.io/d3a4e2fcabe6f2e063a2";
     let isPullingCloud = false;
     let hasUnsavedChanges = false;
     let lastSearchItems = [];
@@ -1732,10 +1413,7 @@
       hasUnsavedChanges = true;
       updateSyncBadge("🟠 수정됨 ([☁️ 서버 저장] 필요)", "#fef3c7", "#b45309", "#fde68a");
       const btn = document.getElementById('cloudSaveBtn');
-      if (btn) {
-        btn.style.background = "#ea580c";
-        btn.innerText = "☁️ 서버 저장 (미반영!)";
-      }
+      if (btn) { btn.style.background = "#ea580c"; btn.innerText = "☁️ 서버 저장 (미반영!)"; }
     }
 
     function markSaved() {
@@ -1744,81 +1422,52 @@
       const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
       updateSyncBadge(`🟢 서버 동기화 완료 (${timeStr})`, "#dcfce7", "#15803d", "#86efac");
       const btn = document.getElementById('cloudSaveBtn');
-      if (btn) {
-        btn.style.background = "#059669";
-        btn.innerText = "☁️ 서버 저장";
-      }
+      if (btn) { btn.style.background = "#059669"; btn.innerText = "☁️ 서버 저장"; }
     }
 
-    // [☁️ 서버 저장] 클릭 시에만 서버 데이터를 내 화면 기준으로 확정 덮어쓰기
     async function manualPushToCloud(isSilent) {
       try {
         updateSyncBadge("🔼 서버에 저장하는 중...", "#dbeafe", "#1d4ed8", "#93c5fd");
-        const payload = {
-          init: false,
-          updatedAt: Date.now(),
-          appState: appState
-        };
-
+        const payload = { init: false, updatedAt: Date.now(), appState: appState };
         const res = await fetch(MY_CLOUD_API_URL, {
           method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-
         if (res.ok) {
           localStorage.setItem('universal_travel_planner_v9', JSON.stringify(appState));
           markSaved();
-          if (!isSilent) {
-            alert("✅ 서버 저장 완료! 이제 다른 기기(아이폰·아이패드·PC)에서 새로고침하면 이 화면 그대로 나옵니다.");
-          }
+          if (!isSilent) alert("✅ 서버 저장 완료! 다른 기기에서 새로고침하면 이 화면 그대로 나옵니다.");
         } else {
           updateSyncBadge("⚠️ 서버 저장 실패", "#fef2f2", "#b91c1c", "#fecaca");
-          if (!isSilent) alert("서버 응답 오류가 발생했습니다. 잠시 후 다시 눌러주세요.");
+          if (!isSilent) alert("서버 응답 오류가 발생했습니다.");
         }
       } catch (err) {
         updateSyncBadge("⚠️ 네트워크 오류", "#fef2f2", "#b91c1c", "#fecaca");
-        if (!isSilent) alert("인터넷 연결이나 차단 여부를 확인해주세요.");
+        if (!isSilent) alert("인터넷 연결을 확인해주세요.");
       }
     }
 
-    // 접속 시 또는 [🔄 최신 불러오기] 클릭 시 무조건 서버 데이터를 1순위로 가져옴
     async function manualPullFromCloud(isSilent) {
       try {
         isPullingCloud = true;
         updateSyncBadge("🔄 서버에서 불러오는 중...", "#dbeafe", "#1d4ed8", "#93c5fd");
-        const res = await fetch(MY_CLOUD_API_URL + `?t=${Date.now()}`, {
-          method: 'GET',
-          cache: 'no-store'
-        });
-        if (!res.ok) {
-          isPullingCloud = false;
-          return false;
-        }
+        const res = await fetch(MY_CLOUD_API_URL + `?t=${Date.now()}`, { method: 'GET', cache: 'no-store' });
+        if (!res.ok) { isPullingCloud = false; return false; }
         const data = await res.json();
-
-        // 최초 1회 서버가 비어있거나 {"init": true} 상태일 때만 초기 데이터를 서버로 올림
         if (!data || data.init === true || !data.appState || !data.appState.plans) {
           isPullingCloud = false;
           await manualPushToCloud(true);
           return true;
         }
-
         appState = data.appState;
         localStorage.setItem('universal_travel_planner_v9', JSON.stringify(appState));
-
         syncDaysLength();
         recalcAllTransits(false);
         renderAll();
         markSaved();
         isPullingCloud = false;
-
-        if (!isSilent) {
-          alert("🔄 서버에서 가장 최신 일정을 불러왔습니다!");
-        }
+        if (!isSilent) alert("🔄 서버에서 최신 일정을 불러왔습니다!");
         return true;
       } catch (e) {
         isPullingCloud = false;
@@ -1834,33 +1483,16 @@
       const eParts = eStr.split('-').map(Number);
       const sDate = new Date(sParts[0], sParts[1] - 1, sParts[2]);
       const eDate = new Date(eParts[0], eParts[1] - 1, eParts[2]);
-
       let diff = Math.round((eDate - sDate) / 86400000) + 1;
       if (isNaN(diff) || diff < 1) diff = 1;
       if (diff > 14) diff = 14;
-
       const weeks = ['일', '월', '화', '수', '목', '금', '토'];
       const meta = [];
       for (let i = 0; i < diff; i++) {
         const d = new Date(sParts[0], sParts[1] - 1, sParts[2] + i);
-        meta.push({
-          idx: i,
-          shortDate: `${d.getMonth()+1}/${d.getDate()}(${weeks[d.getDay()]})`,
-          fullLabel: `Day ${i + 1} · ${d.getMonth()+1}/${d.getDate()}(${weeks[d.getDay()]})`
-        });
+        meta.push({ idx: i, shortDate: `${d.getMonth()+1}/${d.getDate()}(${weeks[d.getDay()]})`, fullLabel: `Day ${i + 1} · ${d.getMonth()+1}/${d.getDate()}(${weeks[d.getDay()]})` });
       }
       return meta;
-    }
-
-    function upgradeVagueSpotInfo(spot) {
-      spot.category = normalizeCategory(spot.category, spot.name);
-      const isVaguePay = !spot.payment || spot.payment.includes("확인") || spot.payment === "-";
-      const isVagueTip = !spot.tip || spot.tip.includes("확인") || spot.tip.includes("검색으로 추가됨") || spot.tip.includes("보관 장소");
-      if (isVaguePay || isVagueTip) {
-        const deep = buildDeepSpotIntelligence(spot.name, spot.category, null, null);
-        if (isVaguePay) spot.payment = deep.payment;
-        if (isVagueTip) spot.tip = deep.tip;
-      }
     }
 
     function syncDaysLength() {
@@ -1869,8 +1501,6 @@
       [1, 2, 3].forEach(p => {
         if (!Array.isArray(appState.plans[p].days)) appState.plans[p].days = [[], [], [], []];
         while (appState.plans[p].days.length < targetLen) appState.plans[p].days.push([]);
-        (appState.plans[p].wish || []).forEach(w => upgradeVagueSpotInfo(w));
-        appState.plans[p].days.forEach(dList => dList.forEach(s => upgradeVagueSpotInfo(s)));
       });
       if (currentDayIndex >= targetLen) currentDayIndex = 0;
     }
@@ -1887,23 +1517,15 @@
       renderAll();
     }
 
-    function openWishModal() {
-      renderWishSection();
-      document.getElementById('wishSheetModal').classList.add('open');
-    }
+    function openWishModal() { renderWishSection(); document.getElementById('wishSheetModal').classList.add('open'); }
     function closeWishModal() { document.getElementById('wishSheetModal').classList.remove('open'); }
-
-    function openSearchModal() {
-      document.getElementById('searchSheetModal').classList.add('open');
-      setTimeout(() => document.getElementById('searchKeyword').focus(), 120);
-    }
+    function openSearchModal() { document.getElementById('searchSheetModal').classList.add('open'); setTimeout(() => document.getElementById('searchKeyword').focus(), 120); }
     function closeSearchModal() { document.getElementById('searchSheetModal').classList.remove('open'); }
 
     function loadGoogleScript(key) {
       if (window.google && window.google.maps) { initGoogleMap(); return; }
       const existing = document.getElementById('gmap-sdk');
       if (existing) existing.remove();
-
       const s = document.createElement('script');
       s.id = 'gmap-sdk';
       s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&v=weekly&language=ko&callback=initGoogleMap`;
@@ -1933,7 +1555,6 @@
       const region = document.getElementById('regionInput').value.trim();
       const kw = document.getElementById('searchKeyword').value.trim();
       if (!kw) { alert("검색어를 입력해주세요!"); return; }
-
       const fullQuery = `${city} ${region} ${kw}`.trim();
       const listEl = document.getElementById('searchResultList');
       listEl.innerHTML = `<div style="grid-column:1/-1; padding:14px; font-size:12.5px; color:#1d4ed8; font-weight:700;">🔎 '${fullQuery}' 분석 중...</div>`;
@@ -1943,14 +1564,8 @@
         try {
           const { Place } = await google.maps.importLibrary("places");
           if (Place && typeof Place.searchByText === "function") {
-            let places = null;
-            try {
-              const resRich = await Place.searchByText({ textQuery: fullQuery, fields: ["displayName", "formattedAddress", "location", "rating", "regularOpeningHours", "primaryTypeDisplayName", "paymentOptions", "reservable", "editorialSummary", "reviews"], locationBias: { center: { lat: h.lat, lng: h.lng }, radius: 30000 }, language: "ko" });
-              places = resRich.places;
-            } catch (eRich) {
-              const resBasic = await Place.searchByText({ textQuery: fullQuery, fields: ["displayName", "formattedAddress", "location", "rating", "regularOpeningHours", "primaryTypeDisplayName"], locationBias: { center: { lat: h.lat, lng: h.lng }, radius: 30000 }, language: "ko" });
-              places = resBasic.places;
-            }
+            const resRich = await Place.searchByText({ textQuery: fullQuery, fields: ["displayName", "formattedAddress", "location", "rating", "regularOpeningHours", "paymentOptions", "editorialSummary", "reviews"], locationBias: { center: { lat: h.lat, lng: h.lng }, radius: 30000 }, language: "ko" });
+            const places = resRich.places;
             if (places && places.length > 0) {
               const normalized = await Promise.all(places.slice(0, 6).map(async (p) => {
                 const pName = p.displayName || kw;
@@ -1958,10 +1573,9 @@
                 const lngVal = typeof p.location.lng === 'function' ? p.location.lng() : p.location.lng;
                 const nearSt = findNearestStation(latVal, lngVal);
                 const stText = nearSt && nearSt.distKm < 2.5 ? `${nearSt.name}(${nearSt.exit}) 도보 ${nearSt.walkMin}분 · ` : "";
-                const cat = normalizeCategory(p.primaryTypeDisplayName, pName);
                 const osmTags = await fetchOsmTagsAround(latVal, lngVal);
-                const deep = buildDeepSpotIntelligence(pName + " " + kw, cat, p, osmTags);
-                return { name: pName, address: stText + (p.formattedAddress || city), lat: latVal, lng: lngVal, rating: p.rating ? String(p.rating) : "4.2", category: cat, hours: deep.hours, payment: deep.payment, tip: deep.tip };
+                const deep = buildDeepSpotIntelligence(pName + " " + kw, "", p, osmTags);
+                return { name: pName, address: stText + (p.formattedAddress || city), lat: latVal, lng: lngVal, rating: p.rating ? String(p.rating) : "4.2", hours: deep.hours, payment: deep.payment, tip: deep.tip };
               }));
               renderSearchResults(normalized);
               return;
@@ -1982,15 +1596,13 @@
             const nearSt = findNearestStation(latVal, lngVal);
             const stText = nearSt && nearSt.distKm < 2.5 ? `${nearSt.name}(${nearSt.exit}) 도보 ${nearSt.walkMin}분 · ` : "";
             const pName = item.display_name.split(',')[0];
-            const cat = normalizeCategory(item.type, pName);
-            const deep = buildDeepSpotIntelligence(pName, cat, null, tags);
-            return { name: pName, address: stText + item.display_name, lat: latVal, lng: lngVal, rating: "4.2", category: cat, hours: deep.hours, payment: deep.payment, tip: deep.tip };
+            const deep = buildDeepSpotIntelligence(pName, "", null, tags);
+            return { name: pName, address: stText + item.display_name, lat: latVal, lng: lngVal, rating: "4.2", hours: deep.hours, payment: deep.payment, tip: deep.tip };
           });
           renderSearchResults(normalized);
           return;
         }
       } catch (e) {}
-
       listEl.innerHTML = `<div style="grid-column:1/-1; padding:12px; font-size:12px; color:#ef4444;">검색 결과가 없습니다.</div>`;
     }
 
@@ -2000,7 +1612,6 @@
       listEl.innerHTML = '';
       searchMarkers.forEach(m => m.setMap(null));
       searchMarkers = [];
-
       const bounds = (window.google && window.google.maps) ? new google.maps.LatLngBounds() : null;
       const daysMeta = getDaysMetaList();
       const dayOptionsHtml = daysMeta.map(d => `<option value="${d.idx}" ${d.idx === currentDayIndex ? 'selected' : ''}>${d.fullLabel}</option>`).join('');
@@ -2099,17 +1710,10 @@
       document.getElementById('endDateInput').value = cfg.endDate;
     }
 
-    function setWishFilter(cat) { wishFilter = 'all'; renderWishSection(); }
-
     function renderWishSection() {
       const wishes = appState.plans[currentPlan].wish || [];
       const badge = document.getElementById('wishCountBadge');
       if (badge) badge.innerText = wishes.length;
-
-      // 불필요한 카테고리 필터바 숨김 처리
-      const filterBar = document.getElementById('wishFilterBar');
-      if (filterBar) filterBar.style.display = 'none';
-
       const grid = document.getElementById('wishCardsGrid');
 
       if (wishes.length === 0) {
@@ -2157,7 +1761,7 @@
       const name = prompt("추가할 장소 이름을 입력하세요:");
       if (!name || !name.trim()) return;
       const deep = buildDeepSpotIntelligence(name.trim(), "", null, null);
-      appState.plans[currentPlan].wish.unshift({ id: Date.now(), name: name.trim(), category: "", address: "위치 입력", lat: appState.config.hotel.lat, lng: appState.config.hotel.lng, rating: "4.2", hours: deep.hours, payment: deep.payment, tip: deep.tip });
+      appState.plans[currentPlan].wish.unshift({ id: Date.now(), name: name.trim(), address: "위치 입력", lat: appState.config.hotel.lat, lng: appState.config.hotel.lng, rating: "4.2", hours: deep.hours, payment: deep.payment, tip: deep.tip });
       saveData();
       renderWishSection();
     }
@@ -2188,7 +1792,7 @@
       const list = getCurrentDayList();
       const found = list.find(i => i.id === spotId);
       if (!found) return;
-      appState.plans[currentPlan].wish.unshift({ id: Date.now(), name: found.name, category: "", address: found.address, lat: found.lat, lng: found.lng, rating: found.rating, hours: found.hours, payment: found.payment, tip: found.tip });
+      appState.plans[currentPlan].wish.unshift({ id: Date.now(), name: found.name, address: found.address, lat: found.lat, lng: found.lng, rating: found.rating, hours: found.hours, payment: found.payment, tip: found.tip });
       appState.plans[currentPlan].days[currentDayIndex] = list.filter(i => i.id !== spotId);
       recalcAllTransits(true);
       renderAll();
@@ -2209,7 +1813,7 @@
       const h = appState.config.hotel;
       const list = getCurrentDayList();
       const newId = Date.now();
-      list.push({ id: newId, time: "21:30", name: h.name, category: "", address: h.address, lat: h.lat, lng: h.lng, rating: h.rating || "4.0", hours: h.hours || "24시간", payment: "결제완료", tip: h.tip || "숙소 복귀", userMemo: "", transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: "" });
+      list.push({ id: newId, time: "21:30", name: h.name, address: h.address, lat: h.lat, lng: h.lng, rating: h.rating || "4.0", hours: h.hours || "24시간", payment: "결제완료", tip: h.tip || "숙소 복귀", userMemo: "", transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: "" });
       lastAddedSpotId = newId;
       recalcAllTransits(true);
       renderAll();
@@ -2224,7 +1828,7 @@
       const list = getCurrentDayList();
       const container = document.getElementById('timelineContainer');
       if (list.length === 0) {
-        container.innerHTML = `<div style="padding:28px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:10px; font-size:12.5px;">등록된 일정이 없습니다. 위쪽의 <strong>[🔍 구글맵 장소 검색]</strong>이나 <strong>[⭐ 위시리스트 보관함]</strong> 버튼을 눌러 일정을 추가해보세요!</div>`;
+        container.innerHTML = `<div style="padding:28px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:10px; font-size:12.5px;">등록된 일정이 없습니다. 상단 <strong>[🔍 구글맵 장소 검색]</strong>이나 <strong>[⭐ 위시리스트 보관함]</strong> 버튼을 눌러 일정을 추가해보세요!</div>`;
         return;
       }
 
@@ -2283,7 +1887,6 @@
           const guideTip = item.transitGuide || autoInfo.guideTip;
           const gmapMode = TRANSIT_MODES[curMode]?.gmapMode || 'transit';
           const dirUrl = `https://www.google.com/maps/dir/?api=1&origin=${item.lat || ''},${item.lng || ''}&destination=${nextItem.lat || ''},${nextItem.lng || ''}&travelmode=${gmapMode}`;
-
           const modeOptionsHtml = Object.keys(TRANSIT_MODES).map(k => `<option value="${k}" ${curMode === k ? 'selected' : ''}>${TRANSIT_MODES[k].label}</option>`).join('');
 
           html += `
@@ -2312,7 +1915,6 @@
       });
       container.innerHTML = html;
     }
-
 
     function updateSpotField(id, field, value) {
       const list = getCurrentDayList();
@@ -2443,13 +2045,10 @@
 
     function saveData() {
       localStorage.setItem('universal_travel_planner_v9', JSON.stringify(appState));
-      if (!isPullingCloud) {
-        markUnsaved();
-      }
+      if (!isPullingCloud) { markUnsaved(); }
     }
 
     async function loadData() {
-      // 1. 먼저 기본/로컬 화면을 즉시 그려서 빈 화면 방지
       const saved = localStorage.getItem('universal_travel_planner_v9');
       if (saved) {
         try {
@@ -2465,7 +2064,6 @@
       const kwInp = document.getElementById('searchKeyword');
       if (kwInp) kwInp.addEventListener('keydown', (e) => { if (e.key === 'Enter') executeSmartSearch(); });
 
-      // 2. 이어서 클라우드 서버의 최신 데이터를 받아와 덮어씌움
       await manualPullFromCloud(true);
     }
 
