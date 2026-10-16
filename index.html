@@ -1,0 +1,2515 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <title>스마트 해외여행 올인원 플래너 PRO</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #eff6ff;
+      --accent: #f59e0b;
+      --wish: #db2777;
+      --wish-light: #fdf2f8;
+      --danger: #ef4444;
+      --success: #10b981;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #cbd5e1;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    html {
+      height: 100%;
+      background: #0f172a;
+      overflow: hidden;
+    }
+    body {
+      width: 100%;
+      height: 100dvh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 80px;
+      -webkit-text-size-adjust: 100%;
+    }
+    button, input, select, textarea { font-family: inherit; }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* 멀티라인 자동 줄바꿈 편집 박스 */
+    .auto-text {
+      display: block;
+      width: 100%;
+      min-height: 24px;
+      padding: 4px 7px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,0.9);
+      color: #0f172a;
+      font-size: 12.5px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      cursor: text;
+    }
+    .auto-text:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 2px rgba(37,99,235,0.12);
+    }
+    .auto-text:empty:before {
+      content: attr(data-ph);
+      color: #94a3b8;
+      font-weight: 400;
+    }
+
+    /* 1. 상단 헤더 (API 키 입력창 제거로 훨씬 깔끔해짐) */
+    header {
+      background: #0f172a;
+      color: white;
+      padding: 12px 16px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .header-top {
+      max-width: 1380px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .brand h1 { font-size: 17.5px; font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .brand p { font-size: 11.5px; color: #94a3b8; margin-top: 2px; word-break: keep-all; }
+    .city-badge {
+      background: #3b82f6;
+      color: white;
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .top-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .ctrl-group {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 4px 9px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+    }
+    .ctrl-group input[type="date"] {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      outline: none;
+    }
+    .ctrl-group input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+    }
+
+    /* 2. 상단 슬림 고정 바 (절대 아래로 늘어나서 타임라인을 가리지 않음!) */
+    .quick-bar {
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 14px;
+      box-shadow: 0 2px 8px rgba(15,23,42,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .quick-bar-inner {
+      max-width: 1380px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      touch-action: pan-x;
+      white-space: nowrap;
+    }
+    .plan-group, .action-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      padding: 6px 11px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: transform 0.1s, background 0.15s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-outline { background: white; border-color: var(--border); color: var(--text); }
+    .btn-outline.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .btn-wish { background: var(--wish-light); color: #be185d; border-color: #f472b6; font-weight: 800; }
+    .btn-search-top { background: #eff6ff; color: #1d4ed8; border-color: #93c5fd; font-weight: 800; }
+    .btn-danger { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+
+    /* 3. 메인 탭 (좌우 슬라이드 고정, 상하 흔들림 0%) */
+    .main-nav {
+      max-width: 1380px;
+      margin: 10px auto 0;
+      padding: 0 14px;
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 6px;
+      border-bottom: 2px solid #cbd5e1;
+      overflow-x: auto;
+      overflow-y: hidden;
+      touch-action: pan-x;
+      -webkit-overflow-scrolling: touch;
+    }
+    .main-tab {
+      flex: 0 0 auto;
+      height: 38px;
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--muted);
+      background: #e2e8f0;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .main-tab.active { background: white; color: var(--primary); }
+
+    /* 4. 워크스페이스 */
+    .workspace { max-width: 1380px; margin: 0 auto; padding: 12px 14px; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .planner-grid {
+      display: grid;
+      grid-template-columns: 1fr 390px;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .planner-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      margin-bottom: 14px;
+      min-width: 0;
+    }
+    .card-title {
+      font-size: 14.5px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Day 탭 (모바일 좌우 슬라이드 완벽 고정) */
+    .day-tabs {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 8px;
+      margin-bottom: 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      touch-action: pan-x;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 2px;
+    }
+    .day-tab {
+      flex: 0 0 auto;
+      min-width: 110px;
+      height: 52px;
+      padding: 6px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f8fafc;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 13px;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .day-tab.active { background: var(--primary-light); border: 2px solid var(--primary); color: var(--primary); }
+
+    /* 순서 이동 화살표 버튼 그룹 */
+    .order-btn-group {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #f8fafc;
+    }
+    .order-btn {
+      border: none;
+      background: transparent;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #1e293b;
+      cursor: pointer;
+    }
+    .order-btn:disabled { color: #cbd5e1; cursor: default; }
+    .order-btn + .order-btn { border-left: 1px solid #cbd5e1; }
+
+    /* 타임라인 장소 카드 + 투입 시 하이라이트 애니메이션 */
+    @keyframes pulseHighlight {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); border-color: #10b981; background: #ecfdf5; }
+      70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); border-color: #10b981; background: #ffffff; }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .spot-card {
+      border: 1px solid #cbd5e1;
+      border-left: 5px solid var(--primary);
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: white;
+      transition: all 0.2s;
+    }
+    .spot-card.just-added {
+      animation: pulseHighlight 1.8s ease-out;
+    }
+    .spot-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .spot-badges { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .badge { font-size: 11px; font-weight: 700; padding: 3px 7px; border-radius: 5px; white-space: nowrap; }
+    .badge-num { background: var(--primary); color: white; cursor: pointer; user-select: none; }
+    .badge-cat { background: #e0e7ff; color: #3730a3; }
+    .badge-rate { background: #fef3c7; color: #b45309; }
+
+    .spot-name { font-size: 15.5px; font-weight: 800; cursor: pointer; color: #0f172a; word-break: keep-all; }
+    .spot-addr { font-size: 12px; color: #475569; margin: 3px 0 8px; word-break: keep-all; }
+
+    .spot-briefing-box {
+      background: #f8fafc;
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .brief-top-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    @media (max-width: 640px) { .brief-top-grid { grid-template-columns: 1fr; } }
+    .brief-item-label { font-size: 11px; font-weight: 800; color: #334155; margin-bottom: 2px; display: block; }
+
+    .user-memo-row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: start;
+      gap: 6px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 6px 9px;
+      font-size: 12px;
+    }
+    .user-memo-row strong { color: #b45309; white-space: nowrap; font-size: 11.5px; padding-top: 4px; }
+
+    /* 교통 셀 */
+    .transit-cell {
+      margin: 8px 0 8px 14px;
+      padding: 11px 13px;
+      border-left: 4px dashed #2563eb;
+      background: #eff6ff;
+      border-radius: 0 10px 10px 0;
+      border-top: 1px solid #dbeafe;
+      border-right: 1px solid #dbeafe;
+      border-bottom: 1px solid #dbeafe;
+      font-size: 12px;
+    }
+    .transit-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .transit-mode-select {
+      background: var(--primary);
+      color: white;
+      font-weight: 800;
+      border: none;
+      padding: 5px 9px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      cursor: pointer;
+    }
+    .fare-pill {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 11.5px;
+    }
+    .btn-route-popup {
+      background: #f59e0b;
+      color: #ffffff;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .transit-route-box { background: white; border: 1px solid #bfdbfe; border-radius: 8px; padding: 7px 9px; margin-bottom: 6px; }
+    .transit-route-text { font-size: 12.5px; font-weight: 700; color: #1e3a8a; line-height: 1.5; }
+    .transit-guide-tip { font-size: 11.5px; color: #334155; margin-top: 5px; padding-top: 5px; border-top: 1px dashed #cbd5e1; line-height: 1.45; }
+
+    /* ★ 모바일/아이패드 친화적 바텀시트 & 모달 시스템 (타임라인 밀림 현상 완전 해결!) ★ */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.6);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+    .modal-backdrop.open { display: flex; }
+
+    @media (max-width: 768px) {
+      .modal-backdrop.sheet-mode {
+        align-items: flex-end;
+        padding: 0;
+      }
+      .modal-backdrop.sheet-mode .modal-card {
+        border-radius: 18px 18px 0 0;
+        max-height: 86dvh;
+        width: 100%;
+        animation: slideUpSheet 0.22s ease-out;
+      }
+    }
+    @keyframes slideUpSheet {
+      from { transform: translateY(40px); opacity: 0.5; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      width: 100%;
+      max-width: 820px;
+      max-height: 88dvh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.28);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+    .modal-body-scroll {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+      padding-right: 2px;
+    }
+
+    /* 검색 & 위시리스트 카드 그리드 (모달 내부용) */
+    .top-search-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .top-search-bar input {
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      min-width: 0;
+    }
+    .search-result-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .s-item {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 11px;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .s-item-title { font-weight: 800; font-size: 14px; color: #0f172a; cursor: pointer; }
+
+    .wish-filter-bar {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      touch-action: pan-x;
+      gap: 6px;
+      margin-bottom: 10px;
+      padding-bottom: 4px;
+      flex-shrink: 0;
+    }
+    .w-chip {
+      padding: 5px 12px;
+      border-radius: 16px;
+      font-size: 11.5px;
+      font-weight: 700;
+      border: 1px solid #fbcfe8;
+      background: white;
+      color: #9d174d;
+      cursor: pointer;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .w-chip.active { background: var(--wish); color: white; border-color: var(--wish); }
+
+    .wish-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+      padding-bottom: 10px;
+    }
+    .wish-detail-card {
+      background: #fff;
+      border: 1px solid #fbcfe8;
+      border-left: 5px solid var(--wish);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 2px 6px rgba(219,39,119,0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      min-width: 0;
+    }
+    .wish-card-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+    .wish-card-title { font-size: 14px; font-weight: 800; color: #0f172a; cursor: pointer; margin-top: 4px; word-break: keep-all; }
+    .wish-meta-box {
+      background: #fdf2f8;
+      border: 1px solid #fce7f3;
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 12px;
+    }
+    .wish-meta-row { display: grid; grid-template-columns: 62px 1fr; align-items: start; gap: 6px; }
+    .wish-meta-row > span { font-weight: 800; color: #9d174d; font-size: 11.5px; padding-top: 4px; }
+
+    .wish-insert-footer {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 6px;
+      background: #f8fafc;
+      padding: 7px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      width: 100%;
+    }
+    .wish-insert-footer select {
+      width: 100%;
+      min-width: 0;
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #1e293b;
+      background: white;
+    }
+    .wish-insert-btn {
+      background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+      color: white;
+      border: none;
+      padding: 7px 11px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* 정거장 노선도 스트립 */
+    .bus-board-wrap {
+      background: #f8fafc;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 20px 18px 24px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      touch-action: pan-x;
+      -webkit-overflow-scrolling: touch;
+    }
+    .bus-board-canvas {
+      min-width: 540px;
+      padding-top: 115px;
+      padding-bottom: 16px;
+      padding-left: 20px;
+      padding-right: 45px;
+      position: relative;
+    }
+    .bus-track-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      height: 6px;
+      background: #f59e0b;
+      border-radius: 4px;
+    }
+    .bus-track-row.row-2 { margin-top: 145px; }
+    .bus-u-turn {
+      position: absolute;
+      right: 45px;
+      top: 115px;
+      width: 6px;
+      height: 151px;
+      background: #f59e0b;
+      border-radius: 0 4px 4px 0;
+    }
+    .bus-stop-node {
+      position: relative;
+      width: 14px;
+      height: 14px;
+      background: #ffffff;
+      border: 3.5px solid #f59e0b;
+      border-radius: 50%;
+      z-index: 2;
+      flex-shrink: 0;
+    }
+    .bus-stop-node.is-start { width: 18px; height: 18px; background: #2563eb; border-color: #1e3a8a; }
+    .bus-stop-node.is-transfer { width: 18px; height: 18px; background: #f59e0b; border-color: #78350f; }
+    .bus-stop-node.is-end { width: 18px; height: 18px; background: #dc2626; border-color: #7f1d1d; }
+    .bus-stop-label {
+      position: absolute;
+      bottom: 16px;
+      left: 6px;
+      transform: rotate(-42deg);
+      transform-origin: bottom left;
+      white-space: nowrap;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .bus-stop-node.is-start .bus-stop-label { color: #1d4ed8; font-weight: 900; font-size: 13px; }
+    .bus-stop-node.is-end .bus-stop-label { color: #dc2626; font-weight: 900; font-size: 13px; }
+    .bus-dir-arrow { position: absolute; top: 14px; left: -4px; font-size: 11px; font-weight: 900; color: #dc2626; white-space: nowrap; }
+
+    .compact-map-box { width: 100%; height: 250px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: #e2e8f0; margin-bottom: 8px; }
+    #map { width: 100%; height: 100%; }
+
+    .step-flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 10px; }
+    .step-box { border: 1px solid var(--border); border-top: 4px solid var(--primary); border-radius: 8px; padding: 14px; background: #f8fafc; }
+    .step-box h4 { font-size: 14px; margin-bottom: 6px; color: var(--primary-dark); }
+    .step-box p { font-size: 12.5px; color: #334155; }
+
+    .info-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+    .info-table th, .info-table td { border: 1px solid var(--border); padding: 11px 12px; text-align: left; }
+    .info-table th { background: #f1f5f9; font-weight: 800; }
+
+    .phrase-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+    .phrase-card { border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: white; }
+    .phrase-kr { font-weight: 700; font-size: 13.5px; color: #0f172a; margin-bottom: 4px; }
+    .phrase-pron { font-size: 14.5px; font-weight: 800; color: var(--primary); margin-bottom: 2px; }
+    .phrase-jp { font-size: 12.5px; color: #334155; font-weight: 600; }
+
+    .chk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; margin-top: 8px; }
+    .chk-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .chk-item input { width: 16px; height: 16px; cursor: pointer; }
+
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px; }
+    .form-group input { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+  <!-- 1. 상단 헤더 (API 키 입력칸 제거 완료, 깔끔한 여행 정보 & 날짜만 표시) -->
+  <header>
+    <div class="header-top">
+      <div class="brand">
+        <h1>
+          <span id="headerTripTitle">🗼 도쿄 여행 올인원 대시보드</span>
+          <span class="city-badge" onclick="openConfigModal()">🌏 <span id="headerCityBadge">Tokyo</span> · 설정 ⚙️</span>
+        </h1>
+        <p>
+          <span>🏨 숙소: <strong id="headerHotelName" style="color:white;">Hotel Sunlite Shinjuku</strong></span>
+          <span>|</span>
+          <span id="headerHotelTip">신주쿠산초메역 E1출구 도보 2분</span>
+        </p>
+      </div>
+
+      <div class="top-controls">
+        <div class="ctrl-group">
+          <span>📅</span>
+          <input type="date" id="startDateInput" onchange="updateDateRange()">
+          <span>~</span>
+          <input type="date" id="endDateInput" onchange="updateDateRange()">
+        </div>
+        <span id="syncStatusBadge" class="badge" style="background:#dcfce7; color:#15803d; border:1px solid #86efac; padding:5px 10px; font-size:11.5px;">🟢 실시간 자동 공유중</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. 상단 슬림 고정 퀵 바 (1줄 고정, 화면 밀림 0%) -->
+  <div class="quick-bar">
+    <div class="quick-bar-inner no-scrollbar">
+      <div class="plan-group">
+        <button class="btn btn-outline active" id="planBtn-1" onclick="switchPlan(1)">📌 1안</button>
+        <button class="btn btn-outline" id="planBtn-2" onclick="switchPlan(2)">2안</button>
+        <button class="btn btn-outline" id="planBtn-3" onclick="switchPlan(3)">3안</button>
+        <button class="btn btn-outline" onclick="copyCurrentPlanToOther()">📑 안 복사</button>
+        <button class="btn btn-danger" onclick="clearCurrentPlan()">🗑️ 비우기</button>
+      </div>
+
+      <div class="action-group">
+        <button class="btn btn-search-top" onclick="openSearchModal()">
+          🔍 장소 검색
+        </button>
+        <button class="btn btn-wish" onclick="openWishModal()">
+          ⭐ 위시리스트 (<span id="wishCountBadge">0</span>)
+        </button>
+        <button class="btn btn-outline" onclick="exportBackup()">💾 저장</button>
+        <button class="btn btn-outline" onclick="document.getElementById('importFileInput').click()">📂 열기</button>
+        <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importBackup(event)">
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 메인 상단 탭 메뉴 -->
+  <div class="main-nav no-scrollbar">
+    <div class="main-tab active" onclick="switchMainTab('tab-planner', this)">🗓️ 일정 & 동선 플래너</div>
+    <div class="main-tab" onclick="switchMainTab('tab-airport', this)">✈️ 공항·전철 가이드</div>
+    <div class="main-tab" onclick="switchMainTab('tab-taxfree', this)">🛂 11월 신(新) 면세 가이드</div>
+    <div class="main-tab" onclick="switchMainTab('tab-phrase', this)">🗣️ 실전 회화집</div>
+    <div class="main-tab" onclick="switchMainTab('tab-tips', this)">💡 꿀팁 & 체크리스트</div>
+  </div>
+
+  <!-- 4. 메인 워크스페이스 -->
+  <div class="workspace">
+
+    <!-- ==================== [탭 1] 일정 & 동선 플래너 ==================== -->
+    <div id="tab-planner" class="tab-pane active">
+      <div class="day-tabs no-scrollbar" id="dayTabsContainer"></div>
+
+      <div class="planner-grid">
+        <!-- 좌측: 일자별 타임라인 -->
+        <div style="min-width:0;">
+          <div class="card">
+            <div class="card-title">
+              <div>
+                <span id="currentDayTitle">📅 Day 1 타임라인 & 교통 동선</span>
+                <div style="font-size:11px; color:var(--muted); font-weight:500; margin-top:2px;">
+                  💡 <strong>[▲/▼]</strong>로 순서를 바꾸면 노선도와 요금이 자동 재계산됩니다.
+                </div>
+              </div>
+              <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                <button class="btn btn-search-top" onclick="openSearchModal()">🔍 검색 추가</button>
+                <button class="btn btn-wish" onclick="openWishModal()">⭐ 위시 꺼내기</button>
+                <button class="btn btn-outline" onclick="addHotelReturn()">🏨 +숙소</button>
+                <button class="btn btn-outline" onclick="sortCurrentDayByTime()">⏰ 시간순 정렬</button>
+              </div>
+            </div>
+            <div id="timelineContainer"></div>
+          </div>
+        </div>
+
+        <!-- 우측: 동선 미니맵 -->
+        <div style="min-width:0;">
+          <div class="card" style="padding:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <strong style="font-size:13px;">🗺️ 오늘 일정 동선 미니맵</strong>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-outline" style="padding:3px 8px; font-size:11px;" onclick="panToHotel()">🏨 숙소 위치</button>
+                <button class="btn btn-outline" style="padding:3px 8px; font-size:11px;" onclick="fitCurrentDayBounds()">📍 전체 동선</button>
+              </div>
+            </div>
+            <div class="compact-map-box">
+              <div id="map"></div>
+            </div>
+            <div id="mapStatusMsg" style="font-size:11px; color:#10b981; font-weight:700;">
+              ⏳ 구글맵 자동 연결 중...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== [탭 2] 초보자용 공항·전철 완벽 가이드 ==================== -->
+    <div id="tab-airport" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span>✈️ 처음 가는 나리타 국제공항! 비행기 내린 직후부터 기차 타기까지 5단계 완벽 동선</span>
+          <button class="btn-route-popup" onclick="openCustomRouteModal('🚆 나리타 익스프레스(N\'EX) 정차역 노선도', ['나리타 제3터미널(도보/셔틀)', '공항제2빌딩역(N\'EX 승차)', '치바역', '도쿄역', '시나가와역', '시부야역', '신주쿠역(하차)', '신주쿠산초메역 E1출구', '신주쿠 선라이트 호텔'], '3,250엔 (외국인 왕복패스 5,000엔)', '2터미널 지하 1층 빨간색 JR 매표소에서 여권 제시 후 왕복패스 구매')">🗺️ 공항➔숙소 노선도 팝업 보기</button>
+        </div>
+        <p style="font-size:13px; color:var(--muted); margin-bottom:12px;">
+          나리타 제1·2터미널은 지하 1층에 기차역이 바로 있지만, <strong>제3터미널(제주항공·에어서울·에어부산 등 LCC 전용)에는 기차역이 없습니다.</strong> 따라서 입국 후 반드시 <strong>제2터미널 지하 1층 철도역</strong>으로 이동해서 기차를 타야 합니다.
+        </p>
+        <div class="step-flow">
+          <div class="step-box">
+            <h4>STEP 1. 비행기 하차 ➔ 입국심사 (2층)</h4>
+            <p>비행기에서 내리면 무조건 노란색 <strong>[到着 Arrival (도착)]</strong> 표지판만 따라 걸어가세요. 외국인(Foreign Passports) 줄에 서서 <strong>여권</strong>과 미리 캡처해 둔 <strong>Visit Japan Web QR코드</strong>를 보여주고 양손 검지 지문과 얼굴 사진을 찍습니다.</p>
+          </div>
+          <div class="step-box">
+            <h4>STEP 2. 수하물 수령 & 전자세관 통과 (1층)</h4>
+            <p>전광판에서 내 비행기 편명이 적힌 벨트 번호를 찾아 짐을 챙깁니다. 출구 쪽 <strong>세관 키오스크(파란 기계)</strong>에서 여권과 QR코드를 한 번 더 스캔하고 얼굴 인식을 한 뒤 자동문을 통과해 1층 도착 로비로 나옵니다.</p>
+          </div>
+          <div class="step-box">
+            <h4>STEP 3. 제3터미널 ➔ 제2터미널 이동</h4>
+            <p>1층 로비 밖으로 나오면 바닥에 <strong>파란색 육상 트랙</strong>이 깔려 있습니다.<br>• <strong>도보 이동(추천):</strong> 파란 트랙만 따라 걸어가면 비 안 맞는 통로와 무빙워크를 거쳐 <strong>8분 만에 제2터미널</strong>에 도착합니다.<br>• <strong>무료 셔틀버스:</strong> 문 바로 앞 <strong>[1번 정류장]</strong>에서 5분마다 오는 무료 버스를 타면 3분 만에 제2터미널에 내려줍니다.</p>
+          </div>
+          <div class="step-box">
+            <h4>STEP 4. 제2터미널 지하 1층(B1F) 매표소</h4>
+            <p>제2터미널 안으로 들어가서 <strong>[鉄道 Railways (철도)]</strong> 화살표를 따라 에스컬레이터로 <strong>지하 1층(B1F)</strong>으로 내려갑니다.<br>• <strong>빨간색 간판(JR):</strong> 신주쿠·시부야·도쿄역 직행 <strong>나리타 익스프레스(N'EX)</strong><br>• <strong>파란색 간판(Keisei):</strong> 우에노·닛포리행 <strong>스카이라이너</strong></p>
+          </div>
+          <div class="step-box">
+            <h4>STEP 5. N'EX 왕복패스 발권 & 탑승</h4>
+            <p>빨간색 <strong>JR East Travel Service Center</strong>(또는 한국어 지원 검은색 발권기)에 <strong>여권</strong>을 넣고 <strong>[N'EX 도쿄 왕복 티켓(5,000엔)]</strong>을 구매한 뒤, 신주쿠행 지정석 표를 받아 개찰구에 넣고 <strong>1번 플랫폼</strong>으로 내려가 탑승합니다.</p>
+          </div>
+          <div class="step-box" style="border-top-color:#ef4444; background:#fef2f2;">
+            <h4 style="color:#b91c1c;">🚨 귀국날(마지막 날) 공항 갈 때 주의!</h4>
+            <p>첫날 받은 왕복패스(귀국용 티켓)를 신주쿠역 JR 매표소/발권기에 넣어 좌석을 지정받으세요. 기차 탑승 후 <strong>절대 종점(제1터미널)까지 가지 마시고, 반드시 직전 역인 [공항제2빌딩역(Airport Terminal 2·3)]에서 하차</strong>한 뒤 <strong>빨간색 트랙</strong>을 따라 3터미널로 가야 합니다!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🚇 도쿄 지하철·JR 전철 & 시내버스 초보자 완벽 이용법</div>
+        <table class="info-table">
+          <thead>
+            <tr>
+              <th style="width:200px;">구분</th>
+              <th>처음 타보는 사람을 위한 핵심 매뉴얼</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1. 도쿄 전철의 3가지 회사 구분</strong></td>
+              <td>도쿄 전철은 ① <strong>JR선</strong>(야마노테선 등 지상철 위주), ② <strong>도쿄메트로</strong>(9개 지하철 노선), ③ <strong>도영 지하철</strong>(오에도선·신주쿠선 등 4개 노선)로 나뉩니다. <strong>스이카(Suica)/파스모(PASMO) 교통카드 하나만 있으면 회사 구분 없이 모든 전철과 버스를 그냥 찍고 탈 수 있습니다!</strong></td>
+            </tr>
+            <tr>
+              <td><strong>2. 지하철 절대 안 헷갈리는 법<br>(노선 색깔 + 알파벳 기호)</strong></td>
+              <td>한자 역 이름을 외우지 마세요! 모든 노선에는 고유한 <strong>[색깔 동그라미 + 알파벳 + 역 번호]</strong>가 있습니다.<br>• 예시: 숙소 앞 <strong>신주쿠산초메역</strong>은 <strong style="color:#dc2626;">빨간색 M(마루노우치선 M09)</strong>, <strong style="color:#92400e;">갈색 F(후쿠토신선 F13)</strong>, <strong style="color:#16a34a;">초록색 S(도영 신주쿠선 S02)</strong>가 만나는 역입니다.<br>• 역 안에서 바닥과 천장의 색깔 동그라미 화살표만 따라가면 환승할 때 절대 길을 잃지 않습니다.</td>
+            </tr>
+            <tr>
+              <td><strong>3. 개찰구 통과 & 플랫폼 방향 확인</strong></td>
+              <td>• 개찰구 오른쪽 파란색 <strong>[IC]</strong> 패드에 아이폰(또는 실물 스이카 카드)을 1초간 터치하고 지나갑니다.<br>• 플랫폼에 내려가기 전 표지판에서 내가 갈 역 이름과 <strong>[몇 번 홈(Track 1 / Track 2)]</strong>인지만 확인하세요.</td>
+            </tr>
+            <tr>
+              <td><strong>4. 신주쿠역에서 숙소(선라이트 호텔) 가장 쉽게 가는 법</strong></td>
+              <td>• <strong>지하철 이용 시:</strong> 신주쿠역에서 지하도로 이어진 <strong>신주쿠산초메역 [E1 출구]</strong>(엘리베이터 완비)로 나오면 오른쪽으로 도보 2분 거리입니다.<br>• <strong>도영 오에도선 이용 시:</strong> <strong>히가시신주쿠역 [A1 또는 B1 출구]</strong>로 나와 도보 5분 거리입니다.</td>
+            </tr>
+            <tr>
+              <td><strong>5. 도쿄 시내버스 타는 법</strong></td>
+              <td>도쿄 도심 버스(도영 버스)는 <strong>[앞문으로 타면서 스이카 1번 터치(210엔 정액 요금 자동 차감)] ➔ [내릴 때는 벨 누르고 뒷문으로 터치 없이 그냥 하차]</strong>합니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== [탭 3] 11월 신(新) 면세 제도 완벽 가이드 ==================== -->
+    <div id="tab-taxfree" class="tab-pane">
+      <div class="card" style="border-left:5px solid #dc2626;">
+        <div class="card-title" style="color:#b91c1c;">
+          <span>🛂 [필독] 2026년 11월 1일 전면 개편! 일본 신(新) 면세 제도 (사후 환급제·Refund) 완벽 가이드</span>
+          <span class="badge" style="background:#fee2e2; color:#b91c1c; font-size:12px;">2026.11.01 시행 반영</span>
+        </div>
+        <p style="font-size:13.5px; color:#334155; margin-bottom:14px;">
+          일본 정부의 세제 개편에 따라 <strong>2026년 11월 1일부터 외국인 여행객 면세 방식이 기존 '매장 내 즉시 할인'에서 ➔ '매장에서는 소비세(10%) 포함 정가로 먼저 결제하고, 출국할 때 공항에서 세금을 돌려받는 사후 환급(Refund) 방식'</strong>으로 완전히 바뀌었습니다!
+        </p>
+
+        <table class="info-table">
+          <thead>
+            <tr>
+              <th style="width:180px;">항목</th>
+              <th style="width:38%;">기존 면세 제도 (2026년 10월 이전)</th>
+              <th style="background:#eff6ff; color:#1e40af;">🔥 바뀐 신(新) 면세 제도 (2026년 11월 1일~)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1. 매장 결제 금액</strong></td>
+              <td>매장 계산대에서 세금(10%)을 뺀 금액만 결제</td>
+              <td style="background:#f8fafc;"><strong>매장에서는 소비세(10%)가 포함된 금액을 일단 전액 결제</strong><br>(출국 시 공항에서 확인 후 카드/계좌/현금으로 10% 환급)</td>
+            </tr>
+            <tr>
+              <td><strong>2. 빨간 면세 밀봉 봉투<br>(소모품 포장)</strong></td>
+              <td>화장품·과자·술 등 소모품은 특수 투명 봉투에 밀봉 포장 (출국 전 개봉 시 세금 추징)</td>
+              <td style="background:#f8fafc;"><strong style="color:#16a34a;">특수 밀봉 봉투 포장 전면 폐지!</strong><br>일반 물품과 소모품 구분이 사라져 테이프 밀봉 없이 캐리어에 편하게 정리 가능 (단, 일본 내에서 개봉·소비하면 환급 불가)</td>
+            </tr>
+            <tr>
+              <td><strong>3. 면세 상한액</strong></td>
+              <td>소모품 하루 한 매장당 최대 50만 엔 한도 제한</td>
+              <td style="background:#f8fafc;"><strong style="color:#2563eb;">50만 엔 상한액 폐지!</strong> (고가 명품·시계·위스키도 한도 없이 면세 대상)</td>
+            </tr>
+            <tr>
+              <td><strong>4. 최소 구매 금액</strong></td>
+              <td>한 매장 당일 합산 세금 별도 5,000엔(포함 5,500엔) 이상</td>
+              <td style="background:#f8fafc;"><strong>동일 유지:</strong> 한 매장에서 하루 합산 <strong>세금 별도 5,000엔(세금 포함 5,500엔) 이상</strong> 구매 시 면세 등록 가능</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📋 매장에서 쇼핑할 때부터 나리타 공항에서 돈 돌려받기까지 4단계 실전 절차</div>
+        <div class="step-flow">
+          <div class="step-box">
+            <h4>STEP 1. 매장에서 쇼핑 & 실물 여권 제시</h4>
+            <p>돈키호테, 이세탄 백화점, 드럭스토어 등에서 <strong>5,500엔(세금 포함) 이상</strong> 물건을 고른 뒤 계산대(또는 Tax-Free 카운터)에서 <strong>"멘제- 오네가이시마스(면세 부탁합니다)"</strong>라고 말하고 <strong>실물 여권</strong>을 건넵니다.</p>
+          </div>
+          <div class="step-box">
+            <h4>STEP 2. 세금 포함 결제 & 전자 면세 등록</h4>
+            <p>직원이 여권을 스캔해 구매 내역을 일본 관세청 시스템에 전자 등록합니다. 이때 결제는 <strong>소비세 10%가 포함된 금액</strong>으로 먼저 결제됩니다. (매장에서 주는 면세 안내 QR/영수증을 잘 챙기세요.)</p>
+          </div>
+          <div class="step-box">
+            <h4>STEP 3. 귀국날 공항 수하물 부치기 전 확인!</h4>
+            <p><strong>100만 엔 이상 고가품</strong>을 샀거나 세관의 물품 확인 요청이 있는 경우, <strong>항공사 체크인 카운터에서 캐리어를 위탁 수하물로 부치기 전에</strong> 공항 세관(Customs) 카운터/키오스크에서 여권과 물품을 먼저 확인받아야 합니다.</p>
+          </div>
+          <div class="step-box">
+            <h4>STEP 4. 공항 세관 단말기 스캔 & 환급 완료</h4>
+            <p>출국장 세관 키오스크에 <strong>여권을 스캔</strong>하면 관세청 시스템에서 반출 승인(판정 완료)이 뜹니다. 승인 후 등록한 환급 수단(결제한 신용카드/트래블카드 계좌 또는 공항 환급 카운터)으로 소비세 10%를 돌려받습니다.</p>
+          </div>
+        </div>
+        <div style="margin-top:12px; padding:10px 12px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; font-size:12px; color:#92400e;">
+          💡 <strong>이세탄 백화점 등 백화점 쇼핑 팁:</strong> 백화점 자체 <strong>외국인 5% 게이트 할인카드</strong>는 면세 제도와 별개로 매장에서 결제할 때 즉시 5%를 깎아주므로, 쇼핑 시작 전 1층 안내데스크에서 여권을 보여주고 5% 할인카드를 꼭 먼저 발급받으세요!
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== [탭 4] 상황별 실전 회화집 ==================== -->
+    <div id="tab-phrase" class="tab-pane">
+      <div class="card">
+        <div class="card-title">🍴 1. 식당 웨이팅 · 입장 · 주문 실전 회화</div>
+        <div class="phrase-grid">
+          <div class="phrase-card"><div class="phrase-kr">저기요! / 실례합니다 (직원 부를 때)</div><div class="phrase-pron">스미마셍!</div><div class="phrase-jp">すみません！</div></div>
+          <div class="phrase-card"><div class="phrase-kr">2명입니다. (1명: 히토리 / 3명: 산닝 / 4명: 요닝)</div><div class="phrase-pron">후타리 데스</div><div class="phrase-jp">2人（ふたり）です。</div></div>
+          <div class="phrase-card"><div class="phrase-kr">예약 안 했는데 지금 들어갈 수 있나요?</div><div class="phrase-pron">요야쿠 시테나인 데스가, 이마 하이레마스카?</div><div class="phrase-jp">予約してないんですが、今入れますか？</div></div>
+          <div class="phrase-card"><div class="phrase-kr">얼마나 기다려야 하나요?</div><div class="phrase-pron">도노구라이 마치마스카?</div><div class="phrase-jp">どのくらい待ちますか？</div></div>
+          <div class="phrase-card"><div class="phrase-kr">한국어(영어) 메뉴판 있나요?</div><div class="phrase-pron">캉코쿠고(에이고)노 메뉴 아리마스카?</div><div class="phrase-jp">韓国語（英語）のメニューはありますか？</div></div>
+          <div class="phrase-card"><div class="phrase-kr">이거 하나랑, 이거 하나 주세요. (손가락으로 가리키며)</div><div class="phrase-pron">코레 히토츠토, 코레 히토츠 쿠다사이</div><div class="phrase-jp">これ一つと、これ一つください。</div></div>
+          <div class="phrase-card"><div class="phrase-kr">생맥주 두 잔 주세요!</div><div class="phrase-pron">나마비-루 후타츠 쿠다사이</div><div class="phrase-jp">生ビール二つください。</div></div>
+          <div class="phrase-card"><div class="phrase-kr">물(냉수) 좀 부탁드립니다.</div><div class="phrase-pron">오미즈 오네가이시마스</div><div class="phrase-jp">お水（おみず）お願いします。</div></div>
+          <div class="phrase-card"><div class="phrase-kr">(츠지한 필수) 도미 육수(타이다시)와 밥 조금 부탁합니다!</div><div class="phrase-pron">타이다시토 고항오 스코시 오네가이시마스</div><div class="phrase-jp">鯛だしとご飯を少しお願いします。</div></div>
+          <div class="phrase-card"><div class="phrase-kr">(라멘/우동) 파 / 와사비는 빼주세요.</div><div class="phrase-pron">네기 / 와사비와 누이테 쿠다사이</div><div class="phrase-jp">ネギ / わさびは抜いてください。</div></div>
+          <div class="phrase-card"><div class="phrase-kr">계산 부탁드립니다! (손가락으로 X자 그려도 됨)</div><div class="phrase-pron">오카이케- 오네가이시마스</div><div class="phrase-jp">お会計お願いします。</div></div>
+          <div class="phrase-card"><div class="phrase-kr">카드 결제 되나요? / 스이카 되나요?</div><div class="phrase-pron">카-도 데키마스카? / 스이카 츠카에마스카?</div><div class="phrase-jp">カードできますか？ / Suica使えますか？</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🛍️ 2. 편의점 · 백화점 쇼핑 · 지하철 · 호텔 실전 회화</div>
+        <div class="phrase-grid">
+          <div class="phrase-card"><div class="phrase-kr">(편의점) 비닐봉투 하나 주세요.</div><div class="phrase-pron">후쿠로 히토츠 쿠다사이</div><div class="phrase-jp">袋（ふくろ）一つください。</div></div>
+          <div class="phrase-card"><div class="phrase-kr">(편의점) 이거 전자레인지에 데워 주세요.</div><div class="phrase-pron">코레 아타타메테 쿠다사이</div><div class="phrase-jp">これ温（あたた）めてください。</div></div>
+          <div class="phrase-card"><div class="phrase-kr">(편의점) 젓가락 / 포크 / 스푼 주세요.</div><div class="phrase-pron">오하시 / 포-쿠 / 스푸-응 쿠다사이</div><div class="phrase-jp">お箸 / フォーク / スプーンをください。</div></div>
+          <div class="phrase-card"><div class="phrase-kr">(쇼핑) 새 상품(재고)으로 있나요?</div><div class="phrase-pron">아타라시이 모노(자이코) 아리마스카?</div><div class="phrase-jp">新しいもの（在庫）はありますか？</div></div>
+          <div class="phrase-card"><div class="phrase-kr">(쇼핑) 면세(Tax-Free) 수속 부탁합니다.</div><div class="phrase-pron">멘제- 테츠즈키 오네가이시마스</div><div class="phrase-jp">免税手続きお願いします。</div></div>
+          <div class="phrase-card"><div class="phrase-kr">(이세탄 백화점) 외국인 5% 게이트카드 발급해주세요.</div><div class="phrase-pron">가이코쿠진 게-토 카-도 오네가이시마스</div><div class="phrase-jp">外国人ゲストカードお願いします。</div></div>
+          <div class="phrase-card"><div class="phrase-kr">(길찾기) 화장실은 어디에 있나요?</div><div class="phrase-pron">토이레와 도코 데스카?</div><div class="phrase-jp">トイレはどこですか？</div></div>
+          <div class="phrase-card"><div class="phrase-kr">(전철역) 신주쿠역에 가려면 몇 번 홈에서 타나요?</div><div class="phrase-pron">신주쿠에키와 난반 호-무 데스카?</div><div class="phrase-jp">新宿駅は何番ホームですか？</div></div>
+          <div class="phrase-card"><div class="phrase-kr">(호텔) 체크인 부탁합니다.</div><div class="phrase-pron">체크인 오네가이시마스</div><div class="phrase-jp">チェックインお願いします。</div></div>
+          <div class="phrase-card"><div class="phrase-kr">(호텔) 체크인 전인데 짐을 맡아주실 수 있나요?</div><div class="phrase-pron">체크인 마에데스가, 니모츠오 아즈캇테 모라에마스카?</div><div class="phrase-jp">チェックイン前ですが、荷物を預かってもらえますか？</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== [탭 5] 필수 꿀팁 & 체크리스트 ==================== -->
+    <div id="tab-tips" class="tab-pane">
+      <div class="card">
+        <div class="card-title">✅ 출발 전 필수 준비물 체크리스트 (클릭하면 체크 상태가 자동 저장됩니다)</div>
+        <div class="chk-grid" id="checklistContainer"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💡 처음 가는 일본 여행자가 꼭 알아야 할 현지 실전 꿀팁 6가지</div>
+        <table class="info-table">
+          <tbody>
+            <tr>
+              <th style="width:190px;">1. 🧥 11월 말~12월 초 날씨 & 옷차림</th>
+              <td>도쿄의 11월 말 기온은 <strong>최저 7~9°C / 최고 14~16°C</strong>로 한국의 11월 초중순 가을 날씨와 비슷해 낮에는 걷기 아주 쾌적합니다. 단, <strong>지하철과 백화점 실내 난방이 매우 강하므로</strong> 두꺼운 헤비 패딩 하나보다는 <strong>코트나 경량패딩 + 가디건/니트처럼 입고 벗기 편한 겹쳐 입기(레이어드)</strong>가 훨씬 좋습니다. 해가 오후 4시 30분이면 지므로 전망대는 15시 30분 전후로 예약하세요.</td>
+            </tr>
+            <tr>
+              <th>2. 💳 결제수단 황금 비율<br>(카드 + 스이카 + 현금)</th>
+              <td>• <strong>트래블카드(트래블로그/월렛)·신용카드:</strong> 백화점, 쇼핑몰, 편의점, 일반 식당 90% 사용 가능.<br>• <strong>아이폰 지갑 앱 Suica / PASMO:</strong> 한국에서 미리 애플지갑에 추가해 충전해 가면 전철, 버스, 자판기, 코인락커, 편의점까지 아이폰만 대면 1초 만에 결제됩니다.<br>• <strong>엔화 현금(1,000엔권 지폐 & 동전지갑):</strong> 츠지한 본점, 라멘 타츠노야 등 유명 라멘·덮밥집 식권 자판기는 <strong>오직 현금(특히 1,000엔짜리 지폐)</strong>만 들어갑니다! 편의점에서 생수를 사서라도 10,000엔권은 미리 1,000엔권과 동전으로 깨두세요.</td>
+            </tr>
+            <tr>
+              <th>3. 🎟️ 일본 식당 식권 자판기 이용 순서</th>
+              <td>① 식당 입구 자판기에 <strong>현금(1,000엔권 지폐/동전) 또는 스이카를 먼저 넣습니다.</strong> (한국과 달리 돈을 먼저 넣어야 버튼에 불이 들어옵니다!)<br>② 원하는 메뉴 버튼을 누르면 작은 종이 식권이 나옵니다.<br>③ <strong>거스름돈 레버</strong>를 돌려 잔돈을 챙긴 뒤, 자리에 앉으며 직원에게 식권을 건네면 주문 완료!</td>
+            </tr>
+            <tr>
+              <th>4. 🍺 식당 예절 (1인 1메뉴 & 오토시)</th>
+              <td>• <strong>1인 1메뉴/1음료:</strong> 라멘집이나 카페(하브스 등)에서는 일행 수만큼 메뉴나 음료를 시키는 것이 필수 예절입니다.<br>• <strong>오토시(お通し·자릿세):</strong> 저녁에 이자카야에 가면 시키지 않은 작은 기본 안주가 나오며 1인당 300~500엔이 계산서에 추가됩니다. 바가지가 아니라 일본의 오랜 자릿세 문화이니 안심하세요.</td>
+            </tr>
+            <tr>
+              <th>5. 🚮 길거리 쓰레기통 & 걸으며 먹기 금지</th>
+              <td>일본 거리에는 쓰레기통이 거의 없습니다. 가방에 작은 비닐봉지를 하나 넣어 다니시고, 아사쿠사 등에서 길거리 간식을 사면 걸어 다니며 먹지(타베아루키 금지) 말고 가게 앞 지정 구역에서 다 먹은 뒤 빈 꼬치나 포장지를 그 가게 쓰레기통에 버리면 됩니다.</td>
+            </tr>
+            <tr>
+              <th>6. 🏨 숙소(선라이트 호텔) 체크인 & 숙박세</th>
+              <td><strong>Hotel Sunlite Shinjuku (예약번호: 1782306180)</strong> 본관(Main Building) 1층 프런트에서 여권 제시 후 체크인(15:00~). 체크인 시간 전 일찍 도착해도 프런트에 캐리어를 무료로 맡길 수 있습니다. 도쿄도 조례에 따라 현장에서 1인 1박당 100~200엔의 숙박세(도시세)가 별도 청구될 수 있습니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ★ [시트 모달 1] 위시리스트 전용 슬라이드 시트 (타임라인을 밀어내지 않고 깔끔하게 작동!) ★ -->
+  <div id="wishSheetModal" class="modal-backdrop sheet-mode" onclick="if(event.target.id==='wishSheetModal')closeWishModal()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3 style="font-size:16px; font-weight:800; color:#be185d;">⭐ 위시리스트 보관함</h3>
+          <p style="font-size:11.5px; color:var(--muted);">날짜를 선택하고 [타임라인 투입]을 누르면 해당 일정으로 즉시 들어갑니다.</p>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="btn btn-search-top" style="padding:5px 9px; font-size:11.5px;" onclick="closeWishModal(); openSearchModal();">🔍 검색으로 추가</button>
+          <button class="btn btn-wish" style="padding:5px 9px; font-size:11.5px;" onclick="addBlankWishCard()">+ 직접 입력</button>
+          <button class="btn btn-outline" style="padding:5px 10px;" onclick="closeWishModal()">✕ 닫기</button>
+        </div>
+      </div>
+
+      <div class="wish-filter-bar no-scrollbar" id="wishFilterBar"></div>
+
+      <div class="modal-body-scroll">
+        <div class="wish-cards-grid" id="wishCardsGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ★ [시트 모달 2] 구글맵 실시간 검색 전용 슬라이드 시트 ★ -->
+  <div id="searchSheetModal" class="modal-backdrop sheet-mode" onclick="if(event.target.id==='searchSheetModal')closeSearchModal()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3 style="font-size:16px; font-weight:800; color:#1e40af;">🔍 구글맵 · 웹DB 실시간 장소 검색</h3>
+          <p style="font-size:11.5px; color:var(--muted);">식당·카페·명소의 정식 명칭, 영업시간, 결제수단, 웨이팅 팁을 자동 분석합니다.</p>
+        </div>
+        <button class="btn btn-outline" style="padding:5px 10px;" onclick="closeSearchModal()">✕ 닫기</button>
+      </div>
+
+      <div class="top-search-bar">
+        <input type="text" id="regionInput" placeholder="지역 (예: 신주쿠)" style="width:115px; flex:0 0 auto;">
+        <input type="text" id="searchKeyword" placeholder="식당·가게·명소 입력 (예: 츠지한, 이치란, 하브스)" style="flex:1;">
+        <button class="btn btn-primary" style="padding:8px 16px;" onclick="executeSmartSearch()">검색</button>
+      </div>
+
+      <div class="modal-body-scroll">
+        <div id="searchResultList" class="search-result-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ★ [모달 3] 정거장 노선도 팝업 ★ -->
+  <div id="routePopupModal" class="modal-backdrop" onclick="if(event.target.id==='routePopupModal')closeRoutePopup()">
+    <div class="modal-card" style="max-width:700px;">
+      <div class="modal-header">
+        <div>
+          <h3 id="rpTitle" style="font-size:16px; font-weight:800; color:#0f172a;">🚌 대중교통 정거장 노선도</h3>
+          <p style="font-size:11.5px; color:var(--muted); margin-top:2px;">좌우로 밀어서 전체 정거장/역 순서를 확인할 수 있습니다.</p>
+        </div>
+        <span id="rpFareBadge" class="fare-pill"></span>
+      </div>
+
+      <div class="modal-body-scroll">
+        <div class="bus-board-wrap no-scrollbar">
+          <div id="rpBoardCanvas" class="bus-board-canvas"></div>
+        </div>
+        <div id="rpGuideBox" style="margin-top:12px; padding:10px 12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:12.5px; color:#1e3a8a; line-height:1.5;"></div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:14px; flex-shrink:0;">
+        <a id="rpGmapLink" href="#" target="_blank" class="btn btn-primary" style="flex:1; justify-content:center; padding:10px;">🗺️ 구글맵 실시간 길찾기 열기 ↗</a>
+        <button class="btn btn-outline" style="padding:10px 18px;" onclick="closeRoutePopup()">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⚙️ [모달 4] 설정 모달 -->
+  <div id="configModal" class="modal-backdrop" onclick="if(event.target.id==='configModal')closeConfigModal()">
+    <div class="modal-card" style="max-width:440px;">
+      <div class="modal-header">
+        <h3 style="font-size:16px; font-weight:800;">🌏 여행 도시 & 숙소 설정</h3>
+        <button class="btn btn-outline" style="padding:4px 8px;" onclick="closeConfigModal()">✕</button>
+      </div>
+      <div class="modal-body-scroll">
+        <div class="form-group"><label>✈️ 여행 타이틀</label><input type="text" id="cfgTripTitle" placeholder="예: 도쿄 미식 여행"></div>
+        <div class="form-group"><label>🌏 검색 기준 도시명</label><input type="text" id="cfgCityName" placeholder="예: Tokyo, Osaka"></div>
+        <div class="form-group"><label>🏨 숙소 이름</label><input type="text" id="cfgHotelName" placeholder="예: Hotel Sunlite Shinjuku"></div>
+        <div class="form-group"><label>📍 숙소 주소</label><input type="text" id="cfgHotelAddr" placeholder="예: 5-15-8 Shinjuku"></div>
+        <div class="form-group"><label>🚇 인근 역 출구 / 메모</label><input type="text" id="cfgHotelTip" placeholder="예: 신주쿠산초메역 E1출구 도보 2분"></div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <button class="btn btn-primary" style="flex:1; justify-content:center; padding:10px;" onclick="saveConfigModal()">💾 설정 저장</button>
+        <button class="btn btn-outline" style="padding:10px 16px;" onclick="closeConfigModal()">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /********************************************************************
+     * ★ 고정된 Google Maps API 키 (별도 입력 불필요, 전원 즉시 작동) ★
+     ********************************************************************/
+    const FIXED_GMAP_API_KEY = "AIzaSyAVbdI4RhCpvl5cVMLS_JDRipSajD5pxPg";
+
+    const TOKYO_STATIONS = [
+      { name: "신주쿠산초메역", short: "신주쿠산초메", lat: 35.6909, lng: 139.7063, exit: "E1·B4출구", lines: ["마루노우치선(빨강 M)", "후쿠토신선(갈색 F)", "도영 신주쿠선(초록 S)"], op: "metro" },
+      { name: "히가시신주쿠역", short: "히가시신주쿠", lat: 35.6979, lng: 139.7076, exit: "A1·B1출구", lines: ["도영 오에도선(자주 E)", "후쿠토신선(갈색 F)"], op: "toei" },
+      { name: "신주쿠역", short: "신주쿠", lat: 35.6896, lng: 139.7006, exit: "동쪽·남쪽출구", lines: ["JR 야마노테선(연두 JY)", "마루노우치선(빨강 M)", "도영 오에도선(자주 E)"], op: "jr" },
+      { name: "니시신주쿠역", short: "니시신주쿠", lat: 35.6945, lng: 139.6926, exit: "1번출구", lines: ["마루노우치선(빨강 M)"], op: "metro" },
+      { name: "시부야역", short: "시부야", lat: 35.6580, lng: 139.7016, exit: "하치코·B6출구", lines: ["후쿠토신선(갈색 F)", "긴자선(주황 G)", "JR 야마노테선(연두 JY)"], op: "metro" },
+      { name: "긴자역", short: "긴자", lat: 35.6712, lng: 139.7650, exit: "A3·A13·C2출구", lines: ["마루노우치선(빨강 M)", "긴자선(주황 G)", "히비야선(은색 H)"], op: "metro" },
+      { name: "도쿄역(니혼바시역)", short: "도쿄(니혼바시)", lat: 35.6812, lng: 139.7671, exit: "야에스북쪽·B3출구", lines: ["마루노우치선(빨강 M)", "긴자선(주황 G)", "JR 야마노테선(연두 JY)"], op: "metro" },
+      { name: "롯폰기잇초메역", short: "롯폰기잇초메", lat: 35.6656, lng: 139.7388, exit: "3번출구(아크힐즈 직결)", lines: ["남보쿠선(에메랄드 N)"], op: "metro" },
+      { name: "롯폰기역", short: "롯폰기", lat: 35.6628, lng: 139.7314, exit: "1C·8번출구", lines: ["히비야선(은색 H)", "도영 오에도선(자주 E)"], op: "metro" },
+      { name: "아사쿠사역", short: "아사쿠사", lat: 35.7110, lng: 139.7966, exit: "1번출구(센소지 방향)", lines: ["긴자선(주황 G)", "도영 아사쿠사선(분홍 A)"], op: "metro" },
+      { name: "우에노역", short: "우에노", lat: 35.7141, lng: 139.7774, exit: "중앙·시노바즈출구", lines: ["긴자선(주황 G)", "히비야선(은색 H)", "JR 야마노테선(연두 JY)"], op: "jr" },
+      { name: "나리타공항(제2·3터미널)역", short: "공항제2빌딩(T2·T3)", lat: 35.7719, lng: 140.3929, exit: "지하 1층(B1F) 철도개찰구", lines: ["JR 나리타익스프레스(N'EX)", "게이세이 스카이라이너"], op: "airport" }
+    ];
+
+    const LINE_SEQUENCES = {
+      "마루노우치선(빨강 M)": {
+        color: "#dc2626",
+        stops: ["니시신주쿠", "신주쿠", "신주쿠산초메", "신주쿠교엔마에", "요츠야산초메", "요츠야", "아카사카미츠케", "국회의사당앞", "카스미가세키", "긴자", "도쿄(니혼바시)", "오테마치", "이케부쿠로"]
+      },
+      "후쿠토신선(갈색 F)": {
+        color: "#92400e",
+        stops: ["이케부쿠로", "히가시신주쿠", "신주쿠산초메", "키타산도", "메이지진구마에(하라주쿠)", "시부야"]
+      },
+      "긴자선(주황 G)": {
+        color: "#ea580c",
+        stops: ["시부야", "오모테산도", "아카사카미츠케", "심바시", "긴자", "도쿄(니혼바시)", "우에노", "아사쿠사"]
+      },
+      "도영 오에도선(자주 E)": {
+        color: "#be185d",
+        stops: ["히가시신주쿠", "신주쿠", "요요기", "국립경기장", "아오야마잇초메", "롯폰기", "아자부주반"]
+      }
+    };
+
+    const KNOWN_SPOTS_DICT = [
+      { kw: ["츠지한", "tsujihan", "つじ半"], matchSub: "아크힐즈", hours: "11:00~15:00 / 17:00~21:00", payment: "신용카드 · 교통IC(Suica) · 현금 모두 가능", tip: "예약 불가 (현장 대기 15~20분, 본점보다 대기 짧고 실내라 쾌적) · 제이타쿠동 주문 후 회 2~3점 남기고 셰프에게 '타이다시(도미 육수)' 무료 추가 요청 필수" },
+      { kw: ["츠지한", "tsujihan", "つじ半"], matchSub: "", hours: "11:00 ~ 21:00 (브레이크타임 없음)", payment: "현금 전용 (1,000엔권 지폐 준비 필수, 아크힐즈·미드타운점은 카드 가능)", tip: "예약 불가 (오픈 30분 전 대기 권장, 평일/주말 40~60분 웨이팅) · 대표메뉴: 제이타쿠동 우메(1,350엔~) · 회 2점 남긴 뒤 도미 육수(타이다시) 오차즈케 무료 추가 필수" },
+      { kw: ["이치란", "ichiran", "一蘭"], matchSub: "", hours: "10:00 ~ 22:00 (가부키초·시부야점은 익일 06:00까지)", payment: "입구 식권 자판기 (현금 · 신용카드 · Suica · PayPay 모두 결제 가능)", tip: "예약 불가 (현장 줄서기 전용, 전광판으로 빈자리 확인) · 1인 독서실 좌석 · 한국어 주문서 제공 (비밀소스 3~4단계 + 반숙 소금계란 + 차슈 추가 추천)" },
+      { kw: ["모토무라", "규카츠", "motomura", "もと村"], matchSub: "", hours: "11:00 ~ 22:00 (라스트오더 21:30)", payment: "신용카드 · 교통IC(Suica) · 현금 모두 결제 가능", tip: "예약 불가 (오픈 15~20분 전 도착 시 첫 타임 입장 가능, 피크타임 30~50분 대기) · 규카츠 130g(1장)/260g(2장) 정식 · 개인 미니 화로(돌판)에 구워 와사비·암염에 찍어 먹음, 보리밥 1회 무료 리필" },
+      { kw: ["우동신", "udon shin", "うどん慎"], matchSub: "", hours: "11:00 ~ 22:00", payment: "신용카드 · 현금 결제 가능", tip: "전화/온라인 예약 불가 · 매장 앞 발권기에서 반드시 'QR 대기표(정리권)'를 먼저 출력한 뒤 QR코드로 내 순서를 실시간 확인하며 근처 구경 후 복귀 · 명란(멘타이코) 버터 가마타마 우동 & 자루우동+튀김 시그니처" },
+      { kw: ["타츠노야", "tatsunoya", "龍の家"], matchSub: "", hours: "11:00 ~ 22:00", payment: "현금 전용 식권 자판기 (1,000엔권 지폐·동전 필수 지참)", tip: "예약 불가 (현장 줄서기 15~30분 대기) · 곱창 츠케멘(모츠 츠케멘) 시그니처 · 면을 다 먹은 뒤 남은 츠케멘 국물에 뜨거운 죽(와리메시)을 요청해 말아 먹는 것이 핵심!" },
+      { kw: ["판쵸", "pancho", "パンチョ"], matchSub: "", hours: "11:00 ~ 23:00", payment: "식권 자판기 (현금 · Suica 교통카드 결제 가능)", tip: "예약 불가 (회전율 매우 빨라 대기 거의 없음) · 철판 나폴리탄 스파게티 소(300g)/중(400g)/대(500g) 가격 동일 · 베이컨, 함박스테이크, 구운 치즈 토핑 추가 추천" },
+      { kw: ["아후리", "afuri"], matchSub: "", hours: "11:00 ~ 22:00", payment: "현금 사용 불가! (100% 신용카드 · 트래블카드 · Suica 전용 무인 키오스크)", tip: "예약 불가 (면 요리 특성상 회전율 매우 빠름) · 유자 시오(소금) 라멘 & 유자 츠케멘 대표 · 키오스크 주문 시 차슈를 '숯불구이(아부리)'로 선택 추천" },
+      { kw: ["하브스", "harbs", "ハーブス"], matchSub: "", hours: "11:00 ~ 21:00", payment: "신용카드 · Suica · 현금 결제 가능", tip: "예약 불가 · 매장 내 취식 시 20~40분 대기 및 케이크 외에 무조건 '1인 1음료 주문 필수' 규칙 있음 · 테이크아웃(포장) 줄은 별도라 웨이팅 없이 즉시 구매해 숙소에서 먹기 좋음 · 밀크레프 시그니처" },
+      { kw: ["블루보틀", "blue bottle", "ブルーボトル"], matchSub: "", hours: "08:00 ~ 21:00", payment: "신용카드 · Suica · 현금 결제 가능", tip: "예약 불가 (카운터 주문 시 영문 이름을 알려주면 음료 완성 후 이름으로 호출) · 놀라(NOLA) 아이스 라떼 & 갓 구운 리에주 와플 조합 추천 · 원두 및 머그컵 굿즈 구매 가능" },
+      { kw: ["미도리스시", "스시노 미도리", "midori", "美登利"], matchSub: "", hours: "11:00 ~ 21:30", payment: "신용카드 · 현금 결제 가능", tip: "매장 앞 번호표 발권기(EPARK)에서 대기표 먼저 출력 (오전 10시경부터 사전 발권 시작, 피크타임 1시간 이상 대기) · 초특선 니기리 세트, 게내장 군함, 붕장어(아나고) 초밥 가성비 최고" },
+      { kw: ["이마한", "imahan", "今半"], matchSub: "", hours: "11:30 ~ 21:30", payment: "신용카드 · 현금 결제 가능", tip: "디너 코스만 사전 예약 가능, 가성비 런치 세트는 예약 불가(11:30 오픈 40분 전 오픈런 필수) · 직원이 기모노를 입고 테이블에서 최상급 와규 스키야키를 직접 구워줌" },
+      { kw: ["마이센", "maisen", "まい泉"], matchSub: "", hours: "11:00 ~ 21:00", payment: "신용카드 · Suica · 현금 모두 가능", tip: "타베로그(Tabelog) 온라인 예약 가능 / 아오야마 본점은 좌석이 넓어 현장 줄도 빠르게 빠짐 · 젓가락으로 잘릴 만큼 부드러운 흑돼지 히레카츠(안심)·로스카츠(등심) 정식 대표" },
+      { kw: ["토리키조쿠", "torikizoku", "鳥貴族"], matchSub: "", hours: "17:00 ~ 익일 04:00", payment: "신용카드 · Suica · 현금 모두 가능", tip: "구글맵/홈페이지 예약 가능 또는 매장 앞 대기 태블릿 등록 · 전 메뉴(꼬치 2개·술·사이드) 약 370엔 균일가 · 일반 이자카야와 달리 자릿세(오토시)가 없으며 양배추 샐러드 무한리필, 태블릿 한국어 주문" },
+      { kw: ["이세탄", "isetan", "伊勢丹"], matchSub: "", hours: "10:00 ~ 20:00", payment: "신용카드 · 트래블카드 · 현금 가능 (5,500엔 이상 여권 면세)", tip: "쇼핑 시작 전 1층 안내데스크에서 실물 여권 제시하면 외국인 전용 '5% 즉시 할인 게이트카드' 발급 · 지하 1층 디저트관(에쉬레, 노와쿠키) 및 1층 명품 손수건 코너 필수" },
+      { kw: ["돈키호테", "don quijote", "ドン・キホーテ"], matchSub: "", hours: "24시간 연중무휴", payment: "신용카드 · 트래블카드 · 현금 가능", tip: "세금 포함 5,500엔 이상 구매 시 실물 여권 제시하면 10% 면세 등록 + 온라인 5% 추가 할인쿠폰 중복 적용 가능 · 저녁 8~11시는 면세 계산대 줄이 매우 기니 오전이나 심야 방문 추천" },
+      { kw: ["시부야 스카이", "shibuya sky", "渋谷スカイ"], matchSub: "", hours: "10:00 ~ 22:30 (최종입장 21:20)", payment: "사전 온라인 QR 예매 전용 (클룩/KKday/공홈, 현장표 매진)", tip: "방문 4주 전 사전 예매 필수 (11월 말 일몰 16:30 기준 15:20~16:00 입장권 최고 명당) · 옥상 안전 규정상 모자, 삼각대, 스카프, 가방 반입 엄격 금지 (14층 무료 락커 보관용 100엔 동전 준비)" }
+    ];
+
+    function normalizeCategory(rawCat, placeName) {
+      const str = `${rawCat || ''} ${placeName || ''}`.toLowerCase();
+      if (str.includes('숙소') || str.includes('호텔') || str.includes('hotel')) return "🏨 숙소";
+      if (str.includes('공항') || str.includes('airport') || str.includes('터미널')) return "✈️ 공항";
+      if (str.includes('카페') || str.includes('커피') || str.includes('케이크') || str.includes('디저트') || str.includes('하브스') || str.includes('블루보틀') || str.includes('cafe')) return "☕ 카페/디저트";
+      if (str.includes('쇼핑') || str.includes('백화점') || str.includes('돈키호테') || str.includes('이세탄') || str.includes('store') || str.includes('shop')) return "🛍️ 쇼핑";
+      if (str.includes('관광') || str.includes('명소') || str.includes('전망대') || str.includes('타워') || str.includes('스카이') || str.includes('센소지') || str.includes('팀랩') || str.includes('park')) return "🗼 관광명소";
+      return "🍴 식당";
+    }
+
+    async function fetchOsmTagsAround(lat, lng) {
+      if (!lat || !lng) return null;
+      try {
+        const query = `[out:json][timeout:3];node(around:45,${lat},${lng})["name"];out tags 1;`;
+        const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        if (data && data.elements && data.elements.length > 0) return data.elements[0].tags || null;
+      } catch (e) {}
+      return null;
+    }
+
+    function buildDeepSpotIntelligence(name, category, gPlaceObj, osmTags) {
+      const nLow = (name || '').toLowerCase();
+      for (const entry of KNOWN_SPOTS_DICT) {
+        const matchedKw = entry.kw.some(k => nLow.includes(k));
+        if (matchedKw && (!entry.matchSub || nLow.includes(entry.matchSub))) {
+          return { hours: entry.hours, payment: entry.payment, tip: entry.tip };
+        }
+      }
+
+      const tags = osmTags || {};
+      const p = gPlaceObj || {};
+
+      let hours = "11:00 ~ 22:00 (연중무휴)";
+      if (p.regularOpeningHours && p.regularOpeningHours.weekdayDescriptions && p.regularOpeningHours.weekdayDescriptions.length > 0) {
+        hours = p.regularOpeningHours.weekdayDescriptions[0].replace(/^월요일:\s*/, '');
+      } else if (tags.opening_hours) {
+        hours = tags.opening_hours;
+      } else if (category === "☕ 카페/디저트") {
+        hours = "09:00 ~ 20:00";
+      } else if (category === "🛍️ 쇼핑") {
+        hours = "10:00 ~ 20:30";
+      } else if (category === "🗼 관광명소") {
+        hours = "09:00 ~ 21:00";
+      }
+
+      let payment = "";
+      if (p.paymentOptions) {
+        const po = p.paymentOptions;
+        if (po.acceptsCashOnly) payment = "현금 전용 매장 (1,000엔권 지폐·동전 필수)";
+        else if (po.acceptsCreditCards) payment = "신용카드(트래블카드) · 교통IC(Suica) · 현금 가능";
+      }
+      if (!payment && Object.keys(tags).length > 0) {
+        if (tags["payment:cash"] === "only" || tags["payment:credit_cards"] === "no") payment = "현금 전용 매장 (1,000엔권 지폐 필수)";
+        else if (tags["payment:credit_cards"] === "yes" || tags["payment:icsf"] === "yes") payment = "신용카드 · 교통IC(Suica) · 현금 가능";
+      }
+      if (!payment) {
+        if (nLow.includes("라멘") || nLow.includes("우동") || nLow.includes("츠케멘")) payment = "입구 식권 자판기 선결제 (현금 및 Suica 가능)";
+        else if (category === "🛍️ 쇼핑") payment = "신용카드 · 트래블카드 · 현금 가능 (5,500엔 이상 여권 지참 시 면세)";
+        else payment = "신용카드(VISA/Master) · 교통IC(Suica) · 현금 결제 가능";
+      }
+
+      let tipParts = [];
+      if (p.reservable === true || tags.reservation === "yes") tipParts.push("구글맵 또는 타베로그 사전 예약 가능");
+      else if (p.reservable === false || tags.reservation === "no" || nLow.includes("라멘") || nLow.includes("우동")) tipParts.push("사전 예약 불가 · 현장 줄서기(피크타임 피해 방문 권장)");
+      else tipParts.push("현장 대기 또는 구글맵 예약 가능");
+
+      if (p.editorialSummary) tipParts.push(p.editorialSummary);
+      else if (p.reviews && p.reviews.length > 0) {
+        const firstLine = (p.reviews[0].text || '').split(/[\n.!?]/)[0].trim();
+        if (firstLine && firstLine.length > 8 && firstLine.length < 70) tipParts.push(`방문자 팁: "${firstLine}"`);
+      }
+
+      if (tipParts.length < 2) {
+        tipParts.push("1인 1메뉴 주문 기본 · 브레이크타임 유의");
+      }
+
+      return { hours, payment, tip: tipParts.join(' · ') };
+    }
+
+    const DEFAULT_CONFIG = {
+      tripTitle: "🗼 도쿄 여행 올인원 대시보드",
+      city: "Tokyo",
+      startDate: "2026-11-28",
+      endDate: "2026-12-01",
+      hotel: {
+        name: "Hotel Sunlite Shinjuku (신주쿠 선라이트 호텔)",
+        address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo 160-0022",
+        lat: 35.6939,
+        lng: 139.7082,
+        rating: "3.9",
+        hours: "체크인 15:00 / 체크아웃 11:00",
+        payment: "결제완료 (예약번호: 1782306180)",
+        tip: "신주쿠산초메역 E1출구 도보 2분 / 히가시신주쿠역 B1출구 도보 5분"
+      }
+    };
+
+    const TRANSIT_MODES = {
+      subway: { label: "🚇 지하철/JR 전철", gmapMode: "transit" },
+      walk:   { label: "🚶 도보 이동",      gmapMode: "walking" },
+      bus:    { label: "🚌 시내버스",       gmapMode: "transit" },
+      airport:{ label: "🚆 공항특급(N'EX)", gmapMode: "transit" },
+      taxi:   { label: "🚕 택시 이동",      gmapMode: "driving" },
+      custom: { label: "✏️ 직접 입력",      gmapMode: "transit" }
+    };
+
+    const CHECKLIST_ITEMS = [
+      "여권 실물 (유효기간 6개월 이상)",
+      "Visit Japan Web 입국·세관 QR 캡처",
+      "항공권 e-티켓 및 호텔 바우처",
+      "110V 돼지코 어댑터 & 멀티탭",
+      "보조배터리 (기내 수하물 휴대 필수)",
+      "아이폰 지갑 Suica/PASMO 등록",
+      "트래블로그 / 트래블월렛 해외결제 카드",
+      "엔화 현금 (식권 자판기용 1,000엔권 다수)",
+      "100엔 동전 넣을 작은 동전지갑",
+      "이심(eSIM) / 유심 / 포켓와이파이",
+      "상비약 (소화제, 진통제, 밴드, 휴족시간)",
+      "접이식 우산 & 비닐봉지(쓰레기용)"
+    ];
+
+    let currentPlan = 1;
+    let currentDayIndex = 0;
+    let wishFilter = 'all';
+    let lastAddedSpotId = null;
+
+    let map = null;
+    let infoWindow = null;
+    let hotelMarker = null;
+    let dayMarkers = [];
+    let searchMarkers = [];
+    let routeLine = null;
+
+    function createDefaultPlanData() {
+      return {
+        wish: [
+          {
+            id: 901, name: "스파게티 노 판쵸 신주쿠점 (Pancho)", category: "🍴 식당",
+            address: "신주쿠역 동쪽출구 도보 4분 / 신주쿠산초메역 B9출구 도보 2분", lat: 35.6908, lng: 139.7032, rating: "4.1",
+            hours: "11:00 ~ 23:00 (연중무휴)", payment: "입구 식권 자판기 (현금 및 Suica 교통카드 결제 가능)",
+            tip: "사전 예약 불가 (회전율 빨라 대기 거의 없음) · 나폴리탄 스파게티 소(300g)/중(400g)/대(500g) 가격 동일 · 치즈 및 함박스테이크 토핑 추가 강추"
+          },
+          {
+            id: 902, name: "라멘 타츠노야 신주쿠 오타키바시도리점", category: "🍴 식당",
+            address: "니시신주쿠역 1번출구 도보 4분 / 신주쿠역 서쪽출구 도보 7분", lat: 35.6969, lng: 139.6980, rating: "4.3",
+            hours: "11:00 ~ 22:00", payment: "현금 전용 식권 자판기 (1,000엔권 지폐·동전 필수 지참)",
+            tip: "사전 예약 불가 (현장 줄서기 15~30분 대기) · 곱창 츠케멘(모츠 츠케멘) 시그니처 · 면 다 먹은 후 남은 국물에 뜨거운 죽(와리메시) 추가 필수!"
+          },
+          {
+            id: 903, name: "츠지한 아크힐즈점 (Tsujihan Ark Hills)", category: "🍴 식당",
+            address: "롯폰기잇초메역 3번출구 도보 2분 (아크모리 빌딩 3층)", lat: 35.6672, lng: 139.7401, rating: "4.4",
+            hours: "11:00~15:00 / 17:00~21:00", payment: "신용카드 · 교통IC(Suica) · 현금 모두 결제 가능",
+            tip: "사전 예약 불가 · 니혼바시 본점보다 웨이팅 짧고(15~20분) 실내 대기라 쾌적! 회 2~3점 남기고 셰프에게 도미 육수(타이다시) 무료 추가 요청 필수"
+          },
+          {
+            id: 904, name: "츠지한 니혼바시 본점 (Tsujihan Nihonbashi)", category: "🍴 식당",
+            address: "니혼바시역 B3출구 도보 2분 / 도쿄역 야에스북쪽출구 도보 5분", lat: 35.6801, lng: 139.7730, rating: "4.4",
+            hours: "11:00 ~ 21:00 (브레이크타임 없음)", payment: "현금 전용 (1,000엔권 지폐 준비 필수)",
+            tip: "사전 예약 불가 (오픈 30분 전 대기 권장, 평일/주말 40~60분 웨이팅) · 제이타쿠동 우메(1,350엔~), 마지막에 도미 육수 오차즈케 무료 추가"
+          },
+          {
+            id: 905, name: "신주쿠 우동신 (Udon Shin / うどん慎)", category: "🍴 식당",
+            address: "신주쿠역 남쪽출구 도보 7분", lat: 35.6865, lng: 139.6968, rating: "4.2",
+            hours: "11:00 ~ 22:00", payment: "신용카드 · 현금 모두 결제 가능",
+            tip: "전화 예약 불가 · 매장 앞 키오스크에서 'QR 대기표(정리권)' 먼저 발권 후 QR코드로 내 순서 실시간 확인하며 근처 구경 · 명란 버터 가마타마 우동 시그니처"
+          },
+          {
+            id: 906, name: "하브스 루미네에스트 신주쿠점 (HARBS)", category: "☕ 카페/디저트",
+            address: "신주쿠역 동쪽출구 루미네에스트 지하 2층 (숙소 도보 7분)", lat: 35.6913, lng: 139.7012, rating: "4.3",
+            hours: "11:00 ~ 21:00", payment: "신용카드 · Suica · 현금 결제 가능",
+            tip: "예약 불가 · 밀크레프 케이크 시그니처 · 매장 취식 시 대기 20~30분 및 케이크 외 '1인 1음료 필수' (포장 줄은 대기 없이 즉시 구매해 숙소에서 먹기 좋음)"
+          },
+          {
+            id: 907, name: "이세탄 백화점 신주쿠 본점 (Isetan Shinjuku)", category: "🛍️ 쇼핑",
+            address: "신주쿠산초메역 B4출구 지하 직결 (숙소 도보 5분)", lat: 35.6916, lng: 139.7046, rating: "4.5",
+            hours: "10:00 ~ 20:00", payment: "신용카드 · 트래블카드 · 현금 가능 (여권 지참 시 5% 게이트카드 + 면세)",
+            tip: "1층 안내데스크에서 실물 여권 제시 후 외국인 5% 할인 게이트카드 먼저 발급 · 지하 1층 명품 디저트관(에쉬레, 노와쿠키) & 1층 손수건 코너 필수"
+          },
+          {
+            id: 908, name: "시부야 스카이 (SHIBUYA SKY)", category: "🗼 관광명소",
+            address: "시부야역 B6출구 직결 스크램블스퀘어 14층 엘리베이터", lat: 35.6585, lng: 139.7022, rating: "4.7",
+            hours: "10:00 ~ 22:30 (최종입장 21:20)", payment: "사전 온라인 QR 예매 전용 (클룩/KKday/공홈, 현장표 매진)",
+            tip: "11월 말 일몰 16:30경(15:20~16:00 입장권 최고 명당) · 옥상 안전상 모자·삼각대·스카프·가방 반입 엄격 금지(14층 무료 락커 보관용 100엔 동전 준비)"
+          }
+        ],
+        days: [
+          [
+            {
+              id: 101, time: "14:00", name: "나리타 국제공항 제3터미널", category: "✈️ 공항",
+              address: "Narita Airport Terminal 3, Chiba", lat: 35.7796, lng: 140.3860, rating: "4.0",
+              hours: "24시간 운영", payment: "Suica / 신용카드 / 현금", tip: "입국심사 후 1층 밖 파란색 트랙(도보 8분) 또는 1번 정류장 무료셔틀(3분)로 제2터미널 B1층 역 이동",
+              userMemo: "비행기 내리기 전 eSIM 활성화 및 비짓재팬 QR 켜두기",
+              transitMode: "airport", transitToNext: "", transitFare: "", transitMemo: "빨간색 JR 매표소에서 여권 내고 N'EX 왕복티켓(5,000엔) 구매하기"
+            },
+            {
+              id: 102, time: "16:30", name: "Hotel Sunlite Shinjuku (체크인)", category: "🏨 숙소",
+              address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo", lat: 35.6939, lng: 139.7082, rating: "3.9",
+              hours: "체크인 15:00~", payment: "아고다 결제완료 (예약번호 1782306180 · 도시세 별도)", tip: "신주쿠산초메역 E1출구 도보 2분 / 본관 1층 프런트 체크인 후 짐 풀기",
+              userMemo: "체크인 시 도시세 현금 준비, 보조배터리 챙겨서 외출",
+              transitMode: "walk", transitToNext: "", transitFare: "", transitMemo: "신주쿠 거리 구경하면서 걸어가기"
+            },
+            {
+              id: 103, time: "18:00", name: "라멘 타츠노야 신주쿠 오타키바시도리점", category: "🍴 식당",
+              address: "니시신주쿠역 1번출구 도보 4분 / 신주쿠역 서쪽출구 도보 7분", lat: 35.6969, lng: 139.6980, rating: "4.3",
+              hours: "11:00 ~ 22:00", payment: "현금 전용 식권 자판기 (1,000엔권 지폐·동전 필수)", tip: "사전 예약 불가 (현장 줄서기 15~30분 대기) · 곱창 츠케멘(모츠 츠케멘) 시그니처, 다진 마늘 요청 및 마지막에 죽(와리메시) 추가 필수!",
+              userMemo: "곱창 츠케멘 2개 + 반숙계란 추가",
+              transitMode: "walk", transitToNext: "", transitFare: "", transitMemo: ""
+            }
+          ],
+          [
+            {
+              id: 201, time: "10:00", name: "Hotel Sunlite Shinjuku (숙소 출발)", category: "🏨 숙소",
+              address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo", lat: 35.6939, lng: 139.7082, rating: "3.9",
+              hours: "상시 이용", payment: "결제완료", tip: "신주쿠산초메역 E1출구로 이동해 2일차 일정 시작",
+              userMemo: "여권 실물, 1,000엔권 지폐, 동전지갑 챙겼는지 확인",
+              transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: ""
+            },
+            {
+              id: 202, time: "11:00", name: "츠지한 니혼바시 본점 (Tsujihan Nihonbashi)", category: "🍴 식당",
+              address: "니혼바시역 B3출구 도보 2분 / 도쿄역 야에스북쪽출구 도보 5분", lat: 35.6801, lng: 139.7730, rating: "4.4",
+              hours: "11:00 ~ 21:00", payment: "현금 전용 (1,000엔권 지폐 준비 필수)", tip: "사전 예약 불가 (오픈런 권장) · 제이타쿠동(카이센동) 주문, 회 2점 남기고 셰프에게 도미 육수(타이다시) 무료 리필 요청",
+              userMemo: "우메(기본) 등급으로 주문하고 마지막에 도미 육수 오차즈케 먹기",
+              transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: ""
+            }
+          ],
+          [
+            {
+              id: 301, time: "10:30", name: "Hotel Sunlite Shinjuku (숙소 출발)", category: "🏨 숙소",
+              address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo", lat: 35.6939, lng: 139.7082, rating: "3.9",
+              hours: "상시 이용", payment: "결제완료", tip: "3일차 일정 출발",
+              userMemo: "",
+              transitMode: "walk", transitToNext: "", transitFare: "", transitMemo: ""
+            },
+            {
+              id: 302, time: "12:00", name: "스파게티 노 판쵸 신주쿠점 (Pancho)", category: "🍴 식당",
+              address: "신주쿠역 동쪽출구 도보 4분", lat: 35.6908, lng: 139.7032, rating: "4.1",
+              hours: "11:00 ~ 23:00", payment: "식권 자판기 (현금 · Suica 교통카드 결제 가능)", tip: "예약 불가 (회전율 빨라 바로 입장) · 나폴리탄 소/중/대 가격 동일 + 함박스테이크·치즈 토핑 추천",
+              userMemo: "",
+              transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: ""
+            }
+          ],
+          [
+            {
+              id: 401, time: "10:30", name: "Hotel Sunlite Shinjuku (체크아웃)", category: "🏨 숙소",
+              address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo", lat: 35.6939, lng: 139.7082, rating: "3.9",
+              hours: "체크아웃 11:00", payment: "결제완료", tip: "빠트린 짐 확인 후 신주쿠역으로 이동",
+              userMemo: "면세 물품 캐리어에 잘 넣었는지 확인",
+              transitMode: "airport", transitToNext: "", transitFare: "", transitMemo: "첫날 산 N'EX 왕복패스 귀국권으로 지정석 발권 후 탑승"
+            },
+            {
+              id: 402, time: "13:00", name: "나리타 국제공항 제3터미널", category: "✈️ 공항",
+              address: "Narita Airport Terminal 3, Chiba", lat: 35.7796, lng: 140.3860, rating: "4.0",
+              hours: "출국 수속", payment: "Suica / 신용카드", tip: "공항제2빌딩역 하차 ➔ 빨간색 트랙 따라 3터미널 이동 ➔ 세관 키오스크 여권 스캔(신 면세 확인)",
+              userMemo: "종점(1터미널)까지 가지 말고 무조건 공항제2빌딩역에서 내릴 것!",
+              transitMode: "walk", transitToNext: "", transitFare: "", transitMemo: ""
+            }
+          ]
+        ]
+      };
+    }
+
+    let appState = {
+      config: JSON.parse(JSON.stringify(DEFAULT_CONFIG)),
+      checks: {},
+      plans: {
+        1: createDefaultPlanData(),
+        2: createDefaultPlanData(),
+        3: createDefaultPlanData()
+      }
+    };
+
+    /********************************************************************
+     * 2. 노선도 팝업 & 정거장 데이터
+     ********************************************************************/
+    function calcDistanceKm(lat1, lng1, lat2, lng2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function findNearestStation(lat, lng) {
+      if (!lat || !lng) return null;
+      let best = null;
+      let minDist = 9999;
+      TOKYO_STATIONS.forEach(st => {
+        const d = calcDistanceKm(lat, lng, st.lat, st.lng);
+        if (d < minDist) { minDist = d; best = { ...st, distKm: d, walkMin: Math.max(2, Math.round(d * 15)) }; }
+      });
+      return best;
+    }
+
+    function findCommonLine(stA, stB) {
+      if (!stA || !stB) return null;
+      for (let lineA of stA.lines) { if (stB.lines.includes(lineA)) return lineA; }
+      return null;
+    }
+
+    function extractFullStopsForPopup(mode, itemA, itemB, stA, stB, rawKm) {
+      const startPlace = itemA.name.split('(')[0].trim().slice(0, 12);
+      const endPlace = itemB.name.split('(')[0].trim().slice(0, 12);
+
+      if (mode === 'airport' || rawKm > 28) {
+        const isToCity = itemA.name.includes("공항") || (stA && stA.op === 'airport');
+        if (isToCity) {
+          return {
+            title: "🚆 나리타 익스프레스(N'EX) 진입 노선도",
+            stops: ["나리타 3터미널(출발)", "공항제2빌딩역(N'EX 승차)", "치바역", "도쿄역", "시나가와역", "시부야역", "신주쿠역(하차)", `${endPlace}(도착)`]
+          };
+        } else {
+          return {
+            title: "🚆 나리타 익스프레스(N'EX) 귀국 노선도",
+            stops: [`${startPlace}(출발)`, "신주쿠역(N'EX 승차)", "시부야역", "시나가와역", "도쿄역", "공항제2빌딩역(하차)", "나리타 3터미널(도착)"]
+          };
+        }
+      }
+
+      if (mode === 'walk' || (stA && stB && stA.name === stB.name)) {
+        return { title: "🚶 도보 이동 동선도", stops: [`${startPlace}(출발)`, "도보 이동", `${endPlace}(도착)`] };
+      }
+
+      if (mode === 'bus') {
+        return { title: "🚌 시내버스 정류장 노선도", stops: [`${startPlace}(승차)`, "중간 정류장 경유", `${endPlace}(하차)`] };
+      }
+
+      if (stA && stB) {
+        const commonLine = findCommonLine(stA, stB);
+        if (commonLine && LINE_SEQUENCES[commonLine]) {
+          const seqObj = LINE_SEQUENCES[commonLine];
+          const idxA = seqObj.stops.indexOf(stA.short);
+          const idxB = seqObj.stops.indexOf(stB.short);
+          if (idxA !== -1 && idxB !== -1 && idxA !== idxB) {
+            const railStops = idxA < idxB ? seqObj.stops.slice(idxA, idxB + 1) : seqObj.stops.slice(idxB, idxA + 1).reverse();
+            return {
+              title: `🚇 ${commonLine} 정거장 노선도`,
+              stops: [`${startPlace}`, ...railStops.map(s => `${s}역`), `${endPlace}`]
+            };
+          }
+        }
+      }
+      return { title: "🚇 대중교통 노선도", stops: [startPlace, "전철 이동", endPlace] };
+    }
+
+    function renderBusBoardPopup(title, stopsArray, fareText, guideText, gmapUrl) {
+      document.getElementById('rpTitle').innerText = title;
+      document.getElementById('rpFareBadge').innerText = `💴 요금: ${fareText}`;
+      document.getElementById('rpGuideBox').innerHTML = `🧭 <strong>탑승 가이드:</strong> ${escapeHtml(guideText)}`;
+      const gLink = document.getElementById('rpGmapLink');
+      if (gmapUrl) { gLink.style.display = 'inline-flex'; gLink.href = gmapUrl; }
+      else { gLink.style.display = 'none'; }
+
+      const canvas = document.getElementById('rpBoardCanvas');
+      const total = stopsArray.length;
+
+      if (total <= 7) {
+        const nodesHtml = stopsArray.map((stName, idx) => {
+          const isStart = idx === 0;
+          const isEnd = idx === total - 1;
+          const cls = isStart ? 'is-start' : (isEnd ? 'is-end' : '');
+          const arrowBadge = isStart ? `<span class="bus-dir-arrow">출발 ➔</span>` : (isEnd ? `<span class="bus-dir-arrow">🏁 하차</span>` : '');
+          return `<div class="bus-stop-node ${cls}"><span class="bus-stop-label">${escapeHtml(stName)}</span>${arrowBadge}</div>`;
+        }).join('');
+        canvas.innerHTML = `<div class="bus-track-row">${nodesHtml}</div>`;
+      } else {
+        const mid = Math.ceil(total / 2);
+        const row1Stops = stopsArray.slice(0, mid);
+        const row2Stops = stopsArray.slice(mid).reverse();
+
+        const row1Html = row1Stops.map((stName, idx) => {
+          const isStart = idx === 0;
+          const cls = isStart ? 'is-start' : '';
+          const arrowBadge = isStart ? `<span class="bus-dir-arrow">출발 ➔</span>` : '';
+          return `<div class="bus-stop-node ${cls}"><span class="bus-stop-label">${escapeHtml(stName)}</span>${arrowBadge}</div>`;
+        }).join('');
+
+        const row2Html = row2Stops.map((stName, idx) => {
+          const isEnd = idx === 0;
+          const cls = isEnd ? 'is-end' : '';
+          const arrowBadge = isEnd ? `<span class="bus-dir-arrow">⬅ 도착</span>` : '';
+          return `<div class="bus-stop-node ${cls}"><span class="bus-stop-label">${escapeHtml(stName)}</span>${arrowBadge}</div>`;
+        }).join('');
+
+        canvas.innerHTML = `
+          <div class="bus-track-row">${row1Html}</div>
+          <div class="bus-u-turn"></div>
+          <div class="bus-track-row row-2">${row2Html}</div>
+        `;
+      }
+      document.getElementById('routePopupModal').classList.add('open');
+    }
+
+    function openTransitRoutePopup(spotIndex) {
+      const list = getCurrentDayList();
+      const itemA = list[spotIndex];
+      const itemB = list[spotIndex + 1];
+      if (!itemA || !itemB) return;
+
+      const curMode = itemA.transitMode || detectBestMode(itemA, itemB);
+      const rawKm = (itemA.lat && itemB.lat) ? calcDistanceKm(itemA.lat, itemA.lng, itemB.lat, itemB.lng) : 3.0;
+      const stA = findNearestStation(itemA.lat, itemA.lng);
+      const stB = findNearestStation(itemB.lat, itemB.lng);
+
+      const popupData = extractFullStopsForPopup(curMode, itemA, itemB, stA, stB, rawKm);
+      const autoInfo = buildDetailedTransitInfo(curMode, itemA, itemB);
+
+      const gmapMode = TRANSIT_MODES[curMode]?.gmapMode || 'transit';
+      const originQ = (itemA.lat && itemA.lng) ? `${itemA.lat},${itemA.lng}` : encodeURIComponent(itemA.name);
+      const destQ = (itemB.lat && itemB.lng) ? `${itemB.lat},${itemB.lng}` : encodeURIComponent(itemB.name);
+      const dirUrl = `https://www.google.com/maps/dir/?api=1&origin=${originQ}&destination=${destQ}&travelmode=${gmapMode}`;
+
+      renderBusBoardPopup(popupData.title, popupData.stops, autoInfo.fareText, autoInfo.guideTip, dirUrl);
+    }
+
+    function openCustomRouteModal(title, stopsArr, fareTxt, guideTxt) {
+      renderBusBoardPopup(title, stopsArr, fareTxt, guideTxt, "");
+    }
+
+    function closeRoutePopup() {
+      document.getElementById('routePopupModal').classList.remove('open');
+    }
+
+    function calcTokyoSubwayFare(distKm, isDirect, opA, opB) {
+      const railKm = distKm * 1.25;
+      let baseFare = railKm <= 6 ? 180 : (railKm <= 11 ? 210 : (railKm <= 19 ? 260 : 300));
+      if (opA === 'jr' && opB === 'jr') baseFare = railKm <= 3 ? 150 : (railKm <= 6 ? 170 : 180);
+      else if (!isDirect && opA !== opB) baseFare += 70;
+      return `${baseFare}엔 (IC카드)`;
+    }
+
+    function detectBestMode(itemA, itemB) {
+      if (!itemA || !itemB || !itemA.lat || !itemB.lat) return "subway";
+      const dist = calcDistanceKm(itemA.lat, itemA.lng, itemB.lat, itemB.lng);
+      if (dist < 0.95) return "walk";
+      if (dist > 28 || (itemA.name + itemB.name).includes("공항")) return "airport";
+      return "subway";
+    }
+
+    function buildDetailedTransitInfo(mode, itemA, itemB) {
+      if (!itemA || !itemB || !itemA.lat || !itemB.lat) {
+        return { routeText: "대중교통 이동", fareText: "180~260엔", guideTip: "IC카드 터치" };
+      }
+      const rawKm = calcDistanceKm(itemA.lat, itemA.lng, itemB.lat, itemB.lng);
+      const roadKm = rawKm * 1.28;
+      const stA = findNearestStation(itemA.lat, itemA.lng);
+      const stB = findNearestStation(itemB.lat, itemB.lng);
+
+      if (mode === 'airport' || rawKm > 28) {
+        return {
+          routeText: `[제2터미널 B1층] ➔ [JR N'EX] 탑승(75분) ➔ 신주쿠역 하차 후 도보`,
+          fareText: "3,250엔 (왕복패스 5,000엔)",
+          guideTip: "빨간색 JR 매표소에서 여권 제시 후 N'EX 구매"
+        };
+      }
+      if (mode === 'walk') {
+        const walkMin = Math.max(3, Math.round(roadKm * 15));
+        return { routeText: `🚶 도보 약 ${walkMin}분 소요 (${roadKm.toFixed(1)}km)`, fareText: "0엔", guideTip: "구글맵 도보 길찾기 참고" };
+      }
+      if (mode === 'taxi') {
+        return { routeText: `🚕 택시 이동 약 ${Math.max(5, Math.round(roadKm*2.5))}분`, fareText: "약 1,200엔~", guideTip: "뒷문 자동문" };
+      }
+
+      if (stA && stB) {
+        if (stA.name === stB.name) {
+          return { routeText: `🚶 ${stA.name} 역세권 도보 이동`, fareText: "0엔", guideTip: "전철 불필요" };
+        }
+        const commonLine = findCommonLine(stA, stB);
+        const stops = Math.max(1, Math.round(rawKm / 1.2));
+        const exactFare = calcTokyoSubwayFare(rawKm, Boolean(commonLine), stA.op, stB.op);
+        if (commonLine) {
+          return {
+            routeText: `[${stA.name} ${stA.exit}] 진입 ➔ [${commonLine}] 탑승 (${stops}개 역) ➔ [${stB.name} ${stB.exit}] 하차`,
+            fareText: exactFare,
+            guideTip: `역 안에서 '${commonLine}' 표지판 따라 이동`
+          };
+        }
+      }
+      return { routeText: "인근 역에서 지하철 탑승", fareText: "180~260엔", guideTip: "IC카드 터치" };
+    }
+
+    function changeSpotTransitMode(spotId, newMode) {
+      const list = getCurrentDayList();
+      const idx = list.findIndex(i => i.id === spotId);
+      if (idx === -1) return;
+      const item = list[idx];
+      const nextItem = list[idx + 1] || null;
+      item.transitMode = newMode;
+      if (newMode !== 'custom' && nextItem) {
+        const info = buildDetailedTransitInfo(newMode, item, nextItem);
+        item.transitToNext = info.routeText;
+        item.transitFare = info.fareText;
+        item.transitGuide = info.guideTip;
+      }
+      saveData();
+      renderTimeline();
+    }
+
+    function recalcAllTransits(forceAutoDetect) {
+      const list = getCurrentDayList();
+      for (let i = 0; i < list.length - 1; i++) {
+        if (forceAutoDetect || !list[i].transitMode) {
+          list[i].transitMode = detectBestMode(list[i], list[i + 1]);
+        }
+        if (list[i].transitMode !== 'custom') {
+          const info = buildDetailedTransitInfo(list[i].transitMode, list[i], list[i + 1]);
+          list[i].transitToNext = info.routeText;
+          list[i].transitFare = info.fareText;
+          list[i].transitGuide = info.guideTip;
+        }
+      }
+      if (list.length > 0) { list[list.length - 1].transitToNext = ""; list[list.length - 1].transitFare = ""; }
+      saveData();
+      renderTimeline();
+    }
+
+    function moveSpotOrder(idx, direction) {
+      const list = getCurrentDayList();
+      const targetIdx = idx + direction;
+      if (targetIdx < 0 || targetIdx >= list.length) return;
+      const temp = list[idx]; list[idx] = list[targetIdx]; list[targetIdx] = temp;
+      lastAddedSpotId = list[targetIdx].id;
+      list.forEach(item => { if (item.transitMode !== 'custom') item.transitToNext = ""; });
+      recalcAllTransits(true);
+      renderAll();
+    }
+
+    function jumpSpotOrder(idx) {
+      const list = getCurrentDayList();
+      if (list.length <= 1) return;
+      const input = prompt(`몇 번째 순서로 이동할까요? (1 ~ ${list.length})`, String(idx + 1));
+      if (!input) return;
+      const targetNum = parseInt(input, 10);
+      if (isNaN(targetNum) || targetNum < 1 || targetNum > list.length || targetNum === idx + 1) return;
+      const [movedItem] = list.splice(idx, 1);
+      list.splice(targetNum - 1, 0, movedItem);
+      lastAddedSpotId = movedItem.id;
+      list.forEach(item => { if (item.transitMode !== 'custom') item.transitToNext = ""; });
+      recalcAllTransits(true);
+      renderAll();
+    }
+
+    function sortCurrentDayByTime() {
+      const list = getCurrentDayList();
+      if (list.length <= 1) return;
+      list.sort((a, b) => (a.time || "12:00").localeCompare(b.time || "12:00"));
+      list.forEach(item => { if (item.transitMode !== 'custom') item.transitToNext = ""; });
+      recalcAllTransits(true);
+      renderAll();
+    }
+
+    /********************************************************************
+     * 3. 무설정(Zero-Config) 전원 자동 실시간 클라우드 동기화 엔진
+     ********************************************************************/
+        /********************************************************************
+     * ★ 전 기종(아이폰·아이패드·갤럭시·PC) 실시간 클라우드 동기화 엔진 ★
+     ********************************************************************/
+    const MY_CLOUD_API_URL = "https://api.npoint.io/d3a4e2fcabe6f2e063a2";
+
+    let isPullingCloud = false;
+    let lastCloudHash = '';
+    let syncTimer = null;
+
+    function updateSyncBadge(text, bg, color, border) {
+      const el = document.getElementById('syncStatusBadge');
+      if (!el) return;
+      el.innerText = text;
+      el.style.background = bg || '#dcfce7';
+      el.style.color = color || '#15803d';
+      el.style.borderColor = border || '#86efac';
+    }
+
+    async function pushToCloud() {
+      if (isPullingCloud) return;
+      try {
+        updateSyncBadge("🔼 모든 기기에 실시간 저장 중...", "#dbeafe", "#1d4ed8", "#93c5fd");
+        const payload = {
+          updatedAt: Date.now(),
+          appState: appState
+        };
+        const bodyStr = JSON.stringify(payload);
+        lastCloudHash = JSON.stringify(appState);
+
+        const res = await fetch(MY_CLOUD_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: bodyStr
+        });
+
+        if (res.ok) {
+          updateSyncBadge("🟢 전 기기 실시간 공유중", "#dcfce7", "#15803d", "#86efac");
+        } else {
+          updateSyncBadge("⚠️ 서버 응답 지연", "#fef2f2", "#b91c1c", "#fecaca");
+        }
+      } catch (err) {
+        updateSyncBadge("⚠️ 오프라인 (내 기기 임시저장)", "#fef2f2", "#b91c1c", "#fecaca");
+      }
+    }
+
+    async function pullFromCloud(isInitial) {
+      try {
+        const res = await fetch(MY_CLOUD_API_URL + `?t=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) return false;
+        const data = await res.json();
+
+        // 최초 생성 직후({"init": true} 또는 빈 객체) 상태이면 내 현재 데이터를 서버에 즉시 업로드
+        if (!data || data.init === true || !data.appState || !data.appState.plans) {
+          await pushToCloud();
+          return true;
+        }
+
+        const incomingHash = JSON.stringify(data.appState);
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        const isEditing = (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || document.activeElement?.isContentEditable);
+
+        if (incomingHash !== lastCloudHash && (!isEditing || isInitial)) {
+          isPullingCloud = true;
+          appState = data.appState;
+          lastCloudHash = incomingHash;
+          localStorage.setItem('universal_travel_planner_v9', JSON.stringify(appState));
+
+          syncDaysLength();
+          renderAll();
+          isPullingCloud = false;
+        }
+        updateSyncBadge("🟢 전 기기 실시간 공유중", "#dcfce7", "#15803d", "#86efac");
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function startAutoSyncLoop() {
+      if (syncTimer) clearInterval(syncTimer);
+      syncTimer = setInterval(() => {
+        pullFromCloud(false);
+      }, 2500);
+    }
+
+    function getDaysMetaList() {
+      const sStr = appState.config.startDate || "2026-11-28";
+      const eStr = appState.config.endDate || "2026-12-01";
+      const sParts = sStr.split('-').map(Number);
+      const eParts = eStr.split('-').map(Number);
+      const sDate = new Date(sParts[0], sParts[1] - 1, sParts[2]);
+      const eDate = new Date(eParts[0], eParts[1] - 1, eParts[2]);
+
+      let diff = Math.round((eDate - sDate) / 86400000) + 1;
+      if (isNaN(diff) || diff < 1) diff = 1;
+      if (diff > 14) diff = 14;
+
+      const weeks = ['일', '월', '화', '수', '목', '금', '토'];
+      const meta = [];
+      for (let i = 0; i < diff; i++) {
+        const d = new Date(sParts[0], sParts[1] - 1, sParts[2] + i);
+        meta.push({
+          idx: i,
+          shortDate: `${d.getMonth()+1}/${d.getDate()}(${weeks[d.getDay()]})`,
+          fullLabel: `Day ${i + 1} · ${d.getMonth()+1}/${d.getDate()}(${weeks[d.getDay()]})`
+        });
+      }
+      return meta;
+    }
+
+    function upgradeVagueSpotInfo(spot) {
+      spot.category = normalizeCategory(spot.category, spot.name);
+      const isVaguePay = !spot.payment || spot.payment.includes("확인") || spot.payment === "-";
+      const isVagueTip = !spot.tip || spot.tip.includes("확인") || spot.tip.includes("검색으로 추가됨") || spot.tip.includes("보관 장소");
+      if (isVaguePay || isVagueTip) {
+        const deep = buildDeepSpotIntelligence(spot.name, spot.category, null, null);
+        if (isVaguePay) spot.payment = deep.payment;
+        if (isVagueTip) spot.tip = deep.tip;
+      }
+    }
+
+    function syncDaysLength() {
+      const meta = getDaysMetaList();
+      const targetLen = meta.length;
+      [1, 2, 3].forEach(p => {
+        if (!Array.isArray(appState.plans[p].days)) appState.plans[p].days = [[], [], [], []];
+        while (appState.plans[p].days.length < targetLen) appState.plans[p].days.push([]);
+        (appState.plans[p].wish || []).forEach(w => upgradeVagueSpotInfo(w));
+        appState.plans[p].days.forEach(dList => dList.forEach(s => upgradeVagueSpotInfo(s)));
+      });
+      if (currentDayIndex >= targetLen) currentDayIndex = 0;
+    }
+
+    function updateDateRange() {
+      const sVal = document.getElementById('startDateInput').value;
+      const eVal = document.getElementById('endDateInput').value;
+      if (!sVal || !eVal) return;
+      if (new Date(eVal) < new Date(sVal)) { alert("도착일은 출발일과 같거나 그 이후여야 합니다."); return; }
+      appState.config.startDate = sVal;
+      appState.config.endDate = eVal;
+      syncDaysLength();
+      saveData();
+      renderAll();
+    }
+
+    /********************************************************************
+     * 4. 위시리스트 & 검색 전용 시트(모달) 제어 + 고정 API 키 자동 로드
+     ********************************************************************/
+    function openWishModal() {
+      renderWishSection();
+      document.getElementById('wishSheetModal').classList.add('open');
+    }
+
+    function closeWishModal() {
+      document.getElementById('wishSheetModal').classList.remove('open');
+    }
+
+    function openSearchModal() {
+      document.getElementById('searchSheetModal').classList.add('open');
+      setTimeout(() => document.getElementById('searchKeyword').focus(), 120);
+    }
+
+    function closeSearchModal() {
+      document.getElementById('searchSheetModal').classList.remove('open');
+    }
+
+    function loadGoogleScript(key) {
+      if (window.google && window.google.maps) { initGoogleMap(); return; }
+      const existing = document.getElementById('gmap-sdk');
+      if (existing) existing.remove();
+
+      const s = document.createElement('script');
+      s.id = 'gmap-sdk';
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&v=weekly&language=ko&callback=initGoogleMap`;
+      s.async = true;
+      document.head.appendChild(s);
+    }
+
+    window.initGoogleMap = function() {
+      document.getElementById('mapStatusMsg').innerHTML = `<span style="color:#10b981; font-weight:700;">✅ Google Maps 실시간 연동 완료</span>`;
+      const h = appState.config.hotel;
+      map = new google.maps.Map(document.getElementById('map'), { center: { lat: h.lat, lng: h.lng }, zoom: 13, mapTypeControl: false, streetViewControl: false });
+      infoWindow = new google.maps.InfoWindow();
+      updateHotelMarkerOnMap();
+      renderMapMarkers();
+    };
+
+    function updateHotelMarkerOnMap() {
+      if (!map || !window.google) return;
+      const h = appState.config.hotel;
+      if (hotelMarker) hotelMarker.setMap(null);
+      hotelMarker = new google.maps.Marker({ position: { lat: h.lat, lng: h.lng }, map: map, title: h.name, label: { text: "🏨", fontSize: "14px" } });
+    }
+
+    async function executeSmartSearch() {
+      const city = appState.config.city || "";
+      const region = document.getElementById('regionInput').value.trim();
+      const kw = document.getElementById('searchKeyword').value.trim();
+      if (!kw) { alert("검색어를 입력해주세요!"); return; }
+
+      const fullQuery = `${city} ${region} ${kw}`.trim();
+      const listEl = document.getElementById('searchResultList');
+      listEl.innerHTML = `<div style="grid-column:1/-1; padding:14px; font-size:12.5px; color:#1d4ed8; font-weight:700;">🔎 '${fullQuery}'의 정식 지점명 · 영업시간 · 결제수단 · 웨이팅 팁을 분석 중입니다...</div>`;
+
+      const h = appState.config.hotel;
+      if (window.google && window.google.maps) {
+        try {
+          const { Place } = await google.maps.importLibrary("places");
+          if (Place && typeof Place.searchByText === "function") {
+            let places = null;
+            try {
+              const resRich = await Place.searchByText({ textQuery: fullQuery, fields: ["displayName", "formattedAddress", "location", "rating", "regularOpeningHours", "primaryTypeDisplayName", "paymentOptions", "reservable", "editorialSummary", "reviews"], locationBias: { center: { lat: h.lat, lng: h.lng }, radius: 30000 }, language: "ko" });
+              places = resRich.places;
+            } catch (eRich) {
+              const resBasic = await Place.searchByText({ textQuery: fullQuery, fields: ["displayName", "formattedAddress", "location", "rating", "regularOpeningHours", "primaryTypeDisplayName"], locationBias: { center: { lat: h.lat, lng: h.lng }, radius: 30000 }, language: "ko" });
+              places = resBasic.places;
+            }
+            if (places && places.length > 0) {
+              const normalized = await Promise.all(places.slice(0, 6).map(async (p) => {
+                const pName = p.displayName || kw;
+                const latVal = typeof p.location.lat === 'function' ? p.location.lat() : p.location.lat;
+                const lngVal = typeof p.location.lng === 'function' ? p.location.lng() : p.location.lng;
+                const nearSt = findNearestStation(latVal, lngVal);
+                const stText = nearSt && nearSt.distKm < 2.5 ? `${nearSt.name}(${nearSt.exit}) 도보 ${nearSt.walkMin}분 · ` : "";
+                const cat = normalizeCategory(p.primaryTypeDisplayName, pName);
+                const osmTags = await fetchOsmTagsAround(latVal, lngVal);
+                const deep = buildDeepSpotIntelligence(pName + " " + kw, cat, p, osmTags);
+                return { name: pName, address: stText + (p.formattedAddress || city), lat: latVal, lng: lngVal, rating: p.rating ? String(p.rating) : "4.2", category: cat, hours: deep.hours, payment: deep.payment, tip: deep.tip };
+              }));
+              renderSearchResults(normalized);
+              return;
+            }
+          }
+        } catch (e) {}
+      }
+
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&extratags=1&q=${encodeURIComponent(fullQuery)}&limit=6&accept-language=ko,ja,en`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data && data.length > 0) {
+          const normalized = data.map(item => {
+            const tags = item.extratags || {};
+            const latVal = parseFloat(item.lat);
+            const lngVal = parseFloat(item.lon);
+            const nearSt = findNearestStation(latVal, lngVal);
+            const stText = nearSt && nearSt.distKm < 2.5 ? `${nearSt.name}(${nearSt.exit}) 도보 ${nearSt.walkMin}분 · ` : "";
+            const pName = item.display_name.split(',')[0];
+            const cat = normalizeCategory(item.type, pName);
+            const deep = buildDeepSpotIntelligence(pName, cat, null, tags);
+            return { name: pName, address: stText + item.display_name, lat: latVal, lng: lngVal, rating: "4.2", category: cat, hours: deep.hours, payment: deep.payment, tip: deep.tip };
+          });
+          renderSearchResults(normalized);
+          return;
+        }
+      } catch (e) {}
+
+      listEl.innerHTML = `<div style="grid-column:1/-1; padding:12px; font-size:12px; color:#ef4444;">검색 결과가 없습니다.</div>`;
+    }
+
+    let lastSearchItems = [];
+    function renderSearchResults(items) {
+      lastSearchItems = items;
+      const listEl = document.getElementById('searchResultList');
+      listEl.innerHTML = '';
+      searchMarkers.forEach(m => m.setMap(null));
+      searchMarkers = [];
+
+      const bounds = (window.google && window.google.maps) ? new google.maps.LatLngBounds() : null;
+      const daysMeta = getDaysMetaList();
+      const dayOptionsHtml = daysMeta.map(d => `<option value="${d.idx}" ${d.idx === currentDayIndex ? 'selected' : ''}>${d.fullLabel}</option>`).join('');
+
+      items.forEach((item, idx) => {
+        if (map && bounds) {
+          const m = new google.maps.Marker({ position: { lat: item.lat, lng: item.lng }, map: map, title: item.name, label: { text: String(idx + 1), color: "white", fontWeight: "bold" } });
+          searchMarkers.push(m);
+          bounds.extend({ lat: item.lat, lng: item.lng });
+          m.addListener('click', () => focusSpotOnMap(item.lat, item.lng, item.name, item.address, item.rating));
+        }
+
+        const div = document.createElement('div');
+        div.className = 's-item';
+        div.innerHTML = `
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:start; gap:4px;">
+              <span class="s-item-title">${idx + 1}. ${escapeHtml(item.name)}</span>
+              <div style="display:flex; gap:4px; flex-shrink:0;"><span class="badge badge-cat">${item.category}</span><span class="badge badge-rate">⭐ ${item.rating}</span></div>
+            </div>
+            <div style="font-size:11px; color:var(--muted); margin:3px 0;">📍 ${escapeHtml(item.address)}</div>
+            <div style="font-size:11px; color:#0f172a;">🕒 ${escapeHtml(item.hours)}</div>
+            <div style="font-size:11px; color:#1d4ed8;">💳 ${escapeHtml(item.payment)}</div>
+            <div style="font-size:11px; color:#b45309; background:#fffbeb; padding:4px 6px; border-radius:4px; margin-top:3px;">💡 ${escapeHtml(item.tip)}</div>
+          </div>
+          <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap; padding-top:6px; border-top:1px dashed #cbd5e1;">
+            <button class="btn btn-wish" style="padding:5px 9px; font-size:11px;" onclick="addSearchResultToWish(${idx})">⭐ 위시 담기</button>
+            <select id="sDay-${idx}" style="font-size:11px; padding:4px; border:1px solid var(--border); border-radius:5px; flex:1; background:white;">${dayOptionsHtml}</select>
+            <button class="btn btn-primary" style="padding:5px 9px; font-size:11px;" onclick="addSearchResultToDay(${idx})">+ 일정 투입</button>
+          </div>
+        `;
+        listEl.appendChild(div);
+      });
+      if (map && bounds && items.length > 0) map.fitBounds(bounds);
+    }
+
+    function addSearchResultToWish(idx) {
+      const item = lastSearchItems[idx];
+      if (!item) return;
+      appState.plans[currentPlan].wish.unshift({ id: Date.now(), ...item });
+      saveData();
+      renderAll();
+      closeSearchModal();
+      openWishModal();
+    }
+
+    function addSearchResultToDay(idx) {
+      const item = lastSearchItems[idx];
+      if (!item) return;
+      const targetDayIdx = Number(document.getElementById(`sDay-${idx}`).value);
+      syncDaysLength();
+      const targetList = appState.plans[currentPlan].days[targetDayIdx];
+      const newId = Date.now();
+      targetList.push({ id: newId, time: getNextSuggestedTime(targetList), userMemo: "", transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: "", ...item });
+      currentDayIndex = targetDayIdx;
+      lastAddedSpotId = newId;
+      recalcAllTransits(true);
+      closeSearchModal();
+      renderAll();
+      scrollToSpotCard(newId);
+    }
+
+    function scrollToSpotCard(spotId) {
+      setTimeout(() => {
+        const el = document.getElementById(`spot-card-${spotId}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+    }
+
+    function getNextSuggestedTime(dayList) {
+      if (!dayList || dayList.length === 0) return "11:00";
+      const lastTime = dayList[dayList.length - 1].time || "12:00";
+      const [hh, mm] = lastTime.split(':').map(Number);
+      return `${String(Math.min(23, hh + 2)).padStart(2, '0')}:${String(mm || 0).padStart(2, '0')}`;
+    }
+
+    function getCurrentDayList() { syncDaysLength(); return appState.plans[currentPlan].days[currentDayIndex] || []; }
+
+    function renderAll() {
+      syncDaysLength();
+      renderHeaderConfig();
+      renderDayTabs();
+      renderWishSection();
+      renderTimeline();
+      renderChecklist();
+      renderMapMarkers();
+    }
+
+    function renderHeaderConfig() {
+      const cfg = appState.config;
+      document.getElementById('headerTripTitle').innerText = cfg.tripTitle || "🗼 도쿄 여행 올인원 대시보드";
+      document.getElementById('headerCityBadge').innerText = cfg.city || "Tokyo";
+      document.getElementById('headerHotelName').innerText = cfg.hotel.name;
+      document.getElementById('headerHotelTip').innerText = cfg.hotel.tip || cfg.hotel.address;
+      document.getElementById('startDateInput').value = cfg.startDate;
+      document.getElementById('endDateInput').value = cfg.endDate;
+    }
+
+    function setWishFilter(cat) { wishFilter = cat; renderWishSection(); }
+
+    function renderWishSection() {
+      const wishes = appState.plans[currentPlan].wish || [];
+      const badge = document.getElementById('wishCountBadge');
+      if (badge) badge.innerText = wishes.length;
+
+      const filterCats = ['all', "🍴 식당", "☕ 카페/디저트", "🛍️ 쇼핑", "🗼 관광명소"];
+      document.getElementById('wishFilterBar').innerHTML = filterCats.map(c => {
+        const cnt = c === 'all' ? wishes.length : wishes.filter(w => w.category === c).length;
+        return `<button class="w-chip ${wishFilter === c ? 'active' : ''}" onclick="setWishFilter('${escapeQuotes(c)}')">${c === 'all' ? `전체 (${cnt})` : `${c} (${cnt})`}</button>`;
+      }).join('');
+
+      const filtered = wishFilter === 'all' ? wishes : wishes.filter(w => w.category === wishFilter);
+      const grid = document.getElementById('wishCardsGrid');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1; padding:24px; text-align:center; color:var(--muted); background:#f8fafc; border-radius:8px; border:1px dashed #f472b6; font-size:12.5px;">담긴 위시 장소가 없습니다. 상단 [🔍 검색으로 추가] 버튼을 눌러 맛집을 담아보세요!</div>`;
+        return;
+      }
+
+      const daysMeta = getDaysMetaList();
+      const dayOptionsHtml = daysMeta.map(d => `<option value="${d.idx}" ${d.idx === currentDayIndex ? 'selected' : ''}>📅 ${d.fullLabel}</option>`).join('');
+
+      grid.innerHTML = filtered.map(w => {
+        const gmapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(w.name + ' ' + (w.address || ''))}`;
+        return `
+          <div class="wish-detail-card">
+            <div>
+              <div class="wish-card-head">
+                <div style="display:flex; gap:4px; align-items:center;"><span class="badge badge-cat">${w.category}</span><span class="badge badge-rate">⭐ ${w.rating || '4.0'}</span></div>
+                <div style="display:flex; gap:4px;"><a href="${gmapUrl}" target="_blank" class="btn btn-outline" style="padding:2px 6px; font-size:10px;">구글맵↗</a><button class="btn btn-danger" style="padding:2px 6px; font-size:10px;" onclick="deleteWishItem(${w.id})">삭제</button></div>
+              </div>
+              <div class="wish-card-title">${escapeHtml(w.name)}</div>
+              <div class="wish-meta-box" style="margin-top:6px;">
+                <div class="wish-meta-row"><span>📍 위치</span><div class="auto-text" contenteditable="true" onblur="updateWishField(${w.id}, 'address', this.innerText)">${escapeHtml(w.address || '')}</div></div>
+                <div class="wish-meta-row"><span>🕒 영업</span><div class="auto-text" contenteditable="true" onblur="updateWishField(${w.id}, 'hours', this.innerText)">${escapeHtml(w.hours || '')}</div></div>
+                <div class="wish-meta-row"><span>💳 결제</span><div class="auto-text" contenteditable="true" onblur="updateWishField(${w.id}, 'payment', this.innerText)">${escapeHtml(w.payment || '')}</div></div>
+                <div class="wish-meta-row"><span>💡 특이</span><div class="auto-text" contenteditable="true" onblur="updateWishField(${w.id}, 'tip', this.innerText)">${escapeHtml(w.tip || '')}</div></div>
+              </div>
+            </div>
+            <div class="wish-insert-footer">
+              <select id="wDay-${w.id}">${dayOptionsHtml}</select>
+              <button class="wish-insert-btn" onclick="insertWishCardToTimeline(${w.id})">📥 타임라인 투입</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateWishField(wishId, field, val) {
+      const w = (appState.plans[currentPlan].wish || []).find(i => i.id === wishId);
+      if (!w) return;
+      w[field] = val.trim();
+      saveData();
+    }
+
+    function addBlankWishCard() {
+      const name = prompt("추가할 장소 이름을 입력하세요:");
+      if (!name || !name.trim()) return;
+      const cat = normalizeCategory("", name);
+      const deep = buildDeepSpotIntelligence(name.trim(), cat, null, null);
+      appState.plans[currentPlan].wish.unshift({ id: Date.now(), name: name.trim(), category: cat, address: "위치 입력", lat: appState.config.hotel.lat, lng: appState.config.hotel.lng, rating: "4.1", hours: deep.hours, payment: deep.payment, tip: deep.tip });
+      saveData();
+      renderWishSection();
+    }
+
+    function deleteWishItem(wishId) {
+      appState.plans[currentPlan].wish = appState.plans[currentPlan].wish.filter(w => w.id !== wishId);
+      saveData();
+      renderWishSection();
+    }
+
+    function insertWishCardToTimeline(wishId) {
+      const w = (appState.plans[currentPlan].wish || []).find(i => i.id === wishId);
+      if (!w) return;
+      const targetDayIdx = Number(document.getElementById(`wDay-${wishId}`).value);
+      syncDaysLength();
+      const targetList = appState.plans[currentPlan].days[targetDayIdx];
+      const newId = Date.now();
+      targetList.push({ ...w, id: newId, time: getNextSuggestedTime(targetList), userMemo: "", transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: "" });
+      currentDayIndex = targetDayIdx;
+      lastAddedSpotId = newId;
+      recalcAllTransits(true);
+      closeWishModal(); // 투입 즉시 시트를 닫고 타임라인의 해당 카드로 포커스 이동!
+      renderAll();
+      scrollToSpotCard(newId);
+    }
+
+    function moveSpotBackToWish(spotId) {
+      const list = getCurrentDayList();
+      const found = list.find(i => i.id === spotId);
+      if (!found) return;
+      appState.plans[currentPlan].wish.unshift({ id: Date.now(), name: found.name, category: normalizeCategory(found.category, found.name), address: found.address, lat: found.lat, lng: found.lng, rating: found.rating, hours: found.hours, payment: found.payment, tip: found.tip });
+      appState.plans[currentPlan].days[currentDayIndex] = list.filter(i => i.id !== spotId);
+      recalcAllTransits(true);
+      renderAll();
+    }
+
+    function renderDayTabs() {
+      const daysMeta = getDaysMetaList();
+      const container = document.getElementById('dayTabsContainer');
+      container.innerHTML = daysMeta.map(d => {
+        const count = (appState.plans[currentPlan].days[d.idx] || []).length;
+        return `<div class="day-tab ${currentDayIndex === d.idx ? 'active' : ''}" onclick="selectDay(${d.idx})"><div>Day ${d.idx + 1} <span style="font-weight:500; font-size:11px;">${d.shortDate}</span></div><div style="font-size:10.5px; color:var(--muted); margin-top:2px;">일정 ${count}곳</div></div>`;
+      }).join('');
+    }
+
+    function selectDay(idx) { currentDayIndex = idx; renderAll(); }
+
+    function addHotelReturn() {
+      const h = appState.config.hotel;
+      const list = getCurrentDayList();
+      const newId = Date.now();
+      list.push({ id: newId, time: "21:30", name: h.name, category: "🏨 숙소", address: h.address, lat: h.lat, lng: h.lng, rating: h.rating || "4.0", hours: h.hours || "24시간", payment: "결제완료", tip: h.tip || "숙소 복귀", userMemo: "", transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: "" });
+      lastAddedSpotId = newId;
+      recalcAllTransits(true);
+      renderAll();
+      scrollToSpotCard(newId);
+    }
+
+    function renderTimeline() {
+      const daysMeta = getDaysMetaList();
+      const curMeta = daysMeta[currentDayIndex] || { idx: 0, shortDate: '' };
+      document.getElementById('currentDayTitle').innerText = `📅 [스케줄 ${currentPlan}안] Day ${curMeta.idx + 1} (${curMeta.shortDate}) 타임라인`;
+
+      const list = getCurrentDayList();
+      const container = document.getElementById('timelineContainer');
+      if (list.length === 0) {
+        container.innerHTML = `<div style="padding:28px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:10px; font-size:12.5px;">등록된 일정이 없습니다. 상단 <strong>[🔍 장소 검색]</strong>이나 <strong>[⭐ 위시리스트]</strong>를 눌러 일정을 추가해보세요!</div>`;
+        return;
+      }
+
+      let html = '';
+      list.forEach((item, idx) => {
+        const nextItem = list[idx + 1] || null;
+        const isFirst = idx === 0; const isLast = idx === list.length - 1;
+        const gmapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name + ' ' + (item.address || ''))}`;
+        const highlightClass = (item.id === lastAddedSpotId) ? 'just-added' : '';
+
+        html += `
+          <div class="spot-card ${highlightClass}" id="spot-card-${item.id}">
+            <div class="spot-top">
+              <div class="spot-badges">
+                <span class="badge badge-num" onclick="jumpSpotOrder(${idx})" title="클릭하여 순번 점프">#${idx + 1} ⇅</span>
+                <div class="order-btn-group">
+                  <button type="button" class="order-btn" ${isFirst ? 'disabled' : ''} onclick="moveSpotOrder(${idx}, -1)">▲</button>
+                  <button type="button" class="order-btn" ${isLast ? 'disabled' : ''} onclick="moveSpotOrder(${idx}, 1)">▼</button>
+                </div>
+                <input type="time" value="${item.time}" onchange="updateSpotField(${item.id}, 'time', this.value)" style="border:1px solid #cbd5e1; border-radius:4px; padding:2px 5px; font-weight:800; font-size:12px;">
+                <span class="badge badge-cat">${item.category}</span>
+                <span class="badge badge-rate">⭐ ${item.rating || '4.0'}</span>
+              </div>
+              <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                <button class="btn btn-wish" style="padding:3px 7px; font-size:11px;" onclick="moveSpotBackToWish(${item.id})">위시로</button>
+                <a href="${gmapSearchUrl}" target="_blank" class="btn btn-outline" style="padding:3px 7px; font-size:11px;">구글맵↗</a>
+                <button class="btn btn-danger" style="padding:3px 7px; font-size:11px;" onclick="removeSpot(${item.id})">삭제</button>
+              </div>
+            </div>
+
+            <div class="spot-name" onclick="focusSpotOnMap(${item.lat}, ${item.lng}, '${escapeQuotes(item.name)}', '${escapeQuotes(item.address)}', '${item.rating}')">${escapeHtml(item.name)}</div>
+            <div class="spot-addr">📍 ${escapeHtml(item.address || '')}</div>
+
+            <div class="spot-briefing-box">
+              <div class="brief-top-grid">
+                <div><span class="brief-item-label">🕒 영업시간</span><div class="auto-text" contenteditable="true" onblur="updateSpotField(${item.id}, 'hours', this.innerText)">${escapeHtml(item.hours || '')}</div></div>
+                <div><span class="brief-item-label">💳 결제수단</span><div class="auto-text" contenteditable="true" onblur="updateSpotField(${item.id}, 'payment', this.innerText)">${escapeHtml(item.payment || '')}</div></div>
+              </div>
+              <div>
+                <span class="brief-item-label">💡 특이사항 · 웨이팅 팁</span>
+                <div class="auto-text" contenteditable="true" onblur="updateSpotField(${item.id}, 'tip', this.innerText)">${escapeHtml(item.tip || '')}</div>
+              </div>
+            </div>
+
+            <div class="user-memo-row">
+              <strong>✏️ 내 메모:</strong>
+              <div class="auto-text" contenteditable="true" data-ph="개인 메모를 적으세요" onblur="updateSpotField(${item.id}, 'userMemo', this.innerText)">${escapeHtml(item.userMemo || '')}</div>
+            </div>
+          </div>
+        `;
+
+        if (nextItem) {
+          const curMode = item.transitMode || detectBestMode(item, nextItem);
+          const autoInfo = buildDetailedTransitInfo(curMode, item, nextItem);
+          const routeText = item.transitToNext || autoInfo.routeText;
+          const fareText = item.transitFare || autoInfo.fareText;
+          const guideTip = item.transitGuide || autoInfo.guideTip;
+          const gmapMode = TRANSIT_MODES[curMode]?.gmapMode || 'transit';
+          const dirUrl = `https://www.google.com/maps/dir/?api=1&origin=${item.lat || ''},${item.lng || ''}&destination=${nextItem.lat || ''},${nextItem.lng || ''}&travelmode=${gmapMode}`;
+
+          const modeOptionsHtml = Object.keys(TRANSIT_MODES).map(k => `<option value="${k}" ${curMode === k ? 'selected' : ''}>${TRANSIT_MODES[k].label}</option>`).join('');
+
+          html += `
+            <div class="transit-cell">
+              <div class="transit-header">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <select class="transit-mode-select" onchange="changeSpotTransitMode(${item.id}, this.value)">${modeOptionsHtml}</select>
+                  <span class="fare-pill">💴 ${escapeHtml(fareText)}</span>
+                </div>
+                <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                  <button type="button" class="btn-route-popup" onclick="openTransitRoutePopup(${idx})">🗺️ 노선도 팝업</button>
+                  <a href="${dirUrl}" target="_blank" class="btn btn-primary" style="padding:4px 8px; font-size:11px;">길찾기 ↗</a>
+                </div>
+              </div>
+              <div class="transit-route-box">
+                <div class="auto-text transit-route-text" contenteditable="true" onblur="updateSpotField(${item.id}, 'transitToNext', this.innerText)">${escapeHtml(routeText)}</div>
+                <div class="transit-guide-tip">🧭 ${escapeHtml(guideTip)}</div>
+              </div>
+              <div class="user-memo-row" style="background:#f8fafc; border-color:#cbd5e1;">
+                <strong style="color:#1e40af;">✏️ 교통 메모:</strong>
+                <div class="auto-text" contenteditable="true" onblur="updateSpotField(${item.id}, 'transitMemo', this.innerText)">${escapeHtml(item.transitMemo || '')}</div>
+              </div>
+            </div>
+          `;
+        }
+      });
+      container.innerHTML = html;
+    }
+
+    function updateSpotField(id, field, value) {
+      const list = getCurrentDayList();
+      const item = list.find(i => i.id === id);
+      if (!item) return;
+      item[field] = String(value || '').trim();
+      if (field === 'transitToNext') item.transitMode = 'custom';
+      saveData();
+    }
+
+    function removeSpot(id) {
+      appState.plans[currentPlan].days[currentDayIndex] = getCurrentDayList().filter(i => i.id !== id);
+      recalcAllTransits(true);
+      renderAll();
+    }
+
+    function renderChecklist() {
+      const box = document.getElementById('checklistContainer');
+      if (!box) return;
+      if (!appState.checks) appState.checks = {};
+      box.innerHTML = CHECKLIST_ITEMS.map((txt, idx) => {
+        const checked = appState.checks[idx] ? 'checked' : '';
+        const style = appState.checks[idx] ? 'text-decoration:line-through; color:#94a3b8; background:#f1f5f9;' : '';
+        return `<label class="chk-item" style="${style}"><input type="checkbox" ${checked} onchange="toggleCheckItem(${idx}, this.checked)"><span>${txt}</span></label>`;
+      }).join('');
+    }
+
+    function toggleCheckItem(idx, isChecked) {
+      if (!appState.checks) appState.checks = {};
+      appState.checks[idx] = isChecked;
+      saveData();
+      renderChecklist();
+    }
+
+    function renderMapMarkers() {
+      if (!map || !window.google) return;
+      dayMarkers.forEach(m => m.setMap(null));
+      dayMarkers = [];
+      if (routeLine) routeLine.setMap(null);
+
+      const list = getCurrentDayList();
+      if (list.length === 0) return;
+
+      const coords = [];
+      const bounds = new google.maps.LatLngBounds();
+      list.forEach((item, idx) => {
+        if (!item.lat || !item.lng) return;
+        const pos = { lat: Number(item.lat), lng: Number(item.lng) };
+        coords.push(pos);
+        bounds.extend(pos);
+        const m = new google.maps.Marker({ position: pos, map: map, title: item.name, label: { text: String(idx + 1), color: "white", fontWeight: "bold" } });
+        m.addListener('click', () => focusSpotOnMap(pos.lat, pos.lng, item.name, item.address, item.rating));
+        dayMarkers.push(m);
+      });
+
+      if (coords.length > 1) {
+        routeLine = new google.maps.Polyline({ path: coords, geodesic: true, strokeColor: "#2563eb", strokeOpacity: 0.85, strokeWeight: 3 });
+        routeLine.setMap(map);
+      }
+      if (coords.length > 0) map.fitBounds(bounds);
+    }
+
+    function focusSpotOnMap(lat, lng, name, address, rating) {
+      if (!map || !window.google) return;
+      const pos = { lat: Number(lat), lng: Number(lng) };
+      map.panTo(pos); map.setZoom(16);
+      if (infoWindow) {
+        infoWindow.setPosition(pos);
+        infoWindow.setContent(`<div style="font-size:12px; padding:4px;"><strong>${name}</strong> (⭐${rating || '4.0'})<br><span style="color:#64748b; font-size:11px;">${address || ''}</span></div>`);
+        infoWindow.open(map);
+      }
+    }
+
+    function panToHotel() { const h = appState.config.hotel; focusSpotOnMap(h.lat, h.lng, h.name, h.address, h.rating); }
+    function fitCurrentDayBounds() { renderMapMarkers(); }
+
+    function openConfigModal() {
+      const cfg = appState.config;
+      document.getElementById('cfgTripTitle').value = cfg.tripTitle || "";
+      document.getElementById('cfgCityName').value = cfg.city || "";
+      document.getElementById('cfgHotelName').value = cfg.hotel.name || "";
+      document.getElementById('cfgHotelAddr').value = cfg.hotel.address || "";
+      document.getElementById('cfgHotelTip').value = cfg.hotel.tip || "";
+      document.getElementById('configModal').classList.add('open');
+    }
+    function closeConfigModal() { document.getElementById('configModal').classList.remove('open'); }
+
+    async function saveConfigModal() {
+      const cfg = appState.config;
+      cfg.tripTitle = document.getElementById('cfgTripTitle').value.trim() || "🗼 도쿄 여행 올인원 대시보드";
+      cfg.city = document.getElementById('cfgCityName').value.trim() || "Tokyo";
+      cfg.hotel.name = document.getElementById('cfgHotelName').value.trim() || "숙소";
+      cfg.hotel.address = document.getElementById('cfgHotelAddr').value.trim() || "";
+      cfg.hotel.tip = document.getElementById('cfgHotelTip').value.trim() || "";
+      saveData(); closeConfigModal(); updateHotelMarkerOnMap(); renderAll();
+    }
+
+    function switchMainTab(paneId, btnEl) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(paneId).classList.add('active');
+      btnEl.classList.add('active');
+    }
+
+    function switchPlan(slot) {
+      currentPlan = slot;
+      [1, 2, 3].forEach(n => { document.getElementById(`planBtn-${n}`).classList.toggle('active', n === slot); });
+      recalcAllTransits(false);
+      renderAll();
+    }
+
+    function copyCurrentPlanToOther() {
+      const target = prompt(`현재 [${currentPlan}안]을 몇 안으로 복사할까요? (1, 2, 3)`);
+      const tNum = Number(target);
+      if (![1, 2, 3].includes(tNum) || tNum === currentPlan) return;
+      appState.plans[tNum] = JSON.parse(JSON.stringify(appState.plans[currentPlan]));
+      saveData(); switchPlan(tNum); alert(`[${currentPlan}안] 복사 완료!`);
+    }
+
+    function clearCurrentPlan() {
+      if (!confirm(`현재 [${currentPlan}안] 일정을 비우시겠습니까?`)) return;
+      appState.plans[currentPlan].days = getDaysMetaList().map(() => []);
+      saveData(); renderAll();
+    }
+
+    function escapeQuotes(str) { return String(str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+    function escapeHtml(str) { return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+    function saveData() {
+      localStorage.setItem('universal_travel_planner_v8', JSON.stringify(appState));
+      if (!isPullingCloud) pushToCloud();
+    }
+
+    async function loadData() {
+      const saved = localStorage.getItem('universal_travel_planner_v8') || localStorage.getItem('universal_travel_planner_v7') || localStorage.getItem('universal_travel_planner_v6');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.config && parsed.plans) appState = parsed;
+        } catch(e) {}
+      }
+
+      // 영구 고정된 Google API 키 즉시 로드
+      loadGoogleScript(FIXED_GMAP_API_KEY);
+
+      document.getElementById('searchKeyword').addEventListener('keydown', (e) => { if (e.key === 'Enter') executeSmartSearch(); });
+
+      syncDaysLength();
+      recalcAllTransits(false);
+      renderAll();
+
+      const hasRemote = await pullFromCloud(true);
+      if (!hasRemote) {
+        await pushToCloud();
+      }
+      startAutoSyncLoop();
+    }
+
+    function exportBackup() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+      const a = document.createElement('a'); a.href = dataStr; a.download = `travel_plan_${appState.config.city || 'backup'}.json`; a.click();
+    }
+
+    function importBackup(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed && parsed.config && parsed.plans) {
+            appState = parsed; syncDaysLength(); saveData(); renderAll();
+            alert("일정 파일을 성공적으로 불러왔습니다!");
+          } else { alert("올바른 백업 파일이 아닙니다."); }
+        } catch (err) { alert("파일 오류"); }
+      };
+      reader.readAsText(file);
+    }
+
+    window.onload = loadData;
+  </script>
+</body>
+</html>
