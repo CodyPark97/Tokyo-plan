@@ -78,117 +78,80 @@
       color: #94a3b8;
       font-weight: 400;
     }
+  <!-- 0. 최상단 고정 서버 동기화 전용 바 (스크롤 내려도 항상 최상단에 고정됨!) -->
+  <div style="position:sticky; top:0; z-index:90; background:#020617; color:white; padding:8px 14px; border-bottom:1px solid #334155; box-shadow:0 2px 8px rgba(0,0,0,0.25);">
+    <div style="max-width:1380px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+      <span id="syncStatusBadge" class="badge" style="background:#dcfce7; color:#15803d; border:1px solid #86efac; padding:5px 10px; font-size:11.5px;">🟢 서버 동기화 대기중</span>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <button class="btn btn-primary" id="cloudSaveBtn" style="background:#059669; padding:6px 12px; font-size:12px;" onclick="manualPushToCloud()">
+          ☁️ 서버 저장
+        </button>
+        <button class="btn btn-outline" style="background:#1e293b; color:white; border-color:#475569; padding:6px 10px; font-size:12px;" onclick="manualPullFromCloud()">
+          🔄 최신 불러오기
+        </button>
+        <button class="btn btn-outline" style="background:#1e293b; color:#cbd5e1; border-color:#475569; padding:6px 9px; font-size:11.5px;" onclick="exportBackup()">💾 백업</button>
+        <button class="btn btn-outline" style="background:#1e293b; color:#cbd5e1; border-color:#475569; padding:6px 9px; font-size:11.5px;" onclick="document.getElementById('importFileInput').click()">📂 열기</button>
+        <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importBackup(event)">
+      </div>
+    </div>
+  </div>
 
-    /* 1. 상단 헤더 (API 키 입력창 제거로 훨씬 깔끔해짐) */
-    header {
-      background: #0f172a;
-      color: white;
-      padding: 12px 16px;
-      border-bottom: 1px solid #1e293b;
-    }
-    .header-top {
-      max-width: 1380px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .brand h1 { font-size: 17.5px; font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .brand p { font-size: 11.5px; color: #94a3b8; margin-top: 2px; word-break: keep-all; }
-    .city-badge {
-      background: #3b82f6;
-      color: white;
-      font-size: 11px;
-      padding: 3px 9px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-weight: 700;
-    }
+  <!-- 1. 여행 타이틀 & 숙소/날짜 헤더 -->
+  <header>
+    <div class="header-top">
+      <div class="brand">
+        <h1>
+          <span id="headerTripTitle">🗼 도쿄 여행 올인원 대시보드</span>
+          <span class="city-badge" onclick="openConfigModal()">🌏 <span id="headerCityBadge">Tokyo</span> · 설정 ⚙️</span>
+        </h1>
+        <p>
+          <span>🏨 숙소: <strong id="headerHotelName" style="color:white;">Hotel Sunlite Shinjuku</strong></span>
+          <span>|</span>
+          <span id="headerHotelTip">신주쿠산초메역 E1출구 도보 2분</span>
+        </p>
+      </div>
 
-    .top-controls {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .ctrl-group {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.15);
-      padding: 4px 9px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 11.5px;
-    }
-    .ctrl-group input[type="date"] {
-      background: transparent;
-      border: none;
-      color: white;
-      font-size: 12px;
-      font-weight: 700;
-      outline: none;
-    }
-    .ctrl-group input[type="date"]::-webkit-calendar-picker-indicator {
-      filter: invert(1);
-      cursor: pointer;
-    }
+      <div class="top-controls">
+        <div class="ctrl-group">
+          <span>📅 일정:</span>
+          <input type="date" id="startDateInput" onchange="updateDateRange()">
+          <span>~</span>
+          <input type="date" id="endDateInput" onchange="updateDateRange()">
+        </div>
+      </div>
+    </div>
+  </header>
 
-    /* 2. 상단 슬림 고정 바 (절대 아래로 늘어나서 타임라인을 가리지 않음!) */
-    .quick-bar {
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border-bottom: 1px solid var(--border);
-      padding: 8px 14px;
-      box-shadow: 0 2px 8px rgba(15,23,42,0.05);
-      position: sticky;
-      top: 0;
-      z-index: 40;
-    }
-    .quick-bar-inner {
-      max-width: 1380px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      touch-action: pan-x;
-      white-space: nowrap;
-    }
-    .plan-group, .action-group {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      flex-shrink: 0;
-    }
+  <!-- 2. 역할별로 깔끔하게 분리된 컨트롤 바 (스케줄 안 선택 줄 / 검색·위시 전용 줄) -->
+  <div class="quick-bar" style="position:relative; z-index:30; padding:10px 14px;">
+    <div style="max-width:1380px; margin:0 auto; display:flex; flex-direction:column; gap:10px;">
+      
+      <!-- [줄 1] 스케줄 1·2·3안 전환 및 관리 전용 -->
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; overflow-x:auto;" class="no-scrollbar">
+        <div style="display:flex; align-items:center; gap:5px;">
+          <span style="font-size:12px; font-weight:800; color:#475569; margin-right:4px;">🗂️ 스케줄 선택:</span>
+          <button class="btn btn-outline active" id="planBtn-1" onclick="switchPlan(1)">📌 1안</button>
+          <button class="btn btn-outline" id="planBtn-2" onclick="switchPlan(2)">2안</button>
+          <button class="btn btn-outline" id="planBtn-3" onclick="switchPlan(3)">3안</button>
+        </div>
+        <div style="display:flex; align-items:center; gap:5px;">
+          <button class="btn btn-outline" style="font-size:11.5px; padding:5px 9px;" onclick="copyCurrentPlanToOther()">📑 다른 안으로 복사</button>
+          <button class="btn btn-danger" style="font-size:11.5px; padding:5px 9px;" onclick="clearCurrentPlan()">🗑️ 현재 안 비우기</button>
+        </div>
+      </div>
 
-    .btn {
-      padding: 6px 11px;
-      border-radius: 7px;
-      border: 1px solid transparent;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      text-decoration: none;
-      white-space: nowrap;
-      flex-shrink: 0;
-      transition: transform 0.1s, background 0.15s;
-    }
-    .btn:active { transform: scale(0.97); }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-outline { background: white; border-color: var(--border); color: var(--text); }
-    .btn-outline.active { background: var(--primary); color: white; border-color: var(--primary); }
-    .btn-wish { background: var(--wish-light); color: #be185d; border-color: #f472b6; font-weight: 800; }
-    .btn-search-top { background: #eff6ff; color: #1d4ed8; border-color: #93c5fd; font-weight: 800; }
-    .btn-danger { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+      <!-- [줄 2] 가장 많이 쓰는 장소 검색 & 위시리스트 큼직한 2분할 전용 버튼 -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <button class="btn btn-search-top" style="justify-content:center; padding:10px; font-size:13.5px; border-radius:8px;" onclick="openSearchModal()">
+          🔍 구글맵 장소 검색
+        </button>
+        <button class="btn btn-wish" style="justify-content:center; padding:10px; font-size:13.5px; border-radius:8px;" onclick="openWishModal()">
+          ⭐ 위시리스트 보관함 (<span id="wishCountBadge">0</span>)
+        </button>
+      </div>
+
+    </div>
+  </div>
 
     /* 3. 메인 탭 (좌우 슬라이드 고정, 상하 흔들림 0%) */
     .main-nav {
@@ -2056,7 +2019,7 @@
           <div>
             <div style="display:flex; justify-content:space-between; align-items:start; gap:4px;">
               <span class="s-item-title">${idx + 1}. ${escapeHtml(item.name)}</span>
-              <div style="display:flex; gap:4px; flex-shrink:0;"><span class="badge badge-cat">${item.category}</span><span class="badge badge-rate">⭐ ${item.rating}</span></div>
+              <span class="badge badge-rate" style="flex-shrink:0;">⭐ ${item.rating}</span>
             </div>
             <div style="font-size:11px; color:var(--muted); margin:3px 0;">📍 ${escapeHtml(item.address)}</div>
             <div style="font-size:11px; color:#0f172a;">🕒 ${escapeHtml(item.hours)}</div>
@@ -2136,37 +2099,34 @@
       document.getElementById('endDateInput').value = cfg.endDate;
     }
 
-    function setWishFilter(cat) { wishFilter = cat; renderWishSection(); }
+    function setWishFilter(cat) { wishFilter = 'all'; renderWishSection(); }
 
     function renderWishSection() {
       const wishes = appState.plans[currentPlan].wish || [];
       const badge = document.getElementById('wishCountBadge');
       if (badge) badge.innerText = wishes.length;
 
-      const filterCats = ['all', "🍴 식당", "☕ 카페/디저트", "🛍️ 쇼핑", "🗼 관광명소"];
-      document.getElementById('wishFilterBar').innerHTML = filterCats.map(c => {
-        const cnt = c === 'all' ? wishes.length : wishes.filter(w => w.category === c).length;
-        return `<button class="w-chip ${wishFilter === c ? 'active' : ''}" onclick="setWishFilter('${escapeQuotes(c)}')">${c === 'all' ? `전체 (${cnt})` : `${c} (${cnt})`}</button>`;
-      }).join('');
+      // 불필요한 카테고리 필터바 숨김 처리
+      const filterBar = document.getElementById('wishFilterBar');
+      if (filterBar) filterBar.style.display = 'none';
 
-      const filtered = wishFilter === 'all' ? wishes : wishes.filter(w => w.category === wishFilter);
       const grid = document.getElementById('wishCardsGrid');
 
-      if (filtered.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1; padding:24px; text-align:center; color:var(--muted); background:#f8fafc; border-radius:8px; border:1px dashed #f472b6; font-size:12.5px;">담긴 위시 장소가 없습니다. 상단 [🔍 검색으로 추가] 버튼을 눌러 맛집을 담아보세요!</div>`;
+      if (wishes.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1; padding:24px; text-align:center; color:var(--muted); background:#f8fafc; border-radius:8px; border:1px dashed #f472b6; font-size:12.5px;">담긴 위시 장소가 없습니다. 상단 [🔍 검색으로 추가] 버튼을 눌러 장소를 담아보세요!</div>`;
         return;
       }
 
       const daysMeta = getDaysMetaList();
       const dayOptionsHtml = daysMeta.map(d => `<option value="${d.idx}" ${d.idx === currentDayIndex ? 'selected' : ''}>📅 ${d.fullLabel}</option>`).join('');
 
-      grid.innerHTML = filtered.map(w => {
+      grid.innerHTML = wishes.map(w => {
         const gmapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(w.name + ' ' + (w.address || ''))}`;
         return `
           <div class="wish-detail-card">
             <div>
               <div class="wish-card-head">
-                <div style="display:flex; gap:4px; align-items:center;"><span class="badge badge-cat">${w.category}</span><span class="badge badge-rate">⭐ ${w.rating || '4.0'}</span></div>
+                <span class="badge badge-rate">⭐ ${w.rating || '4.2'}</span>
                 <div style="display:flex; gap:4px;"><a href="${gmapUrl}" target="_blank" class="btn btn-outline" style="padding:2px 6px; font-size:10px;">구글맵↗</a><button class="btn btn-danger" style="padding:2px 6px; font-size:10px;" onclick="deleteWishItem(${w.id})">삭제</button></div>
               </div>
               <div class="wish-card-title">${escapeHtml(w.name)}</div>
@@ -2174,7 +2134,7 @@
                 <div class="wish-meta-row"><span>📍 위치</span><div class="auto-text" contenteditable="true" onblur="updateWishField(${w.id}, 'address', this.innerText)">${escapeHtml(w.address || '')}</div></div>
                 <div class="wish-meta-row"><span>🕒 영업</span><div class="auto-text" contenteditable="true" onblur="updateWishField(${w.id}, 'hours', this.innerText)">${escapeHtml(w.hours || '')}</div></div>
                 <div class="wish-meta-row"><span>💳 결제</span><div class="auto-text" contenteditable="true" onblur="updateWishField(${w.id}, 'payment', this.innerText)">${escapeHtml(w.payment || '')}</div></div>
-                <div class="wish-meta-row"><span>💡 특이</span><div class="auto-text" contenteditable="true" onblur="updateWishField(${w.id}, 'tip', this.innerText)">${escapeHtml(w.tip || '')}</div></div>
+                <div class="wish-meta-row"><span>💡 팁/메모</span><div class="auto-text" contenteditable="true" onblur="updateWishField(${w.id}, 'tip', this.innerText)">${escapeHtml(w.tip || '')}</div></div>
               </div>
             </div>
             <div class="wish-insert-footer">
@@ -2196,9 +2156,8 @@
     function addBlankWishCard() {
       const name = prompt("추가할 장소 이름을 입력하세요:");
       if (!name || !name.trim()) return;
-      const cat = normalizeCategory("", name);
-      const deep = buildDeepSpotIntelligence(name.trim(), cat, null, null);
-      appState.plans[currentPlan].wish.unshift({ id: Date.now(), name: name.trim(), category: cat, address: "위치 입력", lat: appState.config.hotel.lat, lng: appState.config.hotel.lng, rating: "4.1", hours: deep.hours, payment: deep.payment, tip: deep.tip });
+      const deep = buildDeepSpotIntelligence(name.trim(), "", null, null);
+      appState.plans[currentPlan].wish.unshift({ id: Date.now(), name: name.trim(), category: "", address: "위치 입력", lat: appState.config.hotel.lat, lng: appState.config.hotel.lng, rating: "4.2", hours: deep.hours, payment: deep.payment, tip: deep.tip });
       saveData();
       renderWishSection();
     }
@@ -2229,7 +2188,7 @@
       const list = getCurrentDayList();
       const found = list.find(i => i.id === spotId);
       if (!found) return;
-      appState.plans[currentPlan].wish.unshift({ id: Date.now(), name: found.name, category: normalizeCategory(found.category, found.name), address: found.address, lat: found.lat, lng: found.lng, rating: found.rating, hours: found.hours, payment: found.payment, tip: found.tip });
+      appState.plans[currentPlan].wish.unshift({ id: Date.now(), name: found.name, category: "", address: found.address, lat: found.lat, lng: found.lng, rating: found.rating, hours: found.hours, payment: found.payment, tip: found.tip });
       appState.plans[currentPlan].days[currentDayIndex] = list.filter(i => i.id !== spotId);
       recalcAllTransits(true);
       renderAll();
@@ -2250,7 +2209,7 @@
       const h = appState.config.hotel;
       const list = getCurrentDayList();
       const newId = Date.now();
-      list.push({ id: newId, time: "21:30", name: h.name, category: "🏨 숙소", address: h.address, lat: h.lat, lng: h.lng, rating: h.rating || "4.0", hours: h.hours || "24시간", payment: "결제완료", tip: h.tip || "숙소 복귀", userMemo: "", transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: "" });
+      list.push({ id: newId, time: "21:30", name: h.name, category: "", address: h.address, lat: h.lat, lng: h.lng, rating: h.rating || "4.0", hours: h.hours || "24시간", payment: "결제완료", tip: h.tip || "숙소 복귀", userMemo: "", transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: "" });
       lastAddedSpotId = newId;
       recalcAllTransits(true);
       renderAll();
@@ -2265,7 +2224,7 @@
       const list = getCurrentDayList();
       const container = document.getElementById('timelineContainer');
       if (list.length === 0) {
-        container.innerHTML = `<div style="padding:28px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:10px; font-size:12.5px;">등록된 일정이 없습니다. 상단 <strong>[🔍 장소 검색]</strong>이나 <strong>[⭐ 위시리스트]</strong>를 눌러 일정을 추가해보세요!</div>`;
+        container.innerHTML = `<div style="padding:28px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:10px; font-size:12.5px;">등록된 일정이 없습니다. 위쪽의 <strong>[🔍 구글맵 장소 검색]</strong>이나 <strong>[⭐ 위시리스트 보관함]</strong> 버튼을 눌러 일정을 추가해보세요!</div>`;
         return;
       }
 
@@ -2286,8 +2245,7 @@
                   <button type="button" class="order-btn" ${isLast ? 'disabled' : ''} onclick="moveSpotOrder(${idx}, 1)">▼</button>
                 </div>
                 <input type="time" value="${item.time}" onchange="updateSpotField(${item.id}, 'time', this.value)" style="border:1px solid #cbd5e1; border-radius:4px; padding:2px 5px; font-weight:800; font-size:12px;">
-                <span class="badge badge-cat">${item.category}</span>
-                <span class="badge badge-rate">⭐ ${item.rating || '4.0'}</span>
+                <span class="badge badge-rate">⭐ ${item.rating || '4.2'}</span>
               </div>
               <div style="display:flex; gap:4px; flex-wrap:wrap;">
                 <button class="btn btn-wish" style="padding:3px 7px; font-size:11px;" onclick="moveSpotBackToWish(${item.id})">위시로</button>
@@ -2305,7 +2263,7 @@
                 <div><span class="brief-item-label">💳 결제수단</span><div class="auto-text" contenteditable="true" onblur="updateSpotField(${item.id}, 'payment', this.innerText)">${escapeHtml(item.payment || '')}</div></div>
               </div>
               <div>
-                <span class="brief-item-label">💡 특이사항 · 웨이팅 팁</span>
+                <span class="brief-item-label">💡 팁 · 참고사항</span>
                 <div class="auto-text" contenteditable="true" onblur="updateSpotField(${item.id}, 'tip', this.innerText)">${escapeHtml(item.tip || '')}</div>
               </div>
             </div>
@@ -2354,6 +2312,7 @@
       });
       container.innerHTML = html;
     }
+
 
     function updateSpotField(id, field, value) {
       const list = getCurrentDayList();
