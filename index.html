@@ -2285,6 +2285,7 @@
       renderAll();
     }
 
+   // 1. 렌더링 중 자동 저장으로 인한 데이터 초기화 버그 완전 차단
     function recalcAllTransits(forceAutoDetect) {
       const list = getCurrentDayList();
       for (let i = 0; i < list.length - 1; i++) {
@@ -2292,7 +2293,6 @@
           list[i].transitMode = detectBestMode(list[i], list[i + 1]);
         }
       }
-      saveData();
       renderTimeline();
       renderDailyRouteStrip();
     }
@@ -2354,7 +2354,18 @@
       if (btn) { btn.style.background = "#059669"; btn.innerText = "☁️ 서버 저장"; }
     }
 
+// 2. 만약 실수로 일정이 비어있을 때는 서버에 덮어쓰지 못하도록 원천 차단하는 안전장치
     async function manualPushToCloud(isSilent) {
+      const totalSpots = [1, 2, 3].reduce((acc, p) => {
+        const wLen = (appState.plans[p]?.wish || []).length;
+        const dLen = (appState.plans[p]?.days || []).reduce((s, d) => s + d.length, 0);
+        return acc + wLen + dLen;
+      }, 0);
+
+      if (totalSpots === 0 && !confirm("⚠️ 현재 일정과 위시리스트가 모두 비어있습니다. 정말 빈 상태로 서버에 덮어쓰시겠습니까?")) {
+        return;
+      }
+
       try {
         updateSyncBadge("🔼 서버에 저장하는 중...", "#dbeafe", "#1d4ed8", "#93c5fd");
         const payload = { init: false, updatedAt: Date.now(), appState: appState };
@@ -2369,11 +2380,9 @@
           if (!isSilent) alert("✅ 서버 저장 완료! 다른 기기에서 새로고침하면 이 화면 그대로 나옵니다.");
         } else {
           updateSyncBadge("⚠️ 서버 저장 실패", "#fef2f2", "#b91c1c", "#fecaca");
-          if (!isSilent) alert("서버 응답 오류가 발생했습니다.");
         }
       } catch (err) {
         updateSyncBadge("⚠️ 네트워크 오류", "#fef2f2", "#b91c1c", "#fecaca");
-        if (!isSilent) alert("인터넷 연결을 확인해주세요.");
       }
     }
 
