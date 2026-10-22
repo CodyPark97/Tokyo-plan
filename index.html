@@ -1300,10 +1300,11 @@
     </div>
   </div>
 
-  <script>
+<script>
     const FIXED_GMAP_API_KEY = "AIzaSyAVbdI4RhCpvl5cVMLS_JDRipSajD5pxPg";
+    const MY_CLOUD_API_URL = "https://api.npoint.io/d3a4e2fcabe6f2e063a2";
 
-// ★ 도쿄 주요 역 데이터베이스 (한국어 + 현지 전광판/표지판용 일본어 한자 완벽 병기) ★
+    // 도쿄 주요 역 데이터베이스 (한국어 + 현지 전광판용 일본어 한자 병기)
     const TOKYO_STATIONS = [
       { name: "신주쿠산초메역(新宿三丁目駅)", short: "신주쿠산초메", jp: "新宿三丁目", lat: 35.6909, lng: 139.7063, exit: "E1·B4출구(出口)", lines: ["마루노우치선(丸ノ内線·빨강 M)", "후쿠토신선(副都心線·갈색 F)", "도영 신주쿠선(都営新宿線·초록 S)"], op: "metro" },
       { name: "히가시신주쿠역(東新宿駅)", short: "히가시신주쿠", jp: "東新宿", lat: 35.6979, lng: 139.7076, exit: "A1·B1출구(出口)", lines: ["도영 오에도선(都営大江戸線·자주 E)", "후쿠토신선(副都心線·갈색 F)"], op: "toei" },
@@ -1322,7 +1323,6 @@
       { name: "나리타공항 제2·3터미널역(空港第2ビル駅)", short: "공항제2빌딩(T2·T3)", jp: "空港第2ビル(成田第2·第3)", lat: 35.7719, lng: 140.3929, exit: "B1F 철도개찰구(鉄道改札)", lines: ["JR 나리타익스프레스(成田エクスプレス·N'EX)", "게이세이 스카이라이너(京成スカイライナー)"], op: "airport" }
     ];
 
-    // ★ 역 이름 한국어 ➔ 일본어 한자/기호 매핑 사전 (노선도 팝업에서 일본어 동시 출력용) ★
     const STATION_JP_MAP = {
       "니시신주쿠": "西新宿 (M07)",
       "신주쿠": "新宿 (M08/JY17)",
@@ -1350,7 +1350,6 @@
       "쿄바시": "京橋 (G10)",
       "미츠코시마에": "三越前 (G12)",
       "칸다": "神田 (G13)",
-      "우에노히로코지": "上野広小路 (G15)",
       "우에노": "上野 (G16/H18/JY05)",
       "이나리초": "稲荷町 (G17)",
       "타와라마치": "田原町 (G18)",
@@ -1405,7 +1404,7 @@
       { kw: ["시부야 스카이", "shibuya sky", "渋谷スカイ"], matchSub: "", hours: "10:00 ~ 22:30 (최종입장 21:20)", payment: "사전 온라인 QR 예매 전용 (클룩/KKday/공홈, 현장표 매진)", tip: "방문 4주 전 사전 예매 필수 (11월 말 일몰 16:30 기준 15:20~16:00 입장권 최고 명당) · 옥상 안전 규정상 모자, 삼각대, 스카프, 가방 반입 엄격 금지 (14층 무료 락커 보관용 100엔 동전 준비)" }
     ];
 
-    function normalizeCategory(rawCat, placeName) { return ""; }
+    function normalizeCategory() { return ""; }
 
     async function fetchOsmTagsAround(lat, lng) {
       if (!lat || !lng) return null;
@@ -1487,11 +1486,135 @@
     let dayMarkers = [];
     let searchMarkers = [];
     let routeLine = null;
+    let isPullingCloud = false;
+    let hasUnsavedChanges = false;
+    let lastSearchItems = [];
 
     function createDefaultPlanData() {
       return {
-        wish: [],
-        days: [[], [], [], []]
+        wish: [
+          {
+            id: 901, name: "스파게티 노 판쵸 신주쿠점 (Pancho)",
+            address: "신주쿠역 동쪽출구 도보 4분 / 신주쿠산초메역 B9출구 도보 2분", lat: 35.6908, lng: 139.7032, rating: "4.1",
+            hours: "11:00 ~ 23:00 (연중무휴)", payment: "입구 식권 자판기 (현금 및 Suica 교통카드 결제 가능)",
+            tip: "사전 예약 불가 (회전율 빨라 대기 거의 없음) · 나폴리탄 스파게티 소(300g)/중(400g)/대(500g) 가격 동일 · 치즈 및 함박스테이크 토핑 추가 강추"
+          },
+          {
+            id: 902, name: "라멘 타츠노야 신주쿠 오타키바시도리점",
+            address: "니시신주쿠역 1번출구 도보 4분 / 신주쿠역 서쪽출구 도보 7분", lat: 35.6969, lng: 139.6980, rating: "4.3",
+            hours: "11:00 ~ 22:00", payment: "현금 전용 식권 자판기 (1,000엔권 지폐·동전 필수 지참)",
+            tip: "사전 예약 불가 (현장 줄서기 15~30분 대기) · 곱창 츠케멘(모츠 츠케멘) 시그니처 · 면 다 먹은 후 남은 국물에 뜨거운 죽(와리메시) 추가 필수!"
+          },
+          {
+            id: 903, name: "츠지한 아크힐즈점 (Tsujihan Ark Hills)",
+            address: "롯폰기잇초메역 3번출구 도보 2분 (아크모리 빌딩 3층)", lat: 35.6672, lng: 139.7401, rating: "4.4",
+            hours: "11:00~15:00 / 17:00~21:00", payment: "신용카드 · 교통IC(Suica) · 현금 모두 결제 가능",
+            tip: "사전 예약 불가 · 니혼바시 본점보다 웨이팅 짧고(15~20분) 실내 대기라 쾌적! 회 2~3점 남기고 셰프에게 도미 육수(타이다시) 무료 추가 요청 필수"
+          },
+          {
+            id: 904, name: "츠지한 니혼바시 본점 (Tsujihan Nihonbashi)",
+            address: "니혼바시역 B3출구 도보 2분 / 도쿄역 야에스북쪽출구 도보 5분", lat: 35.6801, lng: 139.7730, rating: "4.4",
+            hours: "11:00 ~ 21:00 (브레이크타임 없음)", payment: "현금 전용 (1,000엔권 지폐 준비 필수)",
+            tip: "사전 예약 불가 (오픈 30분 전 대기 권장, 평일/주말 40~60분 웨이팅) · 제이타쿠동 우메(1,350엔~), 마지막에 도미 육수 오차즈케 무료 추가"
+          },
+          {
+            id: 905, name: "신주쿠 우동신 (Udon Shin / うどん慎)",
+            address: "신주쿠역 남쪽출구 도보 7분", lat: 35.6865, lng: 139.6968, rating: "4.2",
+            hours: "11:00 ~ 22:00", payment: "신용카드 · 현금 모두 결제 가능",
+            tip: "전화 예약 불가 · 매장 앞 키오스크에서 'QR 대기표(정리권)' 먼저 발권 후 QR코드로 내 순서 실시간 확인하며 근처 구경 · 명란 버터 가마타마 우동 시그니처"
+          },
+          {
+            id: 906, name: "하브스 루미네에스트 신주쿠점 (HARBS)",
+            address: "신주쿠역 동쪽출구 루미네에스트 지하 2층 (숙소 도보 7분)", lat: 35.6913, lng: 139.7012, rating: "4.3",
+            hours: "11:00 ~ 21:00", payment: "신용카드 · Suica · 현금 결제 가능",
+            tip: "예약 불가 · 밀크레프 케이크 시그니처 · 매장 취식 시 대기 20~30분 및 케이크 외 '1인 1음료 필수' (포장 줄은 대기 없이 즉시 구매해 숙소에서 먹기 좋음)"
+          },
+          {
+            id: 907, name: "이세탄 백화점 신주쿠 본점 (Isetan Shinjuku)",
+            address: "신주쿠산초메역 B4출구 지하 직결 (숙소 도보 5분)", lat: 35.6916, lng: 139.7046, rating: "4.5",
+            hours: "10:00 ~ 20:00", payment: "신용카드 · 트래블카드 · 현금 가능 (여권 지참 시 5% 게이트카드 + 면세)",
+            tip: "1층 안내데스크에서 실물 여권 제시 후 외국인 5% 할인 게이트카드 먼저 발급 · 지하 1층 명품 디저트관(에쉬레, 노와쿠키) & 1층 손수건 코너 필수"
+          },
+          {
+            id: 908, name: "시부야 스카이 (SHIBUYA SKY)",
+            address: "시부야역 B6출구 직결 스크램블스퀘어 14층 엘리베이터", lat: 35.6585, lng: 139.7022, rating: "4.7",
+            hours: "10:00 ~ 22:30 (최종입장 21:20)", payment: "사전 온라인 QR 예매 전용 (클룩/KKday/공홈, 현장표 매진)",
+            tip: "11월 말 일몰 16:30경(15:20~16:00 입장권 최고 명당) · 옥상 안전상 모자·삼각대·스카프·가방 반입 엄격 금지(14층 무료 락커 보관용 100엔 동전 준비)"
+          }
+        ],
+        days: [
+          [
+            {
+              id: 101, time: "14:00", name: "나리타 국제공항 제3터미널",
+              address: "Narita Airport Terminal 3, Chiba", lat: 35.7796, lng: 140.3860, rating: "4.0",
+              hours: "24시간 운영", payment: "Suica / 신용카드 / 현금", tip: "입국심사 후 1층 밖 파란색 트랙(도보 8분) 또는 1번 정류장 무료셔틀(3분)로 제2터미널 B1층 역 이동",
+              userMemo: "비행기 내리기 전 eSIM 활성화 및 비짓재팬 QR 켜두기",
+              transitMode: "airport", transitToNext: "", transitFare: "", transitMemo: "빨간색 JR 매표소에서 여권 내고 N'EX 왕복티켓(5,000엔) 구매하기"
+            },
+            {
+              id: 102, time: "16:30", name: "Hotel Sunlite Shinjuku (체크인)",
+              address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo", lat: 35.6939, lng: 139.7082, rating: "3.9",
+              hours: "체크인 15:00~", payment: "아고다 결제완료 (예약번호 1782306180 · 도시세 별도)", tip: "신주쿠산초메역 E1출구 도보 2분 / 본관 1층 프런트 체크인 후 짐 풀기",
+              userMemo: "체크인 시 도시세 현금 준비, 보조배터리 챙겨서 외출",
+              transitMode: "walk", transitToNext: "", transitFare: "", transitMemo: "신주쿠 거리 구경하면서 걸어가기"
+            },
+            {
+              id: 103, time: "18:00", name: "라멘 타츠노야 신주쿠 오타키바시도리점",
+              address: "니시신주쿠역 1번출구 도보 4분 / 신주쿠역 서쪽출구 도보 7분", lat: 35.6969, lng: 139.6980, rating: "4.3",
+              hours: "11:00 ~ 22:00", payment: "현금 전용 식권 자판기 (1,000엔권 지폐·동전 필수)", tip: "사전 예약 불가 (현장 줄서기 15~30분 대기) · 곱창 츠케멘(모츠 츠케멘) 시그니처, 다진 마늘 요청 및 마지막에 죽(와리메시) 추가 필수!",
+              userMemo: "곱창 츠케멘 2개 + 반숙계란 추가",
+              transitMode: "walk", transitToNext: "", transitFare: "", transitMemo: ""
+            }
+          ],
+          [
+            {
+              id: 201, time: "10:00", name: "Hotel Sunlite Shinjuku (숙소 출발)",
+              address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo", lat: 35.6939, lng: 139.7082, rating: "3.9",
+              hours: "상시 이용", payment: "결제완료", tip: "신주쿠산초메역 E1출구로 이동해 2일차 일정 시작",
+              userMemo: "여권 실물, 1,000엔권 지폐, 동전지갑 챙겼는지 확인",
+              transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: ""
+            },
+            {
+              id: 202, time: "11:00", name: "츠지한 니혼바시 본점 (Tsujihan Nihonbashi)",
+              address: "니혼바시역 B3출구 도보 2분 / 도쿄역 야에스북쪽출구 도보 5분", lat: 35.6801, lng: 139.7730, rating: "4.4",
+              hours: "11:00 ~ 21:00", payment: "현금 전용 (1,000엔권 지폐 준비 필수)", tip: "사전 예약 불가 (오픈런 권장) · 제이타쿠동(카이센동) 주문, 회 2점 남기고 셰프에게 도미 육수(타이다시) 무료 리필 요청",
+              userMemo: "우메(기본) 등급으로 주문하고 마지막에 도미 육수 오차즈케 먹기",
+              transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: ""
+            }
+          ],
+          [
+            {
+              id: 301, time: "10:30", name: "Hotel Sunlite Shinjuku (숙소 출발)",
+              address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo", lat: 35.6939, lng: 139.7082, rating: "3.9",
+              hours: "상시 이용", payment: "결제완료", tip: "3일차 일정 출발",
+              userMemo: "",
+              transitMode: "walk", transitToNext: "", transitFare: "", transitMemo: ""
+            },
+            {
+              id: 302, time: "12:00", name: "스파게티 노 판쵸 신주쿠점 (Pancho)",
+              address: "신주쿠역 동쪽출구 도보 4분", lat: 35.6908, lng: 139.7032, rating: "4.1",
+              hours: "11:00 ~ 23:00", payment: "식권 자판기 (현금 · Suica 교통카드 결제 가능)", tip: "예약 불가 (회전율 빨라 바로 입장) · 나폴리탄 소/중/대 가격 동일 + 함박스테이크·치즈 토핑 추천",
+              userMemo: "",
+              transitMode: "subway", transitToNext: "", transitFare: "", transitMemo: ""
+            }
+          ],
+          [
+            {
+              id: 401, time: "10:30", name: "Hotel Sunlite Shinjuku (체크아웃)",
+              address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo", lat: 35.6939, lng: 139.7082, rating: "3.9",
+              hours: "체크아웃 11:00", payment: "결제완료", tip: "빠트린 짐 확인 후 신주쿠역으로 이동",
+              userMemo: "면세 물품 캐리어에 잘 넣었는지 확인",
+              transitMode: "airport", transitToNext: "", transitFare: "", transitMemo: "첫날 산 N'EX 왕복패스 귀국권으로 지정석 발권 후 탑승"
+            },
+            {
+              id: 402, time: "13:00", name: "나리타 국제공항 제3터미널",
+              address: "Narita Airport Terminal 3, Chiba", lat: 35.7796, lng: 140.3860, rating: "4.0",
+              hours: "출국 수속", payment: "Suica / 신용카드", tip: "공항제2빌딩역 하차 ➔ 빨간색 트랙 따라 3터미널 이동 ➔ 세관 키오스크 여권 스캔(신 면세 확인)",
+              userMemo: "종점(1터미널)까지 가지 말고 무조건 공항제2빌딩역에서 내릴 것!",
+              transitMode: "walk", transitToNext: "", transitFare: "", transitMemo: ""
+            }
+          ]
+        ]
       };
     }
 
@@ -1505,9 +1628,6 @@
       }
     };
 
-    /********************************************************************
-     * ★ 정밀 복구된 한·일 병기 대중교통 동선 & 노선도 팝업 엔진 ★
-     ********************************************************************/
     function calcDistanceKm(lat1, lng1, lat2, lng2) {
       const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -1535,59 +1655,24 @@
       return null;
     }
 
-    // 한국어 역 이름을 넣으면 "신주쿠산초메역 | 新宿三丁目 (M09/F13)" 형태로 반환
-    function formatBilingualStop(krShort) {
-      const jpTxt = STATION_JP_MAP[krShort];
-      return jpTxt ? `${krShort}역 | ${jpTxt}` : `${krShort}역`;
-    }
-
-function openBeginnerTipSubModal() {
-      document.getElementById('beginnerTipSubModal').classList.add('open');
+    function openBeginnerTipSubModal() {
+      const m = document.getElementById('beginnerTipSubModal');
+      if (m) m.classList.add('open');
     }
     function closeBeginnerTipSubModal() {
-      document.getElementById('beginnerTipSubModal').classList.remove('open');
+      const m = document.getElementById('beginnerTipSubModal');
+      if (m) m.classList.remove('open');
     }
 
-    function formatBilingualStop(krShort) {
-      const jpTxt = STATION_JP_MAP[krShort];
-      return jpTxt ? `${krShort}역 | ${jpTxt}` : `${krShort}역`;
-    }
-
-    // 두 역이 서로 다른 노선일 때, 실제로 어느 역에서 무슨 선으로 환승하는지 정확히 찾아주는 함수
-    function findDetailedTransferPlan(stA, stB) {
-      if (!stA || !stB) return null;
-      for (const lineA of stA.lines) {
-        const seqA = LINE_SEQUENCES[lineA]?.stops || [];
-        for (const lineB of stB.lines) {
-          const seqB = LINE_SEQUENCES[lineB]?.stops || [];
-          const transferStop = seqA.find(s => seqB.includes(s));
-          if (transferStop) {
-            return {
-              line1: lineA,
-              line2: lineB,
-              transferKr: transferStop,
-              transferJp: STATION_JP_MAP[transferStop] || transferStop
-            };
-          }
-        }
-      }
-      // 기본 대표 환승역 매칭
-      return {
-        line1: stA.lines[0],
-        line2: stB.lines[0],
-        transferKr: "신주쿠/오모테산도",
-        transferJp: "新宿 / 表参道 (乗換)"
-      };
-    }
-
-// 좌측 상단 가이드 메뉴 드로어 열기/닫기/탭 전환
     function openGuideDrawer() {
-      document.getElementById('guideDrawerBackdrop').classList.add('open');
+      const d = document.getElementById('guideDrawerBackdrop');
+      if (d) d.classList.add('open');
     }
     function closeGuideDrawer() {
-      document.getElementById('guideDrawerBackdrop').classList.remove('open');
+      const d = document.getElementById('guideDrawerBackdrop');
+      if (d) d.classList.remove('open');
     }
-    function selectDrawerTab(paneId, labelText) {
+    function selectDrawerTab(paneId) {
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.drawer-item').forEach(d => d.classList.remove('active'));
       const targetPane = document.getElementById(paneId);
@@ -1607,18 +1692,59 @@ function openBeginnerTipSubModal() {
       closeGuideDrawer();
     }
 
-    // ★ 구간별 [🚶도보 vs 🚌시내버스 vs 🚇전철] 소요시간·요금 비교 및 최적 수단 콕 집어 추천 함수 ★
+    function switchMainTab(paneId, btnEl) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+      const target = document.getElementById(paneId);
+      if (target) target.classList.add('active');
+      if (btnEl) btnEl.classList.add('active');
+    }
+
+    function formatBilingualStop(krShort) {
+      const jpTxt = STATION_JP_MAP[krShort];
+      return jpTxt ? `${krShort}역 | ${jpTxt}` : `${krShort}역`;
+    }
+
+    function findDetailedTransferPlan(stA, stB) {
+      if (!stA || !stB) return null;
+      for (const lineA of stA.lines) {
+        const seqA = LINE_SEQUENCES[lineA]?.stops || [];
+        for (const lineB of stB.lines) {
+          const seqB = LINE_SEQUENCES[lineB]?.stops || [];
+          const transferStop = seqA.find(s => seqB.includes(s));
+          if (transferStop) {
+            return {
+              line1: lineA,
+              line2: lineB,
+              transferKr: transferStop,
+              transferJp: STATION_JP_MAP[transferStop] || transferStop
+            };
+          }
+        }
+      }
+      return {
+        line1: stA.lines[0],
+        line2: stB.lines[0],
+        transferKr: "신주쿠/오모테산도",
+        transferJp: "新宿 / 表参道 (乗換)"
+      };
+    }
+
+    function calcTokyoSubwayFare(distKm, isDirect, opA, opB) {
+      const railKm = distKm * 1.25;
+      let baseFare = railKm <= 6 ? 180 : (railKm <= 11 ? 210 : (railKm <= 19 ? 260 : 300));
+      if (opA === 'jr' && opB === 'jr') baseFare = railKm <= 3 ? 150 : (railKm <= 6 ? 170 : 180);
+      else if (!isDirect && opA !== opB) baseFare += 70;
+      return `${baseFare}엔 (IC카드)`;
+    }
+
     function evaluateBestTransitOptions(itemA, itemB) {
       if (!itemA || !itemB || !itemA.lat || !itemB.lat) {
         return {
           bestMode: 'subway',
           badgeText: '🚇 전철 이동 추천',
           reasonText: '기본 도심 전철 이동 구간입니다.',
-          options: {
-            walk: { min: 20, fare: '0엔', tag: '도보' },
-            bus: { min: 15, fare: '210엔', tag: '도영버스' },
-            subway: { min: 15, fare: '180엔', tag: '전철' }
-          }
+          options: null
         };
       }
 
@@ -1627,7 +1753,6 @@ function openBeginnerTipSubModal() {
       const stA = findNearestStation(itemA.lat, itemA.lng);
       const stB = findNearestStation(itemB.lat, itemB.lng);
 
-      // 공항 구간
       if (rawKm > 28 || (itemA.name + itemB.name).includes("공항")) {
         return {
           bestMode: 'airport',
@@ -1637,14 +1762,10 @@ function openBeginnerTipSubModal() {
         };
       }
 
-      // 1) 도보 시간
       const walkMin = Math.max(3, Math.round(roadKm * 15));
-
-      // 2) 시내버스 시간 (정류장 대기/도보 5분 + 주행)
       const busRideMin = Math.max(5, Math.round(roadKm * 4.2));
       const busTotalMin = busRideMin + 5;
 
-      // 3) 지하철 시간 (출발역 도보 + 열차 주행 + 환승시간 + 도착역 도보)
       let commonLine = (stA && stB) ? findCommonLine(stA, stB) : null;
       let stopsCount = Math.max(1, Math.round(rawKm / 1.15));
       if (commonLine && LINE_SEQUENCES[commonLine]) {
@@ -1658,7 +1779,6 @@ function openBeginnerTipSubModal() {
       const subTotalMin = isSameStation ? walkMin : ((stA?.walkMin || 5) + trainRideMin + (stB?.walkMin || 5));
       const subFare = isSameStation ? '0엔' : calcTokyoSubwayFare(rawKm, Boolean(commonLine), stA?.op, stB?.op).replace(' (IC카드)', '');
 
-      // ★ 상황별 똑똑한 추천 판정 로직 ★
       let bestMode = 'subway';
       let badgeText = '🚇 전철 이동 추천';
       let reasonText = '';
@@ -1666,11 +1786,11 @@ function openBeginnerTipSubModal() {
       if (rawKm <= 0.95 || walkMin <= 14 || isSameStation) {
         bestMode = 'walk';
         badgeText = '🚶 도보 이동 강력 추천';
-        reasonText = `거리가 ${roadKm.toFixed(1)}km(걸어서 약 ${walkMin}분)로 매우 가깝습니다! 지하철역 계단 오르내리는 시간보다 그냥 걸어가는 게 훨씬 빠르고 편합니다.`;
+        reasonText = `거리가 ${roadKm.toFixed(1)}km(걸어서 약 ${walkMin}분)로 매우 가깝습니다! 지하철 계단 오르내리는 시간보다 걸어가는 게 훨씬 빠르고 편합니다.`;
       } else if (!commonLine && rawKm >= 0.95 && rawKm <= 3.6 && busTotalMin <= subTotalMin + 4) {
         bestMode = 'bus';
         badgeText = '🚌 시내버스 강력 추천!';
-        reasonText = `전철로 가면 중간에 환승을 해야 해서 역 안을 많이 걷습니다. 이 구간은 210엔 도영버스를 타면 계단 없이 한 번에 편하게 갑니다!`;
+        reasonText = `전철로 가면 중간에 환승해야 해서 역 안을 많이 걷습니다. 210엔 도영버스를 타면 계단 없이 한 번에 편하게 갑니다!`;
       } else if (commonLine) {
         bestMode = 'subway';
         badgeText = '🚇 직통 전철 추천';
@@ -1678,7 +1798,7 @@ function openBeginnerTipSubModal() {
       } else {
         bestMode = 'subway';
         badgeText = '🚇 전철 이동 추천 (1회 환승)';
-        reasonText = `거리가 약 ${roadKm.toFixed(1)}km로 버스는 신호 대기 시간이 길어집니다. 전철로 1회 환승해 이동하는 것이 가장 빠릅니다.`;
+        reasonText = `거리가 약 ${roadKm.toFixed(1)}km로 버스는 신호 대기가 깁니다. 전철로 1회 환승해 이동하는 것이 가장 빠릅니다.`;
       }
 
       return {
@@ -1693,7 +1813,10 @@ function openBeginnerTipSubModal() {
       };
     }
 
-    // ★ 타임라인(요약) & 팝업(고시인성 신호등 컬러 카드 HTML) 동시 생성 엔진 ★
+    function detectBestMode(itemA, itemB) {
+      return evaluateBestTransitOptions(itemA, itemB).bestMode;
+    }
+
     function buildDetailedTransitInfo(mode, itemA, itemB) {
       const startShort = (itemA?.name || '출발지').split('(')[0].trim();
       const endShort = (itemB?.name || '도착지').split('(')[0].trim();
@@ -1714,7 +1837,6 @@ function openBeginnerTipSubModal() {
       const stA = findNearestStation(itemA.lat, itemA.lng);
       const stB = findNearestStation(itemB.lat, itemB.lng);
 
-      // 1. 공항 특급 N'EX
       if (mode === 'airport' || rawKm > 28) {
         const isToCity = itemA.name.includes("공항") || (stA && stA.op === 'airport');
         if (isToCity) {
@@ -1779,7 +1901,6 @@ function openBeginnerTipSubModal() {
         }
       }
 
-      // 2. 도보 이동
       if (mode === 'walk') {
         const walkMin = Math.max(3, Math.round(roadKm * 15));
         const areaDesc = stA ? `${stA.short}(${stA.jp}) 거리` : "도심 상점가";
@@ -1803,7 +1924,6 @@ function openBeginnerTipSubModal() {
         };
       }
 
-      // 3. 시내버스 (도영 버스 都営バス)
       if (mode === 'bus') {
         const busRideMin = Math.max(5, Math.round(roadKm * 4.2));
         const totalBusMin = busRideMin + 5;
@@ -1847,7 +1967,6 @@ function openBeginnerTipSubModal() {
         };
       }
 
-      // 4. 택시 이동
       if (mode === 'taxi') {
         const driveMin = Math.max(5, Math.round(roadKm * 2.8));
         const addDist = Math.max(0, roadKm - 1.096);
@@ -1872,7 +1991,6 @@ function openBeginnerTipSubModal() {
         };
       }
 
-      // 5. 지하철 / JR 전철 (고시인성 신호등 카드 적용)
       if (stA && stB) {
         if (stA.short === stB.short) {
           const walkMin = Math.max(4, Math.round(roadKm * 15));
@@ -1896,7 +2014,6 @@ function openBeginnerTipSubModal() {
         }
         const exactFare = calcTokyoSubwayFare(rawKm, Boolean(commonLine), stA.op, stB.op);
 
-        // [직통 전철]
         if (commonLine) {
           const trainMin = stopsCount * 2 + 2;
           const totalMin = stA.walkMin + trainMin + stB.walkMin;
@@ -1936,7 +2053,6 @@ function openBeginnerTipSubModal() {
           };
         }
 
-        // [1회 환승 전철]
         const tf = findDetailedTransferPlan(stA, stB);
         const trainMin = stopsCount * 2 + 8;
         const totalMin = stA.walkMin + trainMin + stB.walkMin;
@@ -2067,7 +2183,7 @@ function openBeginnerTipSubModal() {
       const canvas = document.getElementById('rpBoardCanvas');
 
       if (isWalkMode && itemA && itemB) {
-        wrap.style.padding = "12px";
+        if (wrap) wrap.style.padding = "12px";
         const embedMapUrl = `https://www.google.com/maps?saddr=${itemA.lat},${itemA.lng}&daddr=${itemB.lat},${itemB.lng}&dirflg=w&output=embed`;
         canvas.style.minWidth = "100%";
         canvas.style.padding = "0";
@@ -2083,7 +2199,7 @@ function openBeginnerTipSubModal() {
         return;
       }
 
-      wrap.style.padding = "24px 18px 28px";
+      if (wrap) wrap.style.padding = "24px 18px 28px";
       canvas.style.minWidth = "620px";
       canvas.style.padding = "135px 55px 22px 25px";
 
@@ -2155,18 +2271,6 @@ function openBeginnerTipSubModal() {
 
     function closeRoutePopup() { document.getElementById('routePopupModal').classList.remove('open'); }
 
-    function calcTokyoSubwayFare(distKm, isDirect, opA, opB) {
-      const railKm = distKm * 1.25;
-      let baseFare = railKm <= 6 ? 180 : (railKm <= 11 ? 210 : (railKm <= 19 ? 260 : 300));
-      if (opA === 'jr' && opB === 'jr') baseFare = railKm <= 3 ? 150 : (railKm <= 6 ? 170 : 180);
-      else if (!isDirect && opA !== opB) baseFare += 70;
-      return `${baseFare}엔 (IC카드)`;
-    }
-
-    function detectBestMode(itemA, itemB) {
-      return evaluateBestTransitOptions(itemA, itemB).bestMode;
-    }
-
     function changeSpotTransitMode(spotId, newMode) {
       const list = getCurrentDayList();
       const idx = list.findIndex(i => i.id === spotId);
@@ -2225,11 +2329,6 @@ function openBeginnerTipSubModal() {
       renderAll();
     }
 
-    const MY_CLOUD_API_URL = "https://api.npoint.io/d3a4e2fcabe6f2e063a2";
-    let isPullingCloud = false;
-    let hasUnsavedChanges = false;
-    let lastSearchItems = [];
-
     function updateSyncBadge(text, bg, color, border) {
       const el = document.getElementById('syncStatusBadge');
       if (!el) return;
@@ -2285,19 +2384,23 @@ function openBeginnerTipSubModal() {
         const res = await fetch(MY_CLOUD_API_URL + `?t=${Date.now()}`, { method: 'GET', cache: 'no-store' });
         if (!res.ok) { isPullingCloud = false; return false; }
         const data = await res.json();
-        if (!data || data.init === true || !data.appState || !data.appState.plans) {
+
+        // 서버에 유효한 데이터가 있으면 무조건 서버 데이터를 최우선으로 복구! (절대 자동 덮어쓰기 안 함)
+        const remoteState = (data && data.appState && data.appState.plans) ? data.appState : ((data && data.plans) ? data : null);
+        if (remoteState) {
+          appState = remoteState;
+          localStorage.setItem('universal_travel_planner_v9', JSON.stringify(appState));
+          syncDaysLength();
+          renderAll();
+          markSaved();
           isPullingCloud = false;
-          await manualPushToCloud(true);
+          if (!isSilent) alert("🔄 서버에서 저장된 위시리스트와 일정을 완벽하게 불러왔습니다!");
           return true;
         }
-        appState = data.appState;
-        localStorage.setItem('universal_travel_planner_v9', JSON.stringify(appState));
-        syncDaysLength();
-        renderAll();
-        markSaved();
+
         isPullingCloud = false;
-        if (!isSilent) alert("🔄 서버에서 최신 일정을 불러왔습니다!");
-        return true;
+        markSaved();
+        return false;
       } catch (e) {
         isPullingCloud = false;
         updateSyncBadge("⚠️ 오프라인 (기기 내부 데이터 표시)", "#fef2f2", "#b91c1c", "#fecaca");
@@ -2328,6 +2431,7 @@ function openBeginnerTipSubModal() {
       const meta = getDaysMetaList();
       const targetLen = meta.length;
       [1, 2, 3].forEach(p => {
+        if (!appState.plans[p]) appState.plans[p] = createDefaultPlanData();
         if (!Array.isArray(appState.plans[p].days)) appState.plans[p].days = [[], [], [], []];
         while (appState.plans[p].days.length < targetLen) appState.plans[p].days.push([]);
       });
@@ -2519,7 +2623,6 @@ function openBeginnerTipSubModal() {
 
     function getCurrentDayList() { syncDaysLength(); return appState.plans[currentPlan].days[currentDayIndex] || []; }
 
-    // ★ 상단 [오늘의 이동 코스 한 줄 버스노선 요약 바] 렌더링 함수 ★
     function renderDailyRouteStrip() {
       const trackEl = document.getElementById('dailyRouteStripTrack');
       const titleEl = document.getElementById('stripDayTitle');
@@ -2771,7 +2874,6 @@ function openBeginnerTipSubModal() {
           const modeOptionsHtml = Object.keys(TRANSIT_MODES).map(k => `<option value="${k}" ${curMode === k ? 'selected' : ''}>${TRANSIT_MODES[k].label}</option>`).join('');
           const popupBtnLabel = (curMode === 'walk') ? '🗺️ 도보 코스 지도 팝업' : '🗺️ 노선도·환승 한눈에 보기';
 
-          // ★ [전철 vs 시내버스 vs 도보] 추천 배너 및 원클릭 비교 선택 칸 생성 ★
           let recoHtml = '';
           if (evalObj.options) {
             const opts = evalObj.options;
@@ -2827,6 +2929,7 @@ function openBeginnerTipSubModal() {
       });
       container.innerHTML = html;
     }
+
     function updateSpotField(id, field, value) {
       const list = getCurrentDayList();
       const item = list.find(i => i.id === id);
@@ -2923,17 +3026,12 @@ function openBeginnerTipSubModal() {
       saveData(); closeConfigModal(); updateHotelMarkerOnMap(); renderAll();
     }
 
-    function switchMainTab(paneId, btnEl) {
-      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
-      document.getElementById(paneId).classList.add('active');
-      btnEl.classList.add('active');
-    }
-
     function switchPlan(slot) {
       currentPlan = slot;
-      [1, 2, 3].forEach(n => { document.getElementById(`planBtn-${n}`).classList.toggle('active', n === slot); });
-      recalcAllTransits(false);
+      [1, 2, 3].forEach(n => {
+        const b = document.getElementById(`planBtn-${n}`);
+        if (b) b.classList.toggle('active', n === slot);
+      });
       renderAll();
     }
 
@@ -2960,7 +3058,8 @@ function openBeginnerTipSubModal() {
     }
 
     async function loadData() {
-      const saved = localStorage.getItem('universal_travel_planner_v9');
+      // 1. 로컬 캐시(v9, v8, v7 모두 탐색)에 남아있는 데이터가 있으면 우선 복구
+      const saved = localStorage.getItem('universal_travel_planner_v9') || localStorage.getItem('universal_travel_planner_v8') || localStorage.getItem('universal_travel_planner_v7');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
@@ -2968,13 +3067,13 @@ function openBeginnerTipSubModal() {
         } catch(e) {}
       }
       syncDaysLength();
-      recalcAllTransits(false);
       renderAll();
 
       loadGoogleScript(FIXED_GMAP_API_KEY);
       const kwInp = document.getElementById('searchKeyword');
       if (kwInp) kwInp.addEventListener('keydown', (e) => { if (e.key === 'Enter') executeSmartSearch(); });
 
+      // 2. 클라우드 서버(npoint.io)에 저장된 최신 위시리스트와 타임라인을 즉시 불러와 화면에 복구
       await manualPullFromCloud(true);
     }
 
