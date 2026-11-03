@@ -1,37 +1,3 @@
-백업 성공하셨다니 정말 다행입니다!
-
-이제 그 소중한 데이터가 다시는 날아가지 않도록 **안전장치가 완벽히 걸린 최종 완성본 코드**로 깃허브를 업데이트한 뒤, 백업 파일을 불러와서 서버에 확정 저장하면 모든 복구와 기능 추가가 끝납니다.
-
-아래 순서대로 차근차근 진행해 주세요.
-
----
-
-1. **GitHub에 '데이터 증발 방지 + 최신 UI' 통합 코드 덮어쓰기:** 1분 소요.
-1. 아래에 있는 **최종 완성본 HTML 코드 전체를 복사**합니다. *(요청하셨던 한 줄 버스노선 요약 바, 좌측 가이드 서랍, 교통수단 추천 비교, 고시인성 환승 팝업이 모두 들어가 있으며, 새로고침 시 데이터가 초기화되는 버그를 완전히 제거했습니다.)*
-2. GitHub의 `index.html` 편집(연필 아이콘) 화면으로 가서 기존 내용을 **전부 지우고 붙여넣은 뒤 `Commit changes`**를 누릅니다.
-3. 약 15~20초 정도 기다려 Netlify에 최신 코드가 반영되도록 합니다.
-
-
-2. **백업한 파일(.json) 불러오기:** 아이패드 Safari.
-1. 내 여행 플래너 사이트(Netlify 주소)에 접속해 **새로고침**을 한 번 합니다.
-2. 화면 맨 꼭대기 검은색 고정 바 우측에 있는 **`[📂 열기]`** 버튼을 누릅니다.
-3. **[파일 선택]**을 누르고 방금 아이패드에 백업해 두신 `.json` 파일(예: `travel_plan_Tokyo.json`)을 선택합니다.
-4. *"일정 파일을 성공적으로 불러왔습니다!"* 알림이 뜨면서 아까 만드셨던 위시리스트와 타임라인이 화면에 그대로 복구되는지 확인합니다.
-
-
-3. **[☁️ 서버 저장] 눌러서 클라우드에 영구 확정하기:** 가장 중요!.
-1. 화면에 내 일정들이 제대로 뜬 것을 확인하셨다면, 맨 위 검은색 바의 주황색 **`[☁️ 서버 저장 (미반영!)]`** 버튼을 딱 한 번 누릅니다.
-2. *"✅ 서버 저장 완료!"* 팝업이 뜨고 배지가 초록색(`🟢 서버 동기화 완료`)으로 바뀌면 끝입니다!
-3. 이제 아이폰이나 다른 기기에서 접속해도 백업해 둔 최신 일정이 100% 똑같이 유지됩니다.
-
-
----
-
-### 📋 GitHub `index.html`에 통째로 덮어씌울 최종 안전 완성본 코드
-
-부분 수정 없이 처음(`<!DOCTYPE html>`)부터 끝(`</html>`)까지 전체를 복사해서 덮어씌우시면 됩니다.
-
-```html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -41,7 +7,7 @@
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <title>스마트 해외여행 올인원 플래너 PRO</title>
+  <title>스마트 여행 올인원 멀티 플래너 PRO</title>
   <style>
     :root {
       --primary: #2563eb;
@@ -160,8 +126,8 @@
     .top-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .ctrl-group {
       background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.15);
-      padding: 4px 9px;
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 5px 10px;
       border-radius: 8px;
       display: flex;
       align-items: center;
@@ -171,9 +137,9 @@
     .ctrl-group input[type="date"] {
       background: transparent;
       border: none;
-      color: white;
+      color: #fde047;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 800;
       outline: none;
     }
     .ctrl-group input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
@@ -270,7 +236,7 @@
     }
     .drawer-item.active { background: var(--primary); color: white; border-color: #60a5fa; }
 
-    /* 오늘 하루 동선 한 줄 버스노선 스타일 요약 바 */
+    /* ★ 오늘 하루 동선 요약 바 (일정 길어져도 잘림 없도록 스크롤바 + 전체 펼치기 지원!) ★ */
     .daily-route-strip-wrap { max-width: 1380px; margin: 10px auto 0; padding: 0 14px; }
     .daily-route-strip {
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -291,14 +257,48 @@
       gap: 8px;
       flex-wrap: wrap;
     }
+    .strip-ctrl-btns {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .strip-mini-btn {
+      background: #334155;
+      color: #f8fafc;
+      border: 1px solid #475569;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .strip-mini-btn:hover { background: #475569; }
+    .strip-mini-btn.active { background: #2563eb; border-color: #60a5fa; color: #ffffff; }
+
     .strip-track {
       display: flex;
       align-items: center;
       gap: 4px;
       overflow-x: auto;
-      padding: 4px 2px 6px;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+      padding: 6px 4px 10px;
       white-space: nowrap;
     }
+    /* 가시성 좋은 커스텀 가로 스크롤바 표시 */
+    .strip-track::-webkit-scrollbar { height: 6px; }
+    .strip-track::-webkit-scrollbar-track { background: rgba(255,255,255,0.06); border-radius: 4px; }
+    .strip-track::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+    /* [↕ 한눈에 펼치기] 모드 활성화 시 절대 안 잘리고 여러 줄로 자동 줄바꿈 */
+    .strip-track.expanded-wrap {
+      flex-wrap: wrap;
+      white-space: normal;
+      row-gap: 10px;
+      overflow-x: visible;
+    }
+
     .strip-node {
       display: inline-flex;
       align-items: center;
@@ -458,6 +458,7 @@
       gap: 8px;
     }
 
+    /* Day 탭 (모바일/태블릿에서 날짜 많아져도 잘리지 않도록 스크롤 & 줄바꿈 개선) */
     .day-tabs {
       display: flex;
       flex-wrap: nowrap;
@@ -467,11 +468,13 @@
       overflow-y: hidden;
       touch-action: pan-x;
       -webkit-overflow-scrolling: touch;
-      padding-bottom: 2px;
+      padding-bottom: 6px;
     }
+    .day-tabs::-webkit-scrollbar { height: 5px; }
+    .day-tabs::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     .day-tab {
       flex: 0 0 auto;
-      min-width: 110px;
+      min-width: 112px;
       height: 52px;
       padding: 6px 12px;
       display: flex;
@@ -678,7 +681,6 @@
     .s-item { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 11px; font-size: 12px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
     .s-item-title { font-weight: 800; font-size: 14px; color: #0f172a; cursor: pointer; }
 
-    .wish-filter-bar { display: none; }
     .wish-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; padding-bottom: 10px; }
     .wish-detail-card { background: #fff; border: 1px solid #fbcfe8; border-left: 5px solid var(--wish); border-radius: 10px; padding: 12px; box-shadow: 0 2px 6px rgba(219,39,119,0.06); display: flex; flex-direction: column; justify-content: space-between; gap: 8px; min-width: 0; }
     .wish-card-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
@@ -691,8 +693,20 @@
     .wish-insert-footer select { width: 100%; min-width: 0; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: 700; color: #1e293b; background: white; }
     .wish-insert-btn { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); color: white; border: none; padding: 7px 11px; border-radius: 6px; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
 
-    .bus-board-wrap { background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 12px; padding: 24px 18px 28px; overflow-x: auto; overflow-y: hidden; touch-action: pan-x; -webkit-overflow-scrolling: touch; }
-    .bus-board-canvas { min-width: 620px; padding-top: 135px; padding-bottom: 22px; padding-left: 25px; padding-right: 55px; position: relative; }
+    /* 노선도 팝업 내부 스크롤 잘림 완벽 해결 */
+    .bus-board-wrap {
+      background: #f8fafc;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 26px 18px 30px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      touch-action: pan-x;
+      -webkit-overflow-scrolling: touch;
+    }
+    .bus-board-wrap::-webkit-scrollbar { height: 7px; }
+    .bus-board-wrap::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+    .bus-board-canvas { min-width: 640px; padding-top: 135px; padding-bottom: 22px; padding-left: 25px; padding-right: 55px; position: relative; }
     .bus-track-row { display: flex; justify-content: space-between; align-items: center; position: relative; height: 6px; background: #f59e0b; border-radius: 4px; }
     .bus-track-row.row-2 { margin-top: 165px; }
     .bus-u-turn { position: absolute; right: 55px; top: 135px; width: 6px; height: 171px; background: #f59e0b; border-radius: 0 4px 4px 0; }
@@ -766,10 +780,10 @@
         <span>🗓️ 일정 & 동선 플래너 (메인)</span><span>➔</span>
       </div>
       <div class="drawer-item" id="nav-tab-airport" onclick="selectDrawerTab('tab-airport')">
-        <span>✈️ 나리타 공항·전철 가이드</span><span>➔</span>
+        <span>✈️ 공항·교통 이용 가이드</span><span>➔</span>
       </div>
       <div class="drawer-item" id="nav-tab-taxfree" onclick="selectDrawerTab('tab-taxfree')">
-        <span>🛂 11월 신(新) 면세 가이드</span><span>➔</span>
+        <span>🛂 일본 신(新) 면세 가이드</span><span>➔</span>
       </div>
       <div class="drawer-item" id="nav-tab-phrase" onclick="selectDrawerTab('tab-phrase')">
         <span>🗣️ 상황별 실전 회화집</span><span>➔</span>
@@ -780,7 +794,7 @@
     </div>
   </div>
 
-  <!-- 1. 상단 타이틀 & 좌측 상단 가이드 메뉴 호출 버튼 -->
+  <!-- 1. 상단 타이틀 & 현재 선택된 안(1·2·3안)의 개별 날짜/숙소 표시 헤더 -->
   <header>
     <div class="header-top">
       <div class="brand">
@@ -788,8 +802,8 @@
           <button type="button" class="btn" style="background:#1e293b; color:#fde047; border:1.5px solid #475569; padding:6px 11px; font-size:12.5px; border-radius:8px;" onclick="openGuideDrawer()">
             ☰ 가이드·꿀팁 메뉴
           </button>
-          <span id="headerTripTitle">🗼 도쿄 여행 올인원 대시보드</span>
-          <span class="city-badge" onclick="openConfigModal()">🌏 <span id="headerCityBadge">Tokyo</span> · 설정 ⚙️</span>
+          <span id="headerTripTitle">✈️ 스마트 여행 올인원 플래너</span>
+          <span class="city-badge" onclick="openConfigModal()" title="현재 안의 도시·숙소·이름 설정">🌏 <span id="headerCityBadge">Tokyo</span> · <span id="headerPlanLabel">1안</span> 설정 ⚙️</span>
         </h1>
         <p>
           <span>🏨 숙소: <strong id="headerHotelName" style="color:white;">Hotel Sunlite Shinjuku</strong></span>
@@ -799,8 +813,8 @@
       </div>
 
       <div class="top-controls">
-        <div class="ctrl-group">
-          <span>📅 일정:</span>
+        <div class="ctrl-group" title="1안·2안·3안마다 날짜를 서로 다르게 개별 설정할 수 있습니다!">
+          <span id="dateBoxPlanBadge" style="background:#2563eb; color:white; padding:1px 6px; border-radius:4px; font-weight:800; font-size:10.5px;">1안 날짜</span>
           <input type="date" id="startDateInput" onchange="updateDateRange()">
           <span>~</span>
           <input type="date" id="endDateInput" onchange="updateDateRange()">
@@ -809,12 +823,12 @@
     </div>
   </header>
 
-  <!-- 2. 스케줄 안 선택 줄 & 장소검색/위시리스트 전용 2분할 버튼 -->
+  <!-- 2. 스케줄 안 선택 줄 (각 안별 날짜·도시 자동 전환) & 장소검색/위시리스트 버튼 -->
   <div class="control-panel">
     <div class="control-panel-inner">
       <div class="plan-row no-scrollbar">
         <div style="display:flex; align-items:center; gap:5px;">
-          <span style="font-size:12px; font-weight:800; color:#475569; margin-right:2px;">🗂️ 스케줄:</span>
+          <span style="font-size:12px; font-weight:800; color:#475569; margin-right:2px;">🗂️ 플랜(개별 날짜·일정):</span>
           <button class="btn btn-outline active" id="planBtn-1" onclick="switchPlan(1)">📌 1안</button>
           <button class="btn btn-outline" id="planBtn-2" onclick="switchPlan(2)">2안</button>
           <button class="btn btn-outline" id="planBtn-3" onclick="switchPlan(3)">3안</button>
@@ -823,6 +837,7 @@
           <button class="btn btn-primary" id="backToPlannerBtn" style="display:none; background:#2563eb; padding:5px 10px; font-size:11.5px;" onclick="selectDrawerTab('tab-planner')">
             🔙 일정 플래너로 돌아가기
           </button>
+          <button class="btn btn-outline" style="font-size:11.5px; padding:5px 9px;" onclick="openConfigModal()">⚙️ 현재 안(도시/숙소) 설정</button>
           <button class="btn btn-outline" style="font-size:11.5px; padding:5px 9px;" onclick="copyCurrentPlanToOther()">📑 안 복사</button>
           <button class="btn btn-danger" style="font-size:11.5px; padding:5px 9px;" onclick="clearCurrentPlan()">🗑️ 비우기</button>
         </div>
@@ -839,14 +854,19 @@
     </div>
   </div>
 
-  <!-- 3. 오늘의 이동 동선 한 줄 버스노선 요약 바 -->
+  <!-- ★ 3. 오늘의 이동 동선 요약 바 (일정이 길어져도 좌우 화살표 & 전체 줄바꿈 펼치기로 절대 안 잘림!) ★ -->
   <div class="daily-route-strip-wrap" id="dailyRouteStripWrap">
     <div class="daily-route-strip">
       <div class="strip-head">
-        <span id="stripDayTitle">🚌 오늘의 이동 코스 한눈에 보기 (장소를 누르면 해당 카드로 이동)</span>
-        <span id="stripTotalSummary" style="color:#fde047;">총 0곳</span>
+        <span id="stripDayTitle">🚌 오늘의 이동 코스 한눈에 보기 (터치하면 해당 카드로 이동)</span>
+        <div class="strip-ctrl-btns">
+          <span id="stripTotalSummary" style="color:#fde047; margin-right:6px;">총 0곳</span>
+          <button type="button" class="strip-mini-btn" onclick="scrollRouteStrip(-240)" title="왼쪽으로 스크롤">◀</button>
+          <button type="button" class="strip-mini-btn" onclick="scrollRouteStrip(240)" title="오른쪽으로 스크롤">▶</button>
+          <button type="button" class="strip-mini-btn" id="stripExpandBtn" onclick="toggleRouteStripExpand()">↕ 한눈에 펼치기</button>
+        </div>
       </div>
-      <div class="strip-track no-scrollbar" id="dailyRouteStripTrack"></div>
+      <div class="strip-track" id="dailyRouteStripTrack"></div>
     </div>
   </div>
 
@@ -854,7 +874,7 @@
   <div class="workspace">
     <!-- [탭 1] 일정 & 동선 플래너 -->
     <div id="tab-planner" class="tab-pane active">
-      <div class="day-tabs no-scrollbar" id="dayTabsContainer"></div>
+      <div class="day-tabs" id="dayTabsContainer"></div>
 
       <div class="planner-grid">
         <div style="min-width:0;">
@@ -901,15 +921,15 @@
     <div id="tab-airport" class="tab-pane">
       <div class="card">
         <div class="card-title">
-          <span>✈️ 나리타 국제공항 입국 후 기차 탑승 5단계 동선</span>
-          <button class="btn-route-popup" onclick="openCustomRouteModal('🚆 나리타 익스프레스(N\'EX) 정차역 노선도', ['나리타 3터미널 | 第3ターミナル', '공항제2빌딩역(승차) | 空港第2ビル駅', '도쿄역 | 東京駅', '시부야역 | 渋谷駅', '신주쿠역(하차) | 新宿駅', '숙소 도착'], '왕복 5,000엔', '<div class=\'v-step-card\'><div class=\'v-step-tag\' style=\'background:#2563eb;\'>안내</div><div class=\'v-step-body\'><div class=\'v-step-main\'>2터미널 지하 1층 빨간색 JR 매표소에서 여권 제시 후 N\'EX 왕복패스 구매</div></div></div>')">🗺️ 공항➔숙소 노선도 팝업</button>
+          <span>✈️ 공항 입국 후 도심 특급열차·전철 탑승 5단계 동선</span>
+          <button class="btn-route-popup" onclick="openCustomRouteModal('🚆 나리타 익스프레스(N\'EX) 정차역 노선도', ['나리타 3터미널 | 第3ターミナル', '공항제2빌딩역(승차) | 空港第2ビル駅', '도쿄역 | 東京駅', '시부야역 | 渋谷駅', '신주쿠역(하차) | 新宿駅', '숙소 도착'], '왕복 5,000엔', '<div class=\'v-step-card\'><div class=\'v-step-tag\' style=\'background:#2563eb;\'>안내</div><div class=\'v-step-body\'><div class=\'v-step-main\'>지하 1층 JR 매표소에서 여권 제시 후 왕복패스 구매</div></div></div>')">🗺️ 공항➔도심 노선도 예시</button>
         </div>
         <div class="step-flow">
           <div class="step-box"><h4>STEP 1. 입국심사 (2층)</h4><p>노란색 [到着 Arrival] 표지판을 따라 이동해 여권과 Visit Japan Web QR을 제시합니다.</p></div>
-          <div class="step-box"><h4>STEP 2. 수하물 & 세관 (1층)</h4><p>짐 수령 후 파란색 세관 키오스크에서 여권과 QR을 스캔하고 1층 로비로 나옵니다.</p></div>
-          <div class="step-box"><h4>STEP 3. 3터미널 ➔ 2터미널</h4><p>바닥의 파란색 트랙(도보 8분) 또는 무료 셔틀버스(3분)로 제2터미널로 이동합니다.</p></div>
-          <div class="step-box"><h4>STEP 4. 지하 1층 JR 매표소</h4><p>[鉄道 Railways] 표지판을 따라 지하 1층 빨간색 JR 매표소로 이동합니다.</p></div>
-          <div class="step-box"><h4>STEP 5. N'EX 왕복패스 발권</h4><p>여권을 제시하고 N'EX 왕복 티켓(5,000엔) 구매 후 1번 홈에서 신주쿠행 열차를 탑니다.</p></div>
+          <div class="step-box"><h4>STEP 2. 수하물 & 세관 (1층)</h4><p>짐 수령 후 세관 키오스크에서 여권과 QR을 스캔하고 도착 로비로 나옵니다.</p></div>
+          <div class="step-box"><h4>STEP 3. 철도역(Railways) 이동</h4><p>[鉄道 Railways] 표지판을 따라 공항 철도 개찰구 및 매표소로 이동합니다.</p></div>
+          <div class="step-box"><h4>STEP 4. 공항특급 발권 & Suica 충전</h4><p>도심행 특급열차(N'EX, 스카이라이너, 라피트, 하루카 등) 티켓 발권 및 교통카드를 준비합니다.</p></div>
+          <div class="step-box"><h4>STEP 5. 지정 승강장 탑승</h4><p>티켓에 적힌 호차(Car)와 좌석번호(Seat)를 확인하고 도심 주요 역까지 이동합니다.</p></div>
         </div>
       </div>
     </div>
@@ -917,12 +937,12 @@
     <!-- [탭 3] 11월 신 면세 가이드 -->
     <div id="tab-taxfree" class="tab-pane">
       <div class="card" style="border-left:5px solid #dc2626;">
-        <div class="card-title" style="color:#b91c1c;">🛂 2026년 11월 1일 시행! 일본 신(新) 면세 제도 (사후 환급제)</div>
+        <div class="card-title" style="color:#b91c1c;">🛂 일본 신(新) 면세 제도 (사후 환급제) 핵심 요약</div>
         <table class="info-table">
-          <thead><tr><th>항목</th><th>기존</th><th>변경 후 (2026.11.01~)</th></tr></thead>
+          <thead><tr><th>항목</th><th>기존</th><th>개편 내용</th></tr></thead>
           <tbody>
             <tr><td><strong>결제 방식</strong></td><td>매장에서 10% 즉시 차감</td><td><strong>매장에서 세금 포함 전액 결제 후 출국 시 공항 환급</strong></td></tr>
-            <tr><td><strong>투명 밀봉 봉투</strong></td><td>소모품 개봉 금지 밀봉</td><td><strong>밀봉 봉투 폐지! (단, 출국 전 일본 내 개봉·소비 금지)</strong></td></tr>
+            <tr><td><strong>투명 밀봉 봉투</strong></td><td>소모품 개봉 금지 밀봉</td><td><strong>밀봉 봉투 폐지! (단, 출국 전 개봉·소비 금지)</strong></td></tr>
             <tr><td><strong>면세 한도</strong></td><td>소모품 50만 엔 상한</td><td><strong>50만 엔 상한 폐지 (최소 구매액 5,500엔 이상 동일)</strong></td></tr>
           </tbody>
         </table>
@@ -932,7 +952,7 @@
     <!-- [탭 4] 실전 회화집 -->
     <div id="tab-phrase" class="tab-pane">
       <div class="card">
-        <div class="card-title">🍴 식당 · 쇼핑 · 교통 핵심 일본어 회화</div>
+        <div class="card-title">🍴 식당 · 쇼핑 · 교통 핵심 현지 회화</div>
         <div class="phrase-grid">
           <div class="phrase-card"><div class="phrase-kr">저기요! (직원 호출)</div><div class="phrase-pron">스미마셍!</div><div class="phrase-jp">すみません！</div></div>
           <div class="phrase-card"><div class="phrase-kr">2명입니다.</div><div class="phrase-pron">후타리 데스</div><div class="phrase-jp">2人（ふたり）です。</div></div>
@@ -958,7 +978,7 @@
     <div class="modal-card">
       <div class="modal-header">
         <div>
-          <h3 style="font-size:16px; font-weight:800; color:#be185d;">⭐ 위시리스트 보관함</h3>
+          <h3 style="font-size:16px; font-weight:800; color:#be185d;">⭐ 위시리스트 보관함 (<span id="wishModalPlanLabel">1안</span>)</h3>
           <p style="font-size:11.5px; color:var(--muted);">날짜를 선택하고 [타임라인 투입]을 누르면 해당 일정으로 즉시 들어갑니다.</p>
         </div>
         <div style="display:flex; gap:6px;">
@@ -979,13 +999,13 @@
       <div class="modal-header">
         <div>
           <h3 style="font-size:16px; font-weight:800; color:#1e40af;">🔍 구글맵 · 웹DB 실시간 장소 검색</h3>
-          <p style="font-size:11.5px; color:var(--muted);">장소의 정식 명칭, 영업시간, 결제수단, 웨이팅 팁을 자동 분석합니다.</p>
+          <p style="font-size:11.5px; color:var(--muted);">어느 도시든 장소명, 영업시간, 결제수단, 웨이팅 팁을 자동 분석합니다.</p>
         </div>
         <button class="btn btn-outline" style="padding:5px 10px;" onclick="closeSearchModal()">✕ 닫기</button>
       </div>
       <div class="top-search-bar">
-        <input type="text" id="regionInput" placeholder="지역 (예: 신주쿠)" style="width:115px; flex:0 0 auto;">
-        <input type="text" id="searchKeyword" placeholder="장소 입력 (예: 스투시, 츠지한, 이치란)" style="flex:1;">
+        <input type="text" id="regionInput" placeholder="세부지역 (예: 신주쿠, 난바)" style="width:130px; flex:0 0 auto;">
+        <input type="text" id="searchKeyword" placeholder="장소·가게명 입력 (예: 스투시, 이치란, 블루보틀)" style="flex:1;">
         <button class="btn btn-primary" style="padding:8px 16px;" onclick="executeSmartSearch()">검색</button>
       </div>
       <div class="modal-body-scroll">
@@ -1000,7 +1020,7 @@
       <div class="modal-header">
         <div>
           <h3 id="rpTitle" style="font-size:16px; font-weight:800; color:#0f172a;">🚌 이동 동선 & 노선도 상세</h3>
-          <p style="font-size:11.5px; color:var(--muted); margin-top:2px;">현지 표지판의 일본어 한자와 노선 기호를 그대로 대조해보세요.</p>
+          <p style="font-size:11.5px; color:var(--muted); margin-top:2px;">노선도가 길면 좌우로 밀어서 전체 정거장을 확인할 수 있습니다.</p>
         </div>
         <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
           <span id="rpTimeBadge" class="badge" style="background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; font-size:12px; padding:4px 9px;">⏱️ 약 15분</span>
@@ -1009,13 +1029,13 @@
       </div>
 
       <div class="modal-body-scroll">
-        <div class="bus-board-wrap no-scrollbar" id="rpBoardWrap">
+        <div class="bus-board-wrap" id="rpBoardWrap">
           <div id="rpBoardCanvas" class="bus-board-canvas"></div>
         </div>
         <div id="rpGuideBox" style="margin-top:12px;"></div>
         <div style="margin-top:10px; display:flex; justify-content:flex-end;">
           <button type="button" class="btn" style="background:#0f172a; color:#fde047; padding:8px 13px; font-size:12px; border-radius:8px;" onclick="openBeginnerTipSubModal()">
-            🔰 처음 타는 일본 전철·버스! 표지판 & 환승 꿀팁 보기 (팝업) ➔
+            🔰 처음 타는 전철·버스! 표지판 & 환승 꿀팁 보기 (팝업) ➔
           </button>
         </div>
       </div>
@@ -1027,12 +1047,12 @@
     </div>
   </div>
 
-  <!-- [모달 3-2] 팝업 속의 팝업: 초보자용 일본 지하철·버스 실전 탑승 족보 -->
+  <!-- [모달 3-2] 팝업 속의 팝업: 초보자용 지하철·버스 실전 탑승 족보 -->
   <div id="beginnerTipSubModal" class="modal-backdrop" style="z-index:130;" onclick="if(event.target.id==='beginnerTipSubModal')closeBeginnerTipSubModal()">
     <div class="modal-card" style="max-width:600px; border:2px solid #f59e0b;">
       <div class="modal-header" style="background:#fffbeb; margin:-16px -16px 12px -16px; padding:14px 16px; border-radius:12px 12px 0 0; border-bottom:1px solid #fde68a;">
         <div>
-          <h3 style="font-size:15.5px; font-weight:800; color:#b45309;">🔰 일본 여행 초보자용 전철 · 환승 · 시내버스 실전 족보</h3>
+          <h3 style="font-size:15.5px; font-weight:800; color:#b45309;">🔰 초보자용 전철 · 환승 · 시내버스 실전 족보</h3>
           <p style="font-size:11.5px; color:#92400e;">역 안이나 정류장에서 길 잃지 않고 한 번에 타는 핵심 요령입니다.</p>
         </div>
         <button class="btn btn-outline" style="padding:4px 10px;" onclick="closeBeginnerTipSubModal()">✕ 닫기</button>
@@ -1040,8 +1060,7 @@
       <div class="modal-body-scroll" style="font-size:12.5px; line-height:1.6; color:#1e293b; display:flex; flex-direction:column; gap:10px;">
         <div style="background:#f8fafc; border-left:4px solid #2563eb; padding:10px 12px; border-radius:6px;">
           <strong style="color:#1d4ed8; font-size:13px;">1️⃣ 지하철 노선 찾는 법 (한자 대신 '색깔+알파벳'만 보세요!)</strong><br>
-          • <strong style="color:#dc2626;">빨간색 M</strong> = 마루노우치선(丸ノ内線) / <strong style="color:#ea580c;">주황색 G</strong> = 긴자선(銀座線) / <strong style="color:#92400e;">갈색 F</strong> = 후쿠토신선(副都心線)<br>
-          • <strong style="color:#be185d;">자주색 E</strong> = 도영 오에도선(大江戸線) / <strong style="color:#16a34a;">연두색 JY</strong> = JR 야마노테선(山手線)<br>
+          모든 전철 노선에는 고유한 <strong>[색깔 동그라미 + 알파벳 기호]</strong>가 있습니다.<br>
           역 천장과 바닥의 <strong>[색깔 동그라미 + 알파벳 화살표]</strong>만 따라가면 한자를 몰라도 100% 정확한 승강장이 나옵니다.
         </div>
         <div style="background:#f8fafc; border-left:4px solid #10b981; padding:10px 12px; border-radius:6px;">
@@ -1050,12 +1069,12 @@
         </div>
         <div style="background:#f8fafc; border-left:4px solid #f59e0b; padding:10px 12px; border-radius:6px;">
           <strong style="color:#b45309; font-size:13px;">3️⃣ 다른 선으로 갈아탈 때 (환승 · 乗換)</strong><br>
-          환승역에 내리면 노란색 <strong>[乗換 (환승)]</strong> 표지판과 갈아탈 노선 색깔 동그라미만 따라갑니다. 주황색 테두리 개찰구(乗換改札)가 나오면 스이카를 찍고 지나가세요.
+          환승역에 내리면 노란색 <strong>[乗換 (환승)]</strong> 표지판과 갈아탈 노선 색깔 동그라미만 따라갑니다. 주황색 테두리 개찰구(乗換改札)가 나오면 교통카드를 찍고 지나가세요.
         </div>
         <div style="background:#f8fafc; border-left:4px solid #db2777; padding:10px 12px; border-radius:6px;">
-          <strong style="color:#be185d; font-size:13px;">4️⃣ 도쿄 시내버스(都営バス) 타는 법</strong><br>
-          • <strong>탈 때:</strong> 무조건 <strong>앞문(前扉)</strong>으로 타면서 스이카 1회 터치 (210엔 정액 자동결제)<br>
-          • <strong>내릴 때:</strong> 전광판에 내릴 정류장 한자가 뜨면 벨을 누르고 <strong>뒷문(後扉)으로 터치 없이 그냥 하차!</strong>
+          <strong style="color:#be185d; font-size:13px;">4️⃣ 시내버스 타는 법</strong><br>
+          • <strong>도쿄 도심(도영버스):</strong> 앞문 승차 시 IC카드 1회 터치(210엔 정액) ➔ 뒷문 그냥 하차<br>
+          • <strong>기타 지역(후불제 버스):</strong> 뒷문 승차 시 IC카드 터치 ➔ 앞문 하차 시 한 번 더 터치
         </div>
       </div>
       <div style="margin-top:12px;">
@@ -1064,22 +1083,30 @@
     </div>
   </div>
 
-  <!-- [모달 4] 설정 모달 -->
+  <!-- ★ [모달 4] 현재 안(1안/2안/3안) 개별 여행 도시·날짜·숙소 설정 모달 ★ -->
   <div id="configModal" class="modal-backdrop" onclick="if(event.target.id==='configModal')closeConfigModal()">
-    <div class="modal-card" style="max-width:440px;">
+    <div class="modal-card" style="max-width:460px;">
       <div class="modal-header">
-        <h3 style="font-size:16px; font-weight:800;">🌏 여행 도시 & 숙소 설정</h3>
+        <div>
+          <h3 style="font-size:16px; font-weight:800;">🌏 [<span id="cfgModalPlanNum">1</span>안] 개별 여행 정보 & 숙소 설정</h3>
+          <p style="font-size:11.5px; color:var(--muted);">1안(나), 2안(친구) 등 안마다 날짜·도시·숙소를 완전히 다르게 설정할 수 있습니다!</p>
+        </div>
         <button class="btn btn-outline" style="padding:4px 8px;" onclick="closeConfigModal()">✕</button>
       </div>
       <div class="modal-body-scroll">
-        <div class="form-group"><label>✈️ 여행 타이틀</label><input type="text" id="cfgTripTitle"></div>
-        <div class="form-group"><label>🌏 검색 기준 도시명</label><input type="text" id="cfgCityName"></div>
-        <div class="form-group"><label>🏨 숙소 이름</label><input type="text" id="cfgHotelName"></div>
-        <div class="form-group"><label>📍 숙소 주소</label><input type="text" id="cfgHotelAddr"></div>
-        <div class="form-group"><label>🚇 인근 역 출구 / 메모</label><input type="text" id="cfgHotelTip"></div>
+        <div class="form-group"><label>🏷️ 이 스케줄(안)의 버튼 이름 (예: 창준 일정, 친구 일정)</label><input type="text" id="cfgPlanTabName" placeholder="예: 📌 1안 (창준)"></div>
+        <div class="form-group"><label>✈️ 상단 여행 타이틀</label><input type="text" id="cfgTripTitle" placeholder="예: 도쿄 미식 여행 / 오사카 여행"></div>
+        <div class="form-group"><label>🌏 검색 기준 도시명 (영문 또는 한글)</label><input type="text" id="cfgCityName" placeholder="예: Tokyo, Osaka, Fukuoka, Kyoto"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="form-group"><label>📅 출발일</label><input type="date" id="cfgStartDate"></div>
+          <div class="form-group"><label>📅 도착일</label><input type="date" id="cfgEndDate"></div>
+        </div>
+        <div class="form-group"><label>🏨 숙소 이름 (변경 시 지도 좌표 자동 검색)</label><input type="text" id="cfgHotelName" placeholder="예: Hotel Sunlite Shinjuku"></div>
+        <div class="form-group"><label>📍 숙소 주소</label><input type="text" id="cfgHotelAddr" placeholder="예: 5-15-8 Shinjuku"></div>
+        <div class="form-group"><label>🚇 인근 역 출구 / 숙소 메모</label><input type="text" id="cfgHotelTip" placeholder="예: 신주쿠산초메역 E1출구 도보 2분"></div>
       </div>
       <div style="display:flex; gap:8px; margin-top:14px;">
-        <button class="btn btn-primary" style="flex:1; justify-content:center; padding:10px;" onclick="saveConfigModal()">💾 설정 저장</button>
+        <button class="btn btn-primary" style="flex:1; justify-content:center; padding:10px;" onclick="saveConfigModal()">💾 현재 안 설정 저장</button>
         <button class="btn btn-outline" style="padding:10px 16px;" onclick="closeConfigModal()">닫기</button>
       </div>
     </div>
@@ -1207,34 +1234,38 @@
       const tags = osmTags || {};
       const p = gPlaceObj || {};
       let hours = p.regularOpeningHours?.weekdayDescriptions?.[0]?.replace(/^월요일:\s*/, '') || tags.opening_hours || "11:00 ~ 21:00";
-      let payment = "신용카드 · 교통IC(Suica) · 현금 가능";
-      if (p.paymentOptions?.acceptsCashOnly) payment = "현금 전용 매장 (1,000엔권 지폐 준비)";
+      let payment = "신용카드 · 교통IC · 현금 가능";
+      if (p.paymentOptions?.acceptsCashOnly) payment = "현금 전용 매장 (지폐·동전 준비)";
       let tip = p.editorialSummary || "구글맵에서 실시간 영업시간 및 혼잡도를 확인하세요.";
       return { hours, payment, tip };
     }
 
-    const DEFAULT_CONFIG = {
-      tripTitle: "🗼 도쿄 여행 올인원 대시보드",
-      city: "Tokyo",
-      startDate: "2026-11-28",
-      endDate: "2026-12-01",
-      hotel: {
-        name: "Hotel Sunlite Shinjuku (신주쿠 선라이트 호텔)",
-        address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo 160-0022",
-        lat: 35.6939,
-        lng: 139.7082,
-        rating: "3.9",
-        hours: "체크인 15:00 / 체크아웃 11:00",
-        payment: "결제완료 (예약번호: 1782306180)",
-        tip: "신주쿠산초메역 E1출구 도보 2분 / 히가시신주쿠역 B1출구 도보 5분"
-      }
-    };
+    // ★ 각 안(1·2·3안)별 기본 설정 생성기 (안마다 날짜·도시·숙소를 서로 다르게 보유) ★
+    function createPlanDefaultConfig(slotNum) {
+      return {
+        planTabName: slotNum === 1 ? "📌 1안" : `${slotNum}안`,
+        tripTitle: "✈️ 스마트 여행 올인원 플래너",
+        city: "Tokyo",
+        startDate: "2026-11-28",
+        endDate: "2026-12-01",
+        hotel: {
+          name: "Hotel Sunlite Shinjuku (신주쿠 선라이트 호텔)",
+          address: "5-15-8 Shinjuku, Shinjuku-ku, Tokyo 160-0022",
+          lat: 35.6939,
+          lng: 139.7082,
+          rating: "3.9",
+          hours: "체크인 15:00 / 체크아웃 11:00",
+          payment: "결제완료",
+          tip: "신주쿠산초메역 E1출구 도보 2분 / 히가시신주쿠역 B1출구 도보 5분"
+        }
+      };
+    }
 
     const TRANSIT_MODES = {
       subway: { label: "🚇 지하철/JR 전철", gmapMode: "transit" },
       walk:   { label: "🚶 도보 이동",      gmapMode: "walking" },
-      bus:    { label: "🚌 시내버스(都営バス)", gmapMode: "transit" },
-      airport:{ label: "🚆 공항특급(N'EX)", gmapMode: "transit" },
+      bus:    { label: "🚌 시내버스",       gmapMode: "transit" },
+      airport:{ label: "🚆 공항특급/철도",  gmapMode: "transit" },
       taxi:   { label: "🚕 택시 이동",      gmapMode: "driving" },
       custom: { label: "✏️ 직접 입력",      gmapMode: "transit" }
     };
@@ -1245,18 +1276,19 @@
       "항공권 e-티켓 및 호텔 바우처",
       "110V 돼지코 어댑터 & 멀티탭",
       "보조배터리 (기내 수하물 휴대 필수)",
-      "아이폰 지갑 Suica/PASMO 등록",
+      "스마트폰 교통카드(Suica/PASMO) 또는 IC카드",
       "트래블로그 / 트래블월렛 해외결제 카드",
-      "엔화 현금 (식권 자판기용 1,000엔권 다수)",
-      "100엔 동전 넣을 작은 동전지갑",
+      "현지 현금 (식권 자판기용 1,000엔권 다수)",
+      "동전 넣을 작은 동전지갑",
       "이심(eSIM) / 유심 / 포켓와이파이",
       "상비약 (소화제, 진통제, 밴드, 휴족시간)",
-      "접이식 우산 & 비닐봉지(쓰레기용)"
+      "접이식 우산 & 비닐봉지"
     ];
 
     let currentPlan = 1;
     let currentDayIndex = 0;
     let lastAddedSpotId = null;
+    let isRouteStripExpanded = false;
 
     let map = null;
     let infoWindow = null;
@@ -1268,15 +1300,67 @@
     let hasUnsavedChanges = false;
     let lastSearchItems = [];
 
-    function createDefaultPlanData() {
-      return { wish: [], days: [[], [], [], []] };
+    function createDefaultPlanData(slotNum) {
+      return {
+        config: createPlanDefaultConfig(slotNum || 1),
+        wish: [],
+        days: [[], [], [], []]
+      };
     }
 
     let appState = {
-      config: JSON.parse(JSON.stringify(DEFAULT_CONFIG)),
+      config: createPlanDefaultConfig(1), // 구버전 백업 호환용
       checks: {},
-      plans: { 1: createDefaultPlanData(), 2: createDefaultPlanData(), 3: createDefaultPlanData() }
+      plans: {
+        1: createDefaultPlanData(1),
+        2: createDefaultPlanData(2),
+        3: createDefaultPlanData(3)
+      }
     };
+
+    // ★ 현재 선택된 안(1안/2안/3안)의 전용 설정(config)을 가져오는 핵심 헬퍼 함수 (기존 데이터 100% 호환) ★
+    function getActiveConfig() {
+      if (!appState.plans) appState.plans = { 1: createDefaultPlanData(1), 2: createDefaultPlanData(2), 3: createDefaultPlanData(3) };
+      if (!appState.plans[currentPlan]) appState.plans[currentPlan] = createDefaultPlanData(currentPlan);
+      const p = appState.plans[currentPlan];
+      if (!p.config) {
+        const base = appState.config ? JSON.parse(JSON.stringify(appState.config)) : createPlanDefaultConfig(currentPlan);
+        if (!base.planTabName) base.planTabName = currentPlan === 1 ? "📌 1안" : `${currentPlan}안`;
+        p.config = base;
+      }
+      if (!p.config.hotel) p.config.hotel = createPlanDefaultConfig(currentPlan).hotel;
+      return p.config;
+    }
+
+    // 모든 플랜(1·2·3안)에 개별 config가 존재하는지 보장하는 마이그레이션 함수
+    function ensurePerPlanConfigs() {
+      [1, 2, 3].forEach(slot => {
+        if (!appState.plans[slot]) appState.plans[slot] = createDefaultPlanData(slot);
+        if (!appState.plans[slot].config) {
+          const base = appState.config ? JSON.parse(JSON.stringify(appState.config)) : createPlanDefaultConfig(slot);
+          base.planTabName = slot === 1 ? "📌 1안" : `${slot}안`;
+          appState.plans[slot].config = base;
+        }
+      });
+    }
+
+    // 상단 한 줄 이동 노선도 좌우 버튼 스크롤 & 전체 줄바꿈 펼치기 토글
+    function scrollRouteStrip(deltaX) {
+      const track = document.getElementById('dailyRouteStripTrack');
+      if (!track) return;
+      track.scrollBy({ left: deltaX, behavior: 'smooth' });
+    }
+
+    function toggleRouteStripExpand() {
+      isRouteStripExpanded = !isRouteStripExpanded;
+      const track = document.getElementById('dailyRouteStripTrack');
+      const btn = document.getElementById('stripExpandBtn');
+      if (track) track.classList.toggle('expanded-wrap', isRouteStripExpanded);
+      if (btn) {
+        btn.classList.toggle('active', isRouteStripExpanded);
+        btn.innerText = isRouteStripExpanded ? "➖ 한 줄로 접기" : "↕ 한눈에 펼치기";
+      }
+    }
 
     function calcDistanceKm(lat1, lng1, lat2, lng2) {
       const R = 6371;
@@ -1288,6 +1372,7 @@
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
+    // 범용 역 탐색: 도쿄 역세권(3.5km 이내)이면 상세 역 정보를 반환하고, 오사카·후쿠오카 등 타 도시이면 null을 반환해 범용 안내로 자동 전환!
     function findNearestStation(lat, lng) {
       if (!lat || !lng) return null;
       let best = null;
@@ -1296,6 +1381,7 @@
         const d = calcDistanceKm(lat, lng, st.lat, st.lng);
         if (d < minDist) { minDist = d; best = { ...st, distKm: d, walkMin: Math.max(2, Math.round(d * 15)) }; }
       });
+      if (best && best.distKm > 4.0 && best.op !== 'airport') return null;
       return best;
     }
 
@@ -1347,20 +1433,20 @@
           }
         }
       }
-      return { line1: stA.lines[0], line2: stB.lines[0], transferKr: "신주쿠/오모테산도", transferJp: "新宿 / 表参道 (乗換)" };
+      return { line1: stA.lines[0], line2: stB.lines[0], transferKr: "환승역", transferJp: "乗換駅" };
     }
 
-    function calcTokyoSubwayFare(distKm, isDirect, opA, opB) {
+    function calcSubwayFare(distKm, isDirect, opA, opB) {
       const railKm = distKm * 1.25;
       let baseFare = railKm <= 6 ? 180 : (railKm <= 11 ? 210 : (railKm <= 19 ? 260 : 300));
       if (opA === 'jr' && opB === 'jr') baseFare = railKm <= 3 ? 150 : (railKm <= 6 ? 170 : 180);
-      else if (!isDirect && opA !== opB) baseFare += 70;
+      else if (!isDirect && opA && opB && opA !== opB) baseFare += 70;
       return `${baseFare}엔 (IC카드)`;
     }
 
     function evaluateBestTransitOptions(itemA, itemB) {
       if (!itemA || !itemB || !itemA.lat || !itemB.lat) {
-        return { bestMode: 'subway', badgeText: '🚇 전철 이동 추천', reasonText: '기본 도심 전철 이동 구간입니다.', options: null };
+        return { bestMode: 'subway', badgeText: '🚇 전철 이동 추천', reasonText: '기본 대중교통 이동 구간입니다.', options: null };
       }
 
       const rawKm = calcDistanceKm(itemA.lat, itemA.lng, itemB.lat, itemB.lng);
@@ -1369,7 +1455,7 @@
       const stB = findNearestStation(itemB.lat, itemB.lng);
 
       if (rawKm > 28 || (itemA.name + itemB.name).includes("공항")) {
-        return { bestMode: 'airport', badgeText: "🚆 공항특급 N'EX 필수", reasonText: "나리타 공항↔도심 장거리 구간입니다.", options: null };
+        return { bestMode: 'airport', badgeText: "🚆 공항특급/철도 추천", reasonText: "공항↔도심 장거리 구간입니다.", options: null };
       }
 
       const walkMin = Math.max(3, Math.round(roadKm * 15));
@@ -1385,9 +1471,9 @@
         if (iA !== -1 && iB !== -1) stopsCount = Math.abs(iA - iB);
       }
       const isSameStation = (stA && stB && stA.short === stB.short);
-      const trainRideMin = isSameStation ? 0 : (stopsCount * 2 + (commonLine ? 2 : 8));
+      const trainRideMin = isSameStation ? 0 : (stopsCount * 2 + (commonLine ? 2 : 6));
       const subTotalMin = isSameStation ? walkMin : ((stA?.walkMin || 5) + trainRideMin + (stB?.walkMin || 5));
-      const subFare = isSameStation ? '0엔' : calcTokyoSubwayFare(rawKm, Boolean(commonLine), stA?.op, stB?.op).replace(' (IC카드)', '');
+      const subFare = isSameStation ? '0엔' : calcSubwayFare(rawKm, Boolean(commonLine), stA?.op, stB?.op).replace(' (IC카드)', '');
 
       let bestMode = 'subway';
       let badgeText = '🚇 전철 이동 추천';
@@ -1400,15 +1486,15 @@
       } else if (!commonLine && rawKm >= 0.95 && rawKm <= 3.6 && busTotalMin <= subTotalMin + 4) {
         bestMode = 'bus';
         badgeText = '🚌 시내버스 강력 추천!';
-        reasonText = `전철로 가면 중간에 환승해야 해서 역 안을 많이 걷습니다. 210엔 도영버스를 타면 계단 없이 한 번에 편하게 갑니다!`;
+        reasonText = `전철로 가면 환승해야 해서 역 안을 많이 걷습니다. 시내버스(210엔)를 타면 계단 없이 한 번에 편하게 이동합니다!`;
       } else if (commonLine) {
         bestMode = 'subway';
         badgeText = '🚇 직통 전철 추천';
         reasonText = `환승 없이 【${commonLine.split('(')[0]}】 한 번만 타면 ${stopsCount}정거장(열차 ${trainRideMin}분) 만에 정확히 도착합니다.`;
       } else {
         bestMode = 'subway';
-        badgeText = '🚇 전철 이동 추천 (1회 환승)';
-        reasonText = `거리가 약 ${roadKm.toFixed(1)}km로 버스는 신호 대기가 깁니다. 전철로 1회 환승해 이동하는 것이 가장 빠릅니다.`;
+        badgeText = '🚇 전철 이동 추천';
+        reasonText = `거리가 약 ${roadKm.toFixed(1)}km로 버스는 신호 대기가 깁니다. 전철로 이동하는 것이 가장 정확하고 빠릅니다.`;
       }
 
       return {
@@ -1418,7 +1504,7 @@
         options: {
           walk: { min: walkMin, fare: '0엔', label: `🚶 도보 ${walkMin}분`, sub: `${roadKm.toFixed(1)}km · 0엔` },
           bus: { min: busTotalMin, fare: '210엔', label: `🚌 버스 약 ${busTotalMin}분`, sub: `환승없음 · 210엔` },
-          subway: { min: subTotalMin, fare: subFare, label: `🚇 전철 약 ${subTotalMin}분`, sub: `${commonLine ? '직통' : '1회환승'} · ${subFare}` }
+          subway: { min: subTotalMin, fare: subFare, label: `🚇 전철 약 ${subTotalMin}분`, sub: `${commonLine ? '직통' : '전철이동'} · ${subFare}` }
         }
       };
     }
@@ -1436,7 +1522,7 @@
           timeBadge: "⏱️ 약 15분",
           fareText: "180~210엔",
           shortChip: "🚇 15분",
-          timelineSummary: `🚇 [${startShort}] ➔ 전철 탑승 ➔ [${endShort}]`,
+          timelineSummary: `🚇 [${startShort}] ➔ 대중교통 이동 ➔ [${endShort}]`,
           timelineSubTip: `우측 [🗺️ 상세 팝업]에서 탑승 정보를 확인하세요.`,
           popupGuideHtml: `<div class="v-step-card"><div class="v-step-tag" style="background:#2563eb;">안내</div><div class="v-step-body"><div class="v-step-main">구글맵 실시간 길찾기를 눌러 경로를 확인하세요.</div></div></div>`
         };
@@ -1451,32 +1537,31 @@
         const isToCity = itemA.name.includes("공항") || (stA && stA.op === 'airport');
         if (isToCity) {
           return {
-            timeBadge: "⏱️ 약 85분",
-            fareText: "왕복 5,000엔",
-            shortChip: "🚆 N'EX 85분",
-            timelineSummary: `🚆 [나리타 3터미널] 도보 8분 ➔ [제2터미널역] N'EX 탑승(75분) ➔ [신주쿠역] 하차`,
-            timelineSubTip: `2터미널 지하 1층 빨간색 JR 매표소에서 여권 제시 후 왕복패스 구매`,
+            timeBadge: "⏱️ 약 75~85분",
+            fareText: "특급열차 기준",
+            shortChip: "🚆 공항철도",
+            timelineSummary: `🚆 [${startShort}] ➔ 공항 특급열차 탑승 ➔ [${endShort}] 이동`,
+            timelineSubTip: `공항 지하 철도 매표소에서 도심행 특급 티켓 발권 후 탑승`,
             popupGuideHtml: `
               <div class="v-step-grid">
                 <div class="v-step-card" style="border-color:#3b82f6;">
-                  <div class="v-step-tag" style="background:#2563eb;">1. 이동<br>터미널</div>
+                  <div class="v-step-tag" style="background:#2563eb;">1. 철도역<br>이동</div>
                   <div class="v-step-body">
-                    <div class="v-step-main">3터미널 1층 밖 [파란색 트랙] 따라 제2터미널 지하 1층으로 이동 (도보 8분)</div>
-                    <span class="v-step-jp">표지판: 第2ターミナル 鉄道 (철도)</span>
+                    <div class="v-step-main">공항 내 [鉄道 Railways] 표지판을 따라 철도 개찰구로 이동</div>
+                    <span class="v-step-jp">표지판: 鉄道 (Railways)</span>
                   </div>
                 </div>
                 <div class="v-step-card" style="border-color:#f59e0b;">
                   <div class="v-step-tag" style="background:#d97706;">2. 발권<br>& 승차</div>
                   <div class="v-step-body">
-                    <div class="v-step-main">빨간 간판 JR 매표소에서 [N'EX 왕복패스] 발권 후 1번 승강장 탑승</div>
-                    <span class="v-step-jp">열차명: 成田エクスプレス (N'EX) · 1番線</span>
+                    <div class="v-step-main">도심행 공항특급(N'EX / 스카이라이너 / 라피트 / 하루카 등) 탑승</div>
+                    <span class="v-step-jp">지정석 티켓 발권 또는 IC카드 터치</span>
                   </div>
                 </div>
                 <div class="v-step-card" style="border-color:#dc2626;">
-                  <div class="v-step-tag" style="background:#dc2626;">3. 하차역</div>
+                  <div class="v-step-tag" style="background:#dc2626;">3. 하차</div>
                   <div class="v-step-body">
-                    <div class="v-step-main">신주쿠역 하차 (약 75분 소요)</div>
-                    <span class="v-step-jp">하차 한자: 新宿駅 (Shinjuku)</span>
+                    <div class="v-step-main">${escapeHtml(endShort)} 인근 주요 역 하차</div>
                   </div>
                 </div>
               </div>
@@ -1484,25 +1569,24 @@
           };
         } else {
           return {
-            timeBadge: "⏱️ 약 85분",
-            fareText: "왕복권(0엔)",
-            shortChip: "🚆 N'EX 85분",
-            timelineSummary: `🚆 [신주쿠역] N'EX 탑승(75분) ➔ [공항제2빌딩역(空港第2ビル)] 하차 ➔ 3터미널 이동`,
-            timelineSubTip: `🚨 절대 종점(1터미널)까지 가지 말고 직전 역인 [공항제2빌딩역]에서 하차!`,
+            timeBadge: "⏱️ 약 75~85분",
+            fareText: "공항특급 기준",
+            shortChip: "🚆 공항이동",
+            timelineSummary: `🚆 [${startShort}] ➔ 공항 특급열차 탑승 ➔ [${endShort}] 하차`,
+            timelineSubTip: `출국 터미널 번호(1터미널 / 2·3터미널)를 꼭 확인하고 하차하세요!`,
             popupGuideHtml: `
               <div class="v-step-grid">
                 <div class="v-step-card" style="border-color:#3b82f6;">
-                  <div class="v-step-tag" style="background:#2563eb;">1. 승차역</div>
+                  <div class="v-step-tag" style="background:#2563eb;">1. 승차</div>
                   <div class="v-step-body">
-                    <div class="v-step-main">JR 신주쿠역 5·6번 승강장 (귀국 티켓 좌석지정 필수)</div>
-                    <span class="v-step-jp">승차: 新宿駅 5·6番線 (成田エクスプレス)</span>
+                    <div class="v-step-main">주요 역에서 공항행 특급열차 탑승 (좌석지정 확인)</div>
                   </div>
                 </div>
                 <div class="v-step-card" style="border-color:#dc2626; background:#fef2f2;">
-                  <div class="v-step-tag" style="background:#dc2626;">2. 하차<br>(주의!)</div>
+                  <div class="v-step-tag" style="background:#dc2626;">2. 하차<br>(터미널!)</div>
                   <div class="v-step-body">
-                    <div class="v-step-main" style="color:#b91c1c;">반드시 [공항제2빌딩역]에서 하차! (종점 1터미널 절대 금지)</div>
-                    <span class="v-step-jp">하차 한자: 空港第2ビル駅 (Terminal 2·3)</span>
+                    <div class="v-step-main" style="color:#b91c1c;">본인 항공사의 출발 터미널 역을 확인 후 하차!</div>
+                    <span class="v-step-jp">나리타 2·3터미널: 空港第2ビル駅</span>
                   </div>
                 </div>
               </div>
@@ -1513,7 +1597,7 @@
 
       if (mode === 'walk') {
         const walkMin = Math.max(3, Math.round(roadKm * 15));
-        const areaDesc = stA ? `${stA.short}(${stA.jp}) 거리` : "도심 상점가";
+        const areaDesc = stA ? `${stA.short}(${stA.jp}) 거리` : "도심 거리";
         return {
           timeBadge: `⏱️ 도보 ${walkMin}분`,
           fareText: "0엔",
@@ -1538,37 +1622,37 @@
         const busRideMin = Math.max(5, Math.round(roadKm * 4.2));
         const totalBusMin = busRideMin + 5;
         const stopCount = Math.max(2, Math.round(rawKm * 2.2));
-        const stAKr = stA ? `${stA.short}역앞` : `${startShort} 앞`;
-        const stAJp = stA ? `${stA.jp}駅前` : `停留所`;
-        const stBKr = stB ? `${stB.short}역앞` : `${endShort} 앞`;
-        const stBJp = stB ? `${stB.jp}駅前` : `停留所`;
+        const stAKr = stA ? `${stA.short}역앞` : `${startShort} 인근`;
+        const stAJp = stA ? `${stA.jp}駅前` : `停留所(정류장)`;
+        const stBKr = stB ? `${stB.short}역앞` : `${endShort} 인근`;
+        const stBJp = stB ? `${stB.jp}駅前` : `停留所(정류장)`;
 
         return {
           timeBadge: `⏱️ 약 ${totalBusMin}분 (버스 ${busRideMin}분)`,
-          fareText: "210엔 (IC단일)",
+          fareText: "210~230엔 (IC카드)",
           shortChip: `🚌 ${totalBusMin}분`,
-          timelineSummary: `🚌 시내버스 (총 약 ${totalBusMin}분): [${stAKr}] 승차 ➔ 도영버스 ${stopCount}개 정류장(${busRideMin}분) ➔ [${stBKr}] 하차`,
-          timelineSubTip: `초록색 도영버스(都営バス) · 탈 때: 앞문(Suica 1회 터치) / 내릴 때: 뒷문(터치 없이 그냥 하차)`,
+          timelineSummary: `🚌 시내버스 (총 약 ${totalBusMin}분): [${stAKr}] 승차 ➔ 약 ${stopCount}개 정류장(${busRideMin}분) ➔ [${stBKr}] 하차`,
+          timelineSubTip: `시내버스 탑승 · 교통카드(Suica/PASMO) 터치 결제`,
           popupGuideHtml: `
             <div class="v-step-grid">
               <div class="v-step-card" style="border-color:#16a34a;">
-                <div class="v-step-tag" style="background:#16a34a;">🟢 승차<br>(앞문!)</div>
+                <div class="v-step-tag" style="background:#16a34a;">🟢 1. 승차</div>
                 <div class="v-step-body">
-                  <div class="v-step-main">${stAKr} 정류장 (앞문 승차 · Suica 1회 터치)</div>
-                  <span class="v-step-jp">정류장 한자: ${stAJp} · 都営バス (210엔)</span>
+                  <div class="v-step-main">${stAKr} 정류장 승차 (교통IC 카드 터치)</div>
+                  <span class="v-step-jp">정류장: ${stAJp}</span>
                 </div>
               </div>
               <div class="v-step-card" style="border-color:#f59e0b;">
-                <div class="v-step-tag" style="background:#d97706;">🟡 이동<br>방향</div>
+                <div class="v-step-tag" style="background:#d97706;">🟡 2. 이동</div>
                 <div class="v-step-body">
-                  <div class="v-step-main">${stBKr} 방면 버스 탑승 (${stopCount}개 정류장 · 약 ${busRideMin}분)</div>
-                  <span class="v-step-jp">버스 앞 행선지 확인: ${stBJp} 方面</span>
+                  <div class="v-step-main">${stBKr} 방면 버스 탑승 (약 ${stopCount}개 정류장 · ${busRideMin}분)</div>
+                  <span class="v-step-jp">행선지: ${stBJp} 方面</span>
                 </div>
               </div>
               <div class="v-step-card" style="border-color:#dc2626;">
-                <div class="v-step-tag" style="background:#dc2626;">🔴 하차<br>(뒷문!)</div>
+                <div class="v-step-tag" style="background:#dc2626;">🔴 3. 하차</div>
                 <div class="v-step-body">
-                  <div class="v-step-main">${stBKr} 정류장 하차 (벨 누르고 뒷문으로 그냥 내림)</div>
+                  <div class="v-step-main">${stBKr} 정류장 하차</div>
                   <span class="v-step-jp">전광판 표기: 次は ${stBJp}</span>
                 </div>
               </div>
@@ -1586,13 +1670,13 @@
           fareText: `약 ${estFare.toLocaleString()}엔~`,
           shortChip: `🚕 ${driveMin}분`,
           timelineSummary: `🚕 택시 이동 (약 ${driveMin}분 / ${roadKm.toFixed(1)}km): [${startShort}] ➔ [${endShort}]`,
-          timelineSubTip: `뒷문 자동문 · Suica 및 카드 결제 가능`,
+          timelineSubTip: `뒷문 자동문 · 교통IC 및 카드 결제 가능`,
           popupGuideHtml: `
             <div class="v-step-grid">
               <div class="v-step-card" style="border-color:#f59e0b;">
                 <div class="v-step-tag" style="background:#d97706;">🚕 택시<br>기사님용</div>
                 <div class="v-step-body">
-                  <div class="v-step-main">기사님께 아래 일본어 목적지를 보여주세요 (약 ${driveMin}분)</div>
+                  <div class="v-step-main">기사님께 아래 목적지를 보여주세요 (약 ${driveMin}분)</div>
                   <span class="v-step-jp">목적지: ${escapeHtml(itemB.name)} (${stB ? stB.jp + '駅 近く' : ''})</span>
                 </div>
               </div>
@@ -1622,7 +1706,7 @@
           const iB = seq.indexOf(stB.short);
           if (iA !== -1 && iB !== -1) stopsCount = Math.abs(iA - iB);
         }
-        const exactFare = calcTokyoSubwayFare(rawKm, Boolean(commonLine), stA.op, stB.op);
+        const exactFare = calcSubwayFare(rawKm, Boolean(commonLine), stA.op, stB.op);
 
         if (commonLine) {
           const trainMin = stopsCount * 2 + 2;
@@ -1703,14 +1787,40 @@
         };
       }
 
-      const fallbackMin = Math.max(15, Math.round(rawKm * 4 + 8));
+      // ★ 도쿄 외의 타 도시(오사카, 후쿠오카 등)일 때 깔끔한 범용 전철 안내 ★
+      const fallbackMin = Math.max(12, Math.round(rawKm * 3.5 + 8));
+      const estStops = Math.max(1, Math.round(rawKm / 1.2));
+      const estFare = calcSubwayFare(rawKm, true, 'metro', 'metro');
       return {
-        timeBadge: `⏱️ 약 ${fallbackMin}분`,
-        fareText: "180~260엔",
+        timeBadge: `⏱️ 약 ${fallbackMin}분 (${estStops}정거장)`,
+        fareText: estFare,
         shortChip: `🚇 ${fallbackMin}분`,
-        timelineSummary: `🚇 전철 이동(약 ${fallbackMin}분): [${startShort}] ➔ [${endShort}]`,
-        timelineSubTip: `우측 [길찾기 ↗]를 누르면 실시간 열차 시간이 뜹니다.`,
-        popupGuideHtml: `<div class="v-step-card"><div class="v-step-tag" style="background:#2563eb;">안내</div><div class="v-step-body"><div class="v-step-main">아래 [구글맵 실시간 네비게이션 열기]를 눌러 탑승 홈을 확인하세요.</div></div></div>`
+        timelineSummary: `🚇 전철/대중교통 (약 ${fallbackMin}분 · 약 ${estStops}개 역 이동): [${startShort}] 인근 역 승차 ➔ [${endShort}] 인근 역 하차`,
+        timelineSubTip: `이동거리 약 ${roadKm.toFixed(1)}km · 우측 [길찾기 ↗]를 누르면 실시간 최적 노선과 탑승 홈이 표시됩니다.`,
+        popupGuideHtml: `
+          <div class="v-step-grid">
+            <div class="v-step-card" style="border-color:#16a34a;">
+              <div class="v-step-tag" style="background:#16a34a;">🟢 1. 출발</div>
+              <div class="v-step-body">
+                <div class="v-step-main">${escapeHtml(startShort)} 인근 전철역 진입</div>
+                <div class="v-step-sub">교통카드(Suica / PASMO / ICOCA 등)를 개찰구에 터치</div>
+              </div>
+            </div>
+            <div class="v-step-card" style="border-color:#2563eb;">
+              <div class="v-step-tag" style="background:#2563eb;">🔵 2. 탑승</div>
+              <div class="v-step-body">
+                <div class="v-step-main">전철 탑승 (약 ${estStops}개 역 · 총 약 ${fallbackMin}분 소요)</div>
+                <div class="v-step-sub">아래 파란색 [구글맵 실시간 네비게이션 열기]를 누르면 현재 시각 가장 빠른 열차 번호가 뜹니다.</div>
+              </div>
+            </div>
+            <div class="v-step-card" style="border-color:#dc2626;">
+              <div class="v-step-tag" style="background:#dc2626;">🔴 3. 도착</div>
+              <div class="v-step-body">
+                <div class="v-step-main">${escapeHtml(endShort)} 인근 역 하차 후 도보 이동</div>
+              </div>
+            </div>
+          </div>
+        `
       };
     }
 
@@ -1721,11 +1831,11 @@
       if (mode === 'airport' || rawKm > 28) {
         const isToCity = itemA.name.includes("공항") || (stA && stA.op === 'airport');
         return isToCity ? {
-          title: "🚆 나리타 익스프레스 (成田エクスプレス·N'EX) 노선도",
-          stops: ["나리타 3터미널 | 第3ターミナル", "공항제2빌딩역(승차) | 空港第2ビル駅", "치바역 | 千葉駅", "도쿄역 | 東京駅", "시나가와역 | 品川駅", "시부야역 | 渋谷駅", "신주쿠역(하차) | 新宿駅", `${endPlace} | 도착`]
+          title: "🚆 공항 ➔ 도심 특급열차 노선도",
+          stops: [`${startPlace} | 출발`, "공항 철도역(승차) | 空港駅", "주요 경유역 | 経由", "도심 주요역(하차) | 到着駅", `${endPlace} | 도착`]
         } : {
-          title: "🚆 나리타 익스프레스 (成田エクスプレス·N'EX) 귀국 노선도",
-          stops: [`${startPlace} | 출발`, "신주쿠역(승차) | 新宿駅", "시부야역 | 渋谷駅", "시나가와역 | 品川駅", "도쿄역 | 東京駅", "공항제2빌딩역(하차!) | 空港第2ビル駅", "나리타 3터미널 | 第3ターミナル"]
+          title: "🚆 도심 ➔ 공항 특급열차 노선도",
+          stops: [`${startPlace} | 출발`, "도심 역(승차) | 乗車駅", "주요 경유역 | 経由", "공항역(터미널 확인!) | 空港駅", `${endPlace} | 도착`]
         };
       }
 
@@ -1736,8 +1846,8 @@
         const stBKr = stB ? `${stB.short}역앞` : `${endPlace}앞`;
         const stBJp = stB ? `${stB.jp}駅前` : `停留所`;
         return {
-          title: `🚌 도영 시내버스 (都営バス) 노선도`,
-          stops: [`${startPlace} | 도보 3분`, `${stAKr}(앞문승차) | ${stAJp}`, `중간 ${busStopsCount - 1}개 정류장 | 都営バス`, `${stBKr}(뒷문하차) | ${stBJp}`, `${endPlace} | 도착`]
+          title: `🚌 시내버스 노선도`,
+          stops: [`${startPlace} | 도보 3분`, `${stAKr}(승차) | ${stAJp}`, `중간 ${busStopsCount - 1}개 정류장 | バス移動`, `${stBKr}(하차) | ${stBJp}`, `${endPlace} | 도착`]
         };
       }
 
@@ -1775,7 +1885,11 @@
         };
       }
 
-      return { title: "🚇 대중교통 노선도", stops: [`${startPlace} | 출발`, "전철 이동 | 電車移動", `${endPlace} | 도착`] };
+      const estStops = Math.max(1, Math.round(rawKm / 1.2));
+      return {
+        title: "🚇 대중교통 이동 노선도",
+        stops: [`${startPlace} | 출발`, `출발역 승차 | 乗車駅`, `약 ${estStops}개 역 이동 | 電車移動`, `도착역 하차 | 降車駅`, `${endPlace} | 도착`]
+      };
     }
 
     function renderBusBoardPopup(title, stopsArray, timeBadge, fareText, guideHtml, gmapUrl, isWalkMode, itemA, itemB) {
@@ -1809,11 +1923,11 @@
         return;
       }
 
-      if (wrap) wrap.style.padding = "24px 18px 28px";
-      canvas.style.minWidth = "620px";
+      if (wrap) wrap.style.padding = "26px 18px 30px";
+      const total = stopsArray.length;
+      canvas.style.minWidth = Math.max(640, total * 85) + "px";
       canvas.style.padding = "135px 55px 22px 25px";
 
-      const total = stopsArray.length;
       function makeStopNodeHtml(rawText, isStart, isEnd, arrowStr) {
         const cls = isStart ? 'is-start' : (isEnd ? 'is-end' : (rawText.includes('환승') ? 'is-transfer' : ''));
         const parts = String(rawText).split('|');
@@ -1895,7 +2009,6 @@
       renderAll();
     }
 
-    // ★ 중요: 렌더링 중 saveData()를 호출하지 않도록 분리하여 초기 빈 데이터 덮어쓰기 원천 차단! ★
     function recalcAllTransits(forceAutoDetect) {
       const list = getCurrentDayList();
       for (let i = 0; i < list.length - 1; i++) {
@@ -1967,7 +2080,6 @@
       if (btn) { btn.style.background = "#059669"; btn.innerText = "☁️ 서버 저장"; }
     }
 
-    // ★ 빈 데이터 서버 덮어쓰기 방지 안전장치 탑재 ★
     async function manualPushToCloud(isSilent) {
       const totalSpots = [1, 2, 3].reduce((acc, p) => {
         const wLen = (appState.plans[p]?.wish || []).length;
@@ -2017,9 +2129,9 @@
             return acc + wLen + dLen;
           }, 0);
 
-          // 서버에 데이터가 있을 때만 덮어씌움 (빈 서버가 로컬 백업본을 날리는 현상 방지!)
           if (remoteCount > 0 || !isSilent) {
             appState = remoteState;
+            ensurePerPlanConfigs();
             localStorage.setItem('universal_travel_planner_v9', JSON.stringify(appState));
             syncDaysLength();
             renderAll();
@@ -2038,49 +2150,65 @@
       }
     }
 
-    function getDaysMetaList() {
-      const sStr = appState.config.startDate || "2026-11-28";
-      const eStr = appState.config.endDate || "2026-12-01";
+    // ★ 각 플랜(slotNum)별로 자신의 개별 출발일~도착일을 읽어 날짜 리스트 생성 ★
+    function getDaysMetaList(slotNum) {
+      const targetSlot = slotNum || currentPlan;
+      ensurePerPlanConfigs();
+      const cfg = appState.plans[targetSlot].config;
+      const sStr = cfg.startDate || "2026-11-28";
+      const eStr = cfg.endDate || "2026-12-01";
       const sParts = sStr.split('-').map(Number);
       const eParts = eStr.split('-').map(Number);
       const sDate = new Date(sParts[0], sParts[1] - 1, sParts[2]);
       const eDate = new Date(eParts[0], eParts[1] - 1, eParts[2]);
       let diff = Math.round((eDate - sDate) / 86400000) + 1;
       if (isNaN(diff) || diff < 1) diff = 1;
-      if (diff > 14) diff = 14;
+      if (diff > 21) diff = 21; // 최대 3주 여행까지 지원
       const weeks = ['일', '월', '화', '수', '목', '금', '토'];
       const meta = [];
       for (let i = 0; i < diff; i++) {
         const d = new Date(sParts[0], sParts[1] - 1, sParts[2] + i);
-        meta.push({ idx: i, shortDate: `${d.getMonth()+1}/${d.getDate()}(${weeks[d.getDay()]})`, fullLabel: `Day ${i + 1} · ${d.getMonth()+1}/${d.getDate()}(${weeks[d.getDay()]})` });
+        meta.push({
+          idx: i,
+          shortDate: `${d.getMonth()+1}/${d.getDate()}(${weeks[d.getDay()]})`,
+          fullLabel: `Day ${i + 1} · ${d.getMonth()+1}/${d.getDate()}(${weeks[d.getDay()]})`
+        });
       }
       return meta;
     }
 
     function syncDaysLength() {
-      const meta = getDaysMetaList();
-      const targetLen = meta.length;
+      ensurePerPlanConfigs();
       [1, 2, 3].forEach(p => {
-        if (!appState.plans[p]) appState.plans[p] = createDefaultPlanData();
+        const meta = getDaysMetaList(p);
+        const targetLen = meta.length;
         if (!Array.isArray(appState.plans[p].days)) appState.plans[p].days = [[], [], [], []];
         while (appState.plans[p].days.length < targetLen) appState.plans[p].days.push([]);
       });
-      if (currentDayIndex >= targetLen) currentDayIndex = 0;
+      const curMeta = getDaysMetaList(currentPlan);
+      if (currentDayIndex >= curMeta.length) currentDayIndex = 0;
     }
 
+    // ★ 상단 날짜 입력칸 변경 시, 현재 선택된 안(1안 or 2안 or 3안)에만 개별 적용! ★
     function updateDateRange() {
       const sVal = document.getElementById('startDateInput').value;
       const eVal = document.getElementById('endDateInput').value;
       if (!sVal || !eVal) return;
       if (new Date(eVal) < new Date(sVal)) { alert("도착일은 출발일과 같거나 그 이후여야 합니다."); return; }
-      appState.config.startDate = sVal;
-      appState.config.endDate = eVal;
+      const cfg = getActiveConfig();
+      cfg.startDate = sVal;
+      cfg.endDate = eVal;
       syncDaysLength();
       saveData();
       renderAll();
     }
 
-    function openWishModal() { renderWishSection(); document.getElementById('wishSheetModal').classList.add('open'); }
+    function openWishModal() {
+      const lbl = document.getElementById('wishModalPlanLabel');
+      if (lbl) lbl.innerText = `${currentPlan}안`;
+      renderWishSection();
+      document.getElementById('wishSheetModal').classList.add('open');
+    }
     function closeWishModal() { document.getElementById('wishSheetModal').classList.remove('open'); }
     function openSearchModal() { document.getElementById('searchSheetModal').classList.add('open'); setTimeout(() => document.getElementById('searchKeyword').focus(), 120); }
     function closeSearchModal() { document.getElementById('searchSheetModal').classList.remove('open'); }
@@ -2099,7 +2227,7 @@
     window.initGoogleMap = function() {
       const msgEl = document.getElementById('mapStatusMsg');
       if (msgEl) msgEl.innerHTML = `<span style="color:#10b981; font-weight:700;">✅ Google Maps 실시간 연동 완료</span>`;
-      const h = appState.config.hotel;
+      const h = getActiveConfig().hotel;
       map = new google.maps.Map(document.getElementById('map'), { center: { lat: h.lat, lng: h.lng }, zoom: 13, mapTypeControl: false, streetViewControl: false });
       infoWindow = new google.maps.InfoWindow();
       updateHotelMarkerOnMap();
@@ -2108,13 +2236,14 @@
 
     function updateHotelMarkerOnMap() {
       if (!map || !window.google) return;
-      const h = appState.config.hotel;
+      const h = getActiveConfig().hotel;
       if (hotelMarker) hotelMarker.setMap(null);
       hotelMarker = new google.maps.Marker({ position: { lat: h.lat, lng: h.lng }, map: map, title: h.name, label: { text: "🏨", fontSize: "14px" } });
     }
 
     async function executeSmartSearch() {
-      const city = appState.config.city || "";
+      const cfg = getActiveConfig();
+      const city = cfg.city || "";
       const region = document.getElementById('regionInput').value.trim();
       const kw = document.getElementById('searchKeyword').value.trim();
       if (!kw) { alert("검색어를 입력해주세요!"); return; }
@@ -2122,12 +2251,12 @@
       const listEl = document.getElementById('searchResultList');
       listEl.innerHTML = `<div style="grid-column:1/-1; padding:14px; font-size:12.5px; color:#1d4ed8; font-weight:700;">🔎 '${fullQuery}' 분석 중...</div>`;
 
-      const h = appState.config.hotel;
+      const h = cfg.hotel;
       if (window.google && window.google.maps) {
         try {
           const { Place } = await google.maps.importLibrary("places");
           if (Place && typeof Place.searchByText === "function") {
-            const resRich = await Place.searchByText({ textQuery: fullQuery, fields: ["displayName", "formattedAddress", "location", "rating", "regularOpeningHours", "paymentOptions", "editorialSummary", "reviews"], locationBias: { center: { lat: h.lat, lng: h.lng }, radius: 30000 }, language: "ko" });
+            const resRich = await Place.searchByText({ textQuery: fullQuery, fields: ["displayName", "formattedAddress", "location", "rating", "regularOpeningHours", "paymentOptions", "editorialSummary", "reviews"], locationBias: { center: { lat: h.lat, lng: h.lng }, radius: 40000 }, language: "ko" });
             const places = resRich.places;
             if (places && places.length > 0) {
               const normalized = await Promise.all(places.slice(0, 6).map(async (p) => {
@@ -2176,7 +2305,7 @@
       searchMarkers.forEach(m => m.setMap(null));
       searchMarkers = [];
       const bounds = (window.google && window.google.maps) ? new google.maps.LatLngBounds() : null;
-      const daysMeta = getDaysMetaList();
+      const daysMeta = getDaysMetaList(currentPlan);
       const dayOptionsHtml = daysMeta.map(d => `<option value="${d.idx}" ${d.idx === currentDayIndex ? 'selected' : ''}>${d.fullLabel}</option>`).join('');
 
       items.forEach((item, idx) => {
@@ -2260,17 +2389,17 @@
       const sumEl = document.getElementById('stripTotalSummary');
       if (!trackEl) return;
 
-      const daysMeta = getDaysMetaList();
+      const daysMeta = getDaysMetaList(currentPlan);
       const curMeta = daysMeta[currentDayIndex] || { idx: 0, shortDate: '' };
       const list = getCurrentDayList();
 
       if (titleEl) {
-        titleEl.innerText = `🚌 [Day ${curMeta.idx + 1} · ${curMeta.shortDate}] 오늘의 이동 노선도 요약 (터치하면 해당 카드로 이동)`;
+        titleEl.innerText = `🚌 [${currentPlan}안 · Day ${curMeta.idx + 1} (${curMeta.shortDate})] 이동 노선도 요약 (터치 시 카드로 이동)`;
       }
 
       if (list.length === 0) {
         if (sumEl) sumEl.innerText = "일정 0곳";
-        trackEl.innerHTML = `<span style="font-size:12px; color:#94a3b8; padding:4px 0;">상단 [📂 열기(복구)] 버튼을 눌러 백업 파일을 불러오거나 장소를 추가하세요.</span>`;
+        trackEl.innerHTML = `<span style="font-size:12px; color:#94a3b8; padding:4px 0;">등록된 일정이 없습니다. 장소를 추가하면 버스 노선처럼 동선이 표시됩니다.</span>`;
         return;
       }
 
@@ -2279,7 +2408,7 @@
       let html = '';
       list.forEach((item, idx) => {
         const nextItem = list[idx + 1] || null;
-        const shortName = item.name.split('(')[0].trim().slice(0, 11);
+        const shortName = item.name.split('(')[0].trim().slice(0, 14);
         html += `
           <div class="strip-node" onclick="scrollToSpotCard(${item.id})">
             <span class="s-num">${idx + 1}</span>
@@ -2313,13 +2442,28 @@
     }
 
     function renderHeaderConfig() {
-      const cfg = appState.config;
-      document.getElementById('headerTripTitle').innerText = cfg.tripTitle || "🗼 도쿄 여행 올인원 대시보드";
+      ensurePerPlanConfigs();
+      const cfg = getActiveConfig();
+      document.getElementById('headerTripTitle').innerText = cfg.tripTitle || "✈️ 스마트 여행 올인원 플래너";
       document.getElementById('headerCityBadge').innerText = cfg.city || "Tokyo";
+      document.getElementById('headerPlanLabel').innerText = `${currentPlan}안`;
+      document.getElementById('dateBoxPlanBadge').innerText = `${currentPlan}안 날짜`;
       document.getElementById('headerHotelName').innerText = cfg.hotel.name;
       document.getElementById('headerHotelTip').innerText = cfg.hotel.tip || cfg.hotel.address;
       document.getElementById('startDateInput').value = cfg.startDate;
       document.getElementById('endDateInput').value = cfg.endDate;
+
+      // 1·2·3안 버튼에 각 안의 이름과 날짜(예: 📌 1안 (11/28~12/1))를 직관적으로 함께 표시
+      [1, 2, 3].forEach(slot => {
+        const b = document.getElementById(`planBtn-${slot}`);
+        if (!b) return;
+        const pCfg = appState.plans[slot].config;
+        const sShort = (pCfg.startDate || '').slice(5).replace('-', '/');
+        const eShort = (pCfg.endDate || '').slice(5).replace('-', '/');
+        const tabLabel = pCfg.planTabName || (slot === 1 ? "📌 1안" : `${slot}안`);
+        b.innerText = (sShort && eShort) ? `${tabLabel} (${sShort}~${eShort})` : tabLabel;
+        b.classList.toggle('active', slot === currentPlan);
+      });
     }
 
     function renderWishSection() {
@@ -2329,11 +2473,11 @@
       const grid = document.getElementById('wishCardsGrid');
 
       if (wishes.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1; padding:24px; text-align:center; color:var(--muted); background:#f8fafc; border-radius:8px; border:1px dashed #f472b6; font-size:12.5px;">담긴 위시 장소가 없습니다. 상단 [🔍 검색으로 추가] 버튼을 눌러 장소를 담아보세요!</div>`;
+        grid.innerHTML = `<div style="grid-column:1/-1; padding:24px; text-align:center; color:var(--muted); background:#f8fafc; border-radius:8px; border:1px dashed #f472b6; font-size:12.5px;">[${currentPlan}안]에 담긴 위시 장소가 없습니다. 상단 [🔍 검색으로 추가] 버튼을 눌러 장소를 담아보세요!</div>`;
         return;
       }
 
-      const daysMeta = getDaysMetaList();
+      const daysMeta = getDaysMetaList(currentPlan);
       const dayOptionsHtml = daysMeta.map(d => `<option value="${d.idx}" ${d.idx === currentDayIndex ? 'selected' : ''}>📅 ${d.fullLabel}</option>`).join('');
 
       grid.innerHTML = wishes.map(w => {
@@ -2372,8 +2516,9 @@
     function addBlankWishCard() {
       const name = prompt("추가할 장소 이름을 입력하세요:");
       if (!name || !name.trim()) return;
+      const cfg = getActiveConfig();
       const deep = buildDeepSpotIntelligence(name.trim(), "", null, null);
-      appState.plans[currentPlan].wish.unshift({ id: Date.now(), name: name.trim(), address: "위치 입력", lat: appState.config.hotel.lat, lng: appState.config.hotel.lng, rating: "4.2", hours: deep.hours, payment: deep.payment, tip: deep.tip });
+      appState.plans[currentPlan].wish.unshift({ id: Date.now(), name: name.trim(), address: "위치 입력", lat: cfg.hotel.lat, lng: cfg.hotel.lng, rating: "4.2", hours: deep.hours, payment: deep.payment, tip: deep.tip });
       saveData();
       renderWishSection();
     }
@@ -2413,7 +2558,7 @@
     }
 
     function renderDayTabs() {
-      const daysMeta = getDaysMetaList();
+      const daysMeta = getDaysMetaList(currentPlan);
       const container = document.getElementById('dayTabsContainer');
       container.innerHTML = daysMeta.map(d => {
         const count = (appState.plans[currentPlan].days[d.idx] || []).length;
@@ -2424,7 +2569,7 @@
     function selectDay(idx) { currentDayIndex = idx; renderAll(); }
 
     function addHotelReturn() {
-      const h = appState.config.hotel;
+      const h = getActiveConfig().hotel;
       const list = getCurrentDayList();
       const newId = Date.now();
       list.push({ id: newId, time: "21:30", name: h.name, address: h.address, lat: h.lat, lng: h.lng, rating: h.rating || "4.0", hours: h.hours || "24시간", payment: "결제완료", tip: h.tip || "숙소 복귀", userMemo: "", transitMode: "", transitToNext: "", transitFare: "", transitMemo: "" });
@@ -2436,14 +2581,15 @@
     }
 
     function renderTimeline() {
-      const daysMeta = getDaysMetaList();
+      const daysMeta = getDaysMetaList(currentPlan);
       const curMeta = daysMeta[currentDayIndex] || { idx: 0, shortDate: '' };
-      document.getElementById('currentDayTitle').innerText = `📅 [스케줄 ${currentPlan}안] Day ${curMeta.idx + 1} (${curMeta.shortDate}) 타임라인`;
+      const cfg = getActiveConfig();
+      document.getElementById('currentDayTitle').innerText = `📅 [${cfg.planTabName || currentPlan + '안'} · ${cfg.city || '여행'}] Day ${curMeta.idx + 1} (${curMeta.shortDate}) 타임라인`;
 
       const list = getCurrentDayList();
       const container = document.getElementById('timelineContainer');
       if (list.length === 0) {
-        container.innerHTML = `<div style="padding:28px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:10px; font-size:12.5px;">등록된 일정이 없습니다. 맨 위 검은색 바의 <strong>[📂 열기(복구)]</strong>를 눌러 백업본을 불러오거나 장소를 추가하세요!</div>`;
+        container.innerHTML = `<div style="padding:28px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:10px; font-size:12.5px;">등록된 일정이 없습니다. 상단 <strong>[🔍 구글맵 장소 검색]</strong>이나 <strong>[⭐ 위시리스트 보관함]</strong> 버튼을 눌러 장소를 추가해보세요!</div>`;
         return;
       }
 
@@ -2638,13 +2784,17 @@
       }
     }
 
-    function panToHotel() { const h = appState.config.hotel; focusSpotOnMap(h.lat, h.lng, h.name, h.address, h.rating); }
+    function panToHotel() { const h = getActiveConfig().hotel; focusSpotOnMap(h.lat, h.lng, h.name, h.address, h.rating); }
     function fitCurrentDayBounds() { renderMapMarkers(); }
 
     function openConfigModal() {
-      const cfg = appState.config;
+      const cfg = getActiveConfig();
+      document.getElementById('cfgModalPlanNum').innerText = currentPlan;
+      document.getElementById('cfgPlanTabName').value = cfg.planTabName || (currentPlan === 1 ? "📌 1안" : `${currentPlan}안`);
       document.getElementById('cfgTripTitle').value = cfg.tripTitle || "";
       document.getElementById('cfgCityName').value = cfg.city || "";
+      document.getElementById('cfgStartDate').value = cfg.startDate || "2026-11-28";
+      document.getElementById('cfgEndDate').value = cfg.endDate || "2026-12-01";
       document.getElementById('cfgHotelName').value = cfg.hotel.name || "";
       document.getElementById('cfgHotelAddr').value = cfg.hotel.address || "";
       document.getElementById('cfgHotelTip').value = cfg.hotel.tip || "";
@@ -2652,37 +2802,71 @@
     }
     function closeConfigModal() { document.getElementById('configModal').classList.remove('open'); }
 
+    // 숙소나 도시 변경 시 구글맵에서 숙소 위도/경도 좌표를 자동으로 찾아 반영
     async function saveConfigModal() {
-      const cfg = appState.config;
-      cfg.tripTitle = document.getElementById('cfgTripTitle').value.trim() || "🗼 도쿄 여행 올인원 대시보드";
+      const cfg = getActiveConfig();
+      const prevHotelName = cfg.hotel.name;
+      cfg.planTabName = document.getElementById('cfgPlanTabName').value.trim() || (currentPlan === 1 ? "📌 1안" : `${currentPlan}안`);
+      cfg.tripTitle = document.getElementById('cfgTripTitle').value.trim() || "✈️ 스마트 여행 올인원 플래너";
       cfg.city = document.getElementById('cfgCityName').value.trim() || "Tokyo";
+      const newS = document.getElementById('cfgStartDate').value;
+      const newE = document.getElementById('cfgEndDate').value;
+      if (newS && newE && new Date(newE) >= new Date(newS)) {
+        cfg.startDate = newS;
+        cfg.endDate = newE;
+      }
       cfg.hotel.name = document.getElementById('cfgHotelName').value.trim() || "숙소";
       cfg.hotel.address = document.getElementById('cfgHotelAddr').value.trim() || "";
       cfg.hotel.tip = document.getElementById('cfgHotelTip').value.trim() || "";
-      saveData(); closeConfigModal(); updateHotelMarkerOnMap(); renderAll();
+
+      if (cfg.hotel.name !== prevHotelName && window.google && window.google.maps) {
+        try {
+          const { Place } = await google.maps.importLibrary("places");
+          if (Place && typeof Place.searchByText === "function") {
+            const res = await Place.searchByText({ textQuery: `${cfg.city} ${cfg.hotel.name}`, fields: ["location", "formattedAddress"], language: "ko" });
+            if (res.places && res.places.length > 0) {
+              const p = res.places[0];
+              cfg.hotel.lat = typeof p.location.lat === 'function' ? p.location.lat() : p.location.lat;
+              cfg.hotel.lng = typeof p.location.lng === 'function' ? p.location.lng() : p.location.lng;
+              if (!cfg.hotel.address && p.formattedAddress) cfg.hotel.address = p.formattedAddress;
+            }
+          }
+        } catch (e) {}
+      }
+
+      syncDaysLength();
+      saveData();
+      closeConfigModal();
+      updateHotelMarkerOnMap();
+      panToHotel();
+      renderAll();
     }
 
     function switchPlan(slot) {
       currentPlan = slot;
-      [1, 2, 3].forEach(n => {
-        const b = document.getElementById(`planBtn-${n}`);
-        if (b) b.classList.toggle('active', n === slot);
-      });
+      currentDayIndex = 0;
+      ensurePerPlanConfigs();
+      syncDaysLength();
+      updateHotelMarkerOnMap();
       renderAll();
     }
 
     function copyCurrentPlanToOther() {
-      const target = prompt(`현재 [${currentPlan}안]을 몇 안으로 복사할까요? (1, 2, 3)`);
+      const target = prompt(`현재 [${currentPlan}안]의 일정과 위시리스트를 몇 안으로 복사할까요? (1, 2, 3)`);
       const tNum = Number(target);
       if (![1, 2, 3].includes(tNum) || tNum === currentPlan) return;
       appState.plans[tNum] = JSON.parse(JSON.stringify(appState.plans[currentPlan]));
-      saveData(); switchPlan(tNum); alert(`[${currentPlan}안] 복사 완료!`);
+      appState.plans[tNum].config.planTabName = `${tNum}안`;
+      saveData();
+      switchPlan(tNum);
+      alert(`[${tNum}안]으로 복사 완료! 상단 날짜나 설정(⚙️)을 눌러 [${tNum}안]만의 날짜와 숙소를 자유롭게 변경하세요.`);
     }
 
     function clearCurrentPlan() {
       if (!confirm(`현재 [${currentPlan}안] 일정을 비우시겠습니까?`)) return;
-      appState.plans[currentPlan].days = getDaysMetaList().map(() => []);
-      saveData(); renderAll();
+      appState.plans[currentPlan].days = getDaysMetaList(currentPlan).map(() => []);
+      saveData();
+      renderAll();
     }
 
     function escapeQuotes(str) { return String(str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
@@ -2699,7 +2883,10 @@
         try {
           const parsed = JSON.parse(saved);
           const stateObj = parsed.appState ? parsed.appState : parsed;
-          if (stateObj && stateObj.config && stateObj.plans) appState = stateObj;
+          if (stateObj && stateObj.plans) {
+            appState = stateObj;
+            ensurePerPlanConfigs();
+          }
         } catch(e) {}
       }
       syncDaysLength();
@@ -2713,8 +2900,9 @@
     }
 
     function exportBackup() {
+      const cfg = getActiveConfig();
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-      const a = document.createElement('a'); a.href = dataStr; a.download = `travel_plan_${appState.config.city || 'backup'}.json`; a.click();
+      const a = document.createElement('a'); a.href = dataStr; a.download = `travel_plan_${cfg.city || 'backup'}.json`; a.click();
     }
 
     function importBackup(event) {
@@ -2725,8 +2913,9 @@
         try {
           const parsed = JSON.parse(e.target.result);
           const stateObj = parsed.appState ? parsed.appState : parsed;
-          if (stateObj && stateObj.config && stateObj.plans) {
+          if (stateObj && stateObj.plans) {
             appState = stateObj;
+            ensurePerPlanConfigs();
             syncDaysLength();
             saveData();
             renderAll();
@@ -2742,5 +2931,3 @@
   </script>
 </body>
 </html>
-
-```
