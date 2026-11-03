@@ -125,22 +125,23 @@
 
     .top-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .ctrl-group {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.1);
+      border: 1.5px solid #3b82f6;
       padding: 5px 10px;
       border-radius: 8px;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       font-size: 11.5px;
     }
     .ctrl-group input[type="date"] {
       background: transparent;
       border: none;
       color: #fde047;
-      font-size: 12px;
+      font-size: 12.5px;
       font-weight: 800;
       outline: none;
+      cursor: pointer;
     }
     .ctrl-group input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
@@ -188,7 +189,7 @@
     .btn:active { transform: scale(0.97); }
     .btn-primary { background: var(--primary); color: white; }
     .btn-outline { background: white; border-color: var(--border); color: var(--text); }
-    .btn-outline.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .btn-outline.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 2px 6px rgba(37,99,235,0.25); }
     .btn-wish { background: var(--wish-light); color: #be185d; border-color: #f472b6; font-weight: 800; }
     .btn-search-top { background: #eff6ff; color: #1d4ed8; border-color: #93c5fd; font-weight: 800; }
     .btn-danger { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
@@ -236,7 +237,7 @@
     }
     .drawer-item.active { background: var(--primary); color: white; border-color: #60a5fa; }
 
-    /* ★ 오늘 하루 동선 요약 바 (일정 길어져도 잘림 없도록 스크롤바 + 전체 펼치기 지원!) ★ */
+    /* 오늘 하루 동선 요약 바 (스크롤 + 전체 펼치기 지원) */
     .daily-route-strip-wrap { max-width: 1380px; margin: 10px auto 0; padding: 0 14px; }
     .daily-route-strip {
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -257,11 +258,7 @@
       gap: 8px;
       flex-wrap: wrap;
     }
-    .strip-ctrl-btns {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
+    .strip-ctrl-btns { display: inline-flex; align-items: center; gap: 4px; }
     .strip-mini-btn {
       background: #334155;
       color: #f8fafc;
@@ -286,12 +283,10 @@
       padding: 6px 4px 10px;
       white-space: nowrap;
     }
-    /* 가시성 좋은 커스텀 가로 스크롤바 표시 */
     .strip-track::-webkit-scrollbar { height: 6px; }
     .strip-track::-webkit-scrollbar-track { background: rgba(255,255,255,0.06); border-radius: 4px; }
     .strip-track::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
 
-    /* [↕ 한눈에 펼치기] 모드 활성화 시 절대 안 잘리고 여러 줄로 자동 줄바꿈 */
     .strip-track.expanded-wrap {
       flex-wrap: wrap;
       white-space: normal;
@@ -346,7 +341,7 @@
       margin-bottom: 1px;
     }
 
-    /* 교통수단 AI 추천 & 3대 수단 비교 칩 */
+    /* 교통수단 추천 & 3대 수단 비교 칩 */
     .transit-reco-banner {
       background: #ffffff;
       border: 1.5px solid #93c5fd;
@@ -458,7 +453,6 @@
       gap: 8px;
     }
 
-    /* Day 탭 (모바일/태블릿에서 날짜 많아져도 잘리지 않도록 스크롤 & 줄바꿈 개선) */
     .day-tabs {
       display: flex;
       flex-wrap: nowrap;
@@ -693,7 +687,6 @@
     .wish-insert-footer select { width: 100%; min-width: 0; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: 700; color: #1e293b; background: white; }
     .wish-insert-btn { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); color: white; border: none; padding: 7px 11px; border-radius: 6px; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
 
-    /* 노선도 팝업 내부 스크롤 잘림 완벽 해결 */
     .bus-board-wrap {
       background: #f8fafc;
       border: 2px solid #cbd5e1;
@@ -753,7 +746,7 @@
   <div class="server-top-bar">
     <div class="server-top-inner no-scrollbar">
       <span id="syncStatusBadge" class="badge" style="background:#dcfce7; color:#15803d; border:1px solid #86efac; padding:5px 10px; font-size:11.5px;">
-        🟢 서버 동기화 대기중
+        🟢 준비 완료
       </span>
       <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
         <button class="btn btn-primary" id="cloudSaveBtn" style="background:#059669; padding:6px 12px; font-size:12px;" onclick="manualPushToCloud()">
@@ -803,7 +796,7 @@
             ☰ 가이드·꿀팁 메뉴
           </button>
           <span id="headerTripTitle">✈️ 스마트 여행 올인원 플래너</span>
-          <span class="city-badge" onclick="openConfigModal()" title="현재 안의 도시·숙소·이름 설정">🌏 <span id="headerCityBadge">Tokyo</span> · <span id="headerPlanLabel">1안</span> 설정 ⚙️</span>
+          <span class="city-badge" onclick="openConfigModal()">🌏 <span id="headerCityBadge">Tokyo</span> · <span id="headerPlanLabel">1안</span> 설정 ⚙️</span>
         </h1>
         <p>
           <span>🏨 숙소: <strong id="headerHotelName" style="color:white;">Hotel Sunlite Shinjuku</strong></span>
@@ -813,8 +806,8 @@
       </div>
 
       <div class="top-controls">
-        <div class="ctrl-group" title="1안·2안·3안마다 날짜를 서로 다르게 개별 설정할 수 있습니다!">
-          <span id="dateBoxPlanBadge" style="background:#2563eb; color:white; padding:1px 6px; border-radius:4px; font-weight:800; font-size:10.5px;">1안 날짜</span>
+        <div class="ctrl-group">
+          <span id="dateBoxPlanBadge" style="background:#2563eb; color:white; padding:2px 7px; border-radius:4px; font-weight:800; font-size:11px;">1안 날짜</span>
           <input type="date" id="startDateInput" onchange="updateDateRange()">
           <span>~</span>
           <input type="date" id="endDateInput" onchange="updateDateRange()">
@@ -823,46 +816,46 @@
     </div>
   </header>
 
-  <!-- 2. 스케줄 안 선택 줄 (각 안별 날짜·도시 자동 전환) & 장소검색/위시리스트 버튼 -->
+  <!-- 2. 스케줄 안 선택 줄 (각 안별 날짜·도시 완전 독립 작동!) & 장소검색/위시리스트 버튼 -->
   <div class="control-panel">
     <div class="control-panel-inner">
       <div class="plan-row no-scrollbar">
-        <div style="display:flex; align-items:center; gap:5px;">
-          <span style="font-size:12px; font-weight:800; color:#475569; margin-right:2px;">🗂️ 플랜(개별 날짜·일정):</span>
-          <button class="btn btn-outline active" id="planBtn-1" onclick="switchPlan(1)">📌 1안</button>
-          <button class="btn btn-outline" id="planBtn-2" onclick="switchPlan(2)">2안</button>
-          <button class="btn btn-outline" id="planBtn-3" onclick="switchPlan(3)">3안</button>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="font-size:12px; font-weight:800; color:#475569; margin-right:2px;">🗂️ 플랜 전환 (안마다 날짜 별도):</span>
+          <button type="button" class="btn btn-outline active" id="planBtn-1" onclick="switchPlan(1)">📌 1안</button>
+          <button type="button" class="btn btn-outline" id="planBtn-2" onclick="switchPlan(2)">2안</button>
+          <button type="button" class="btn btn-outline" id="planBtn-3" onclick="switchPlan(3)">3안</button>
         </div>
         <div style="display:flex; align-items:center; gap:5px;">
-          <button class="btn btn-primary" id="backToPlannerBtn" style="display:none; background:#2563eb; padding:5px 10px; font-size:11.5px;" onclick="selectDrawerTab('tab-planner')">
+          <button type="button" class="btn btn-primary" id="backToPlannerBtn" style="display:none; background:#2563eb; padding:5px 10px; font-size:11.5px;" onclick="selectDrawerTab('tab-planner')">
             🔙 일정 플래너로 돌아가기
           </button>
-          <button class="btn btn-outline" style="font-size:11.5px; padding:5px 9px;" onclick="openConfigModal()">⚙️ 현재 안(도시/숙소) 설정</button>
-          <button class="btn btn-outline" style="font-size:11.5px; padding:5px 9px;" onclick="copyCurrentPlanToOther()">📑 안 복사</button>
-          <button class="btn btn-danger" style="font-size:11.5px; padding:5px 9px;" onclick="clearCurrentPlan()">🗑️ 비우기</button>
+          <button type="button" class="btn btn-outline" style="font-size:11.5px; padding:5px 9px; border-color:#93c5fd; color:#1d4ed8;" onclick="openConfigModal()">⚙️ 현재 안 날짜·숙소 설정</button>
+          <button type="button" class="btn btn-outline" style="font-size:11.5px; padding:5px 9px;" onclick="copyCurrentPlanToOther()">📑 안 복사</button>
+          <button type="button" class="btn btn-danger" style="font-size:11.5px; padding:5px 9px;" onclick="clearCurrentPlan()">🗑️ 비우기</button>
         </div>
       </div>
 
       <div class="search-wish-row">
-        <button class="btn btn-search-top" style="padding:11px; font-size:13.5px; border-radius:9px;" onclick="openSearchModal()">
+        <button type="button" class="btn btn-search-top" style="padding:11px; font-size:13.5px; border-radius:9px;" onclick="openSearchModal()">
           🔍 구글맵 장소 검색
         </button>
-        <button class="btn btn-wish" style="padding:11px; font-size:13.5px; border-radius:9px;" onclick="openWishModal()">
+        <button type="button" class="btn btn-wish" style="padding:11px; font-size:13.5px; border-radius:9px;" onclick="openWishModal()">
           ⭐ 위시리스트 보관함 (<span id="wishCountBadge">0</span>)
         </button>
       </div>
     </div>
   </div>
 
-  <!-- ★ 3. 오늘의 이동 동선 요약 바 (일정이 길어져도 좌우 화살표 & 전체 줄바꿈 펼치기로 절대 안 잘림!) ★ -->
+  <!-- 3. 오늘의 이동 동선 요약 바 (일정이 길어져도 좌우 화살표 & 전체 줄바꿈 펼치기로 절대 안 잘림) -->
   <div class="daily-route-strip-wrap" id="dailyRouteStripWrap">
     <div class="daily-route-strip">
       <div class="strip-head">
         <span id="stripDayTitle">🚌 오늘의 이동 코스 한눈에 보기 (터치하면 해당 카드로 이동)</span>
         <div class="strip-ctrl-btns">
           <span id="stripTotalSummary" style="color:#fde047; margin-right:6px;">총 0곳</span>
-          <button type="button" class="strip-mini-btn" onclick="scrollRouteStrip(-240)" title="왼쪽으로 스크롤">◀</button>
-          <button type="button" class="strip-mini-btn" onclick="scrollRouteStrip(240)" title="오른쪽으로 스크롤">▶</button>
+          <button type="button" class="strip-mini-btn" onclick="scrollRouteStrip(-240)">◀</button>
+          <button type="button" class="strip-mini-btn" onclick="scrollRouteStrip(240)">▶</button>
           <button type="button" class="strip-mini-btn" id="stripExpandBtn" onclick="toggleRouteStripExpand()">↕ 한눈에 펼치기</button>
         </div>
       </div>
@@ -887,10 +880,10 @@
                 </div>
               </div>
               <div style="display:flex; gap:5px; flex-wrap:wrap;">
-                <button class="btn btn-search-top" onclick="openSearchModal()">🔍 검색 추가</button>
-                <button class="btn btn-wish" onclick="openWishModal()">⭐ 위시 꺼내기</button>
-                <button class="btn btn-outline" onclick="addHotelReturn()">🏨 +숙소</button>
-                <button class="btn btn-outline" onclick="sortCurrentDayByTime()">⏰ 시간순 정렬</button>
+                <button type="button" class="btn btn-search-top" onclick="openSearchModal()">🔍 검색 추가</button>
+                <button type="button" class="btn btn-wish" onclick="openWishModal()">⭐ 위시 꺼내기</button>
+                <button type="button" class="btn btn-outline" onclick="addHotelReturn()">🏨 +숙소</button>
+                <button type="button" class="btn btn-outline" onclick="sortCurrentDayByTime()">⏰ 시간순 정렬</button>
               </div>
             </div>
             <div id="timelineContainer"></div>
@@ -902,8 +895,8 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
               <strong style="font-size:13px;">🗺️ 오늘 일정 동선 미니맵</strong>
               <div style="display:flex; gap:4px;">
-                <button class="btn btn-outline" style="padding:3px 8px; font-size:11px;" onclick="panToHotel()">🏨 숙소 위치</button>
-                <button class="btn btn-outline" style="padding:3px 8px; font-size:11px;" onclick="fitCurrentDayBounds()">📍 전체 동선</button>
+                <button type="button" class="btn btn-outline" style="padding:3px 8px; font-size:11px;" onclick="panToHotel()">🏨 숙소 위치</button>
+                <button type="button" class="btn btn-outline" style="padding:3px 8px; font-size:11px;" onclick="fitCurrentDayBounds()">📍 전체 동선</button>
               </div>
             </div>
             <div class="compact-map-box">
@@ -922,13 +915,13 @@
       <div class="card">
         <div class="card-title">
           <span>✈️ 공항 입국 후 도심 특급열차·전철 탑승 5단계 동선</span>
-          <button class="btn-route-popup" onclick="openCustomRouteModal('🚆 나리타 익스프레스(N\'EX) 정차역 노선도', ['나리타 3터미널 | 第3ターミナル', '공항제2빌딩역(승차) | 空港第2ビル駅', '도쿄역 | 東京駅', '시부야역 | 渋谷駅', '신주쿠역(하차) | 新宿駅', '숙소 도착'], '왕복 5,000엔', '<div class=\'v-step-card\'><div class=\'v-step-tag\' style=\'background:#2563eb;\'>안내</div><div class=\'v-step-body\'><div class=\'v-step-main\'>지하 1층 JR 매표소에서 여권 제시 후 왕복패스 구매</div></div></div>')">🗺️ 공항➔도심 노선도 예시</button>
+          <button type="button" class="btn-route-popup" onclick="openCustomRouteModal('🚆 나리타 익스프레스(N\'EX) 정차역 노선도', ['나리타 3터미널 | 第3ターミナル', '공항제2빌딩역(승차) | 空港第2ビル駅', '도쿄역 | 東京駅', '시부야역 | 渋谷駅', '신주쿠역(하차) | 新宿駅', '숙소 도착'], '왕복 5,000엔', '<div class=\'v-step-card\'><div class=\'v-step-tag\' style=\'background:#2563eb;\'>안내</div><div class=\'v-step-body\'><div class=\'v-step-main\'>지하 1층 JR 매표소에서 여권 제시 후 왕복패스 구매</div></div></div>')">🗺️ 공항➔도심 노선도 예시</button>
         </div>
         <div class="step-flow">
           <div class="step-box"><h4>STEP 1. 입국심사 (2층)</h4><p>노란색 [到着 Arrival] 표지판을 따라 이동해 여권과 Visit Japan Web QR을 제시합니다.</p></div>
           <div class="step-box"><h4>STEP 2. 수하물 & 세관 (1층)</h4><p>짐 수령 후 세관 키오스크에서 여권과 QR을 스캔하고 도착 로비로 나옵니다.</p></div>
           <div class="step-box"><h4>STEP 3. 철도역(Railways) 이동</h4><p>[鉄道 Railways] 표지판을 따라 공항 철도 개찰구 및 매표소로 이동합니다.</p></div>
-          <div class="step-box"><h4>STEP 4. 공항특급 발권 & Suica 충전</h4><p>도심행 특급열차(N'EX, 스카이라이너, 라피트, 하루카 등) 티켓 발권 및 교통카드를 준비합니다.</p></div>
+          <div class="step-box"><h4>STEP 4. 공항특급 발권 & IC카드</h4><p>도심행 특급열차(N'EX, 스카이라이너, 라피트, 하루카 등) 티켓 발권 및 교통카드를 준비합니다.</p></div>
           <div class="step-box"><h4>STEP 5. 지정 승강장 탑승</h4><p>티켓에 적힌 호차(Car)와 좌석번호(Seat)를 확인하고 도심 주요 역까지 이동합니다.</p></div>
         </div>
       </div>
@@ -982,9 +975,9 @@
           <p style="font-size:11.5px; color:var(--muted);">날짜를 선택하고 [타임라인 투입]을 누르면 해당 일정으로 즉시 들어갑니다.</p>
         </div>
         <div style="display:flex; gap:6px;">
-          <button class="btn btn-search-top" style="padding:5px 9px; font-size:11.5px;" onclick="closeWishModal(); openSearchModal();">🔍 검색으로 추가</button>
-          <button class="btn btn-wish" style="padding:5px 9px; font-size:11.5px;" onclick="addBlankWishCard()">+ 직접 입력</button>
-          <button class="btn btn-outline" style="padding:5px 10px;" onclick="closeWishModal()">✕ 닫기</button>
+          <button type="button" class="btn btn-search-top" style="padding:5px 9px; font-size:11.5px;" onclick="closeWishModal(); openSearchModal();">🔍 검색으로 추가</button>
+          <button type="button" class="btn btn-wish" style="padding:5px 9px; font-size:11.5px;" onclick="addBlankWishCard()">+ 직접 입력</button>
+          <button type="button" class="btn btn-outline" style="padding:5px 10px;" onclick="closeWishModal()">✕ 닫기</button>
         </div>
       </div>
       <div class="modal-body-scroll">
@@ -1001,12 +994,12 @@
           <h3 style="font-size:16px; font-weight:800; color:#1e40af;">🔍 구글맵 · 웹DB 실시간 장소 검색</h3>
           <p style="font-size:11.5px; color:var(--muted);">어느 도시든 장소명, 영업시간, 결제수단, 웨이팅 팁을 자동 분석합니다.</p>
         </div>
-        <button class="btn btn-outline" style="padding:5px 10px;" onclick="closeSearchModal()">✕ 닫기</button>
+        <button type="button" class="btn btn-outline" style="padding:5px 10px;" onclick="closeSearchModal()">✕ 닫기</button>
       </div>
       <div class="top-search-bar">
         <input type="text" id="regionInput" placeholder="세부지역 (예: 신주쿠, 난바)" style="width:130px; flex:0 0 auto;">
         <input type="text" id="searchKeyword" placeholder="장소·가게명 입력 (예: 스투시, 이치란, 블루보틀)" style="flex:1;">
-        <button class="btn btn-primary" style="padding:8px 16px;" onclick="executeSmartSearch()">검색</button>
+        <button type="button" class="btn btn-primary" style="padding:8px 16px;" onclick="executeSmartSearch()">검색</button>
       </div>
       <div class="modal-body-scroll">
         <div id="searchResultList" class="search-result-list"></div>
@@ -1042,7 +1035,7 @@
 
       <div style="display:flex; gap:8px; margin-top:14px; flex-shrink:0;">
         <a id="rpGmapLink" href="#" target="_blank" class="btn btn-primary" style="flex:1; justify-content:center; padding:10px;">🗺️ 구글맵 실시간 네비게이션 열기 ↗</a>
-        <button class="btn btn-outline" style="padding:10px 18px;" onclick="closeRoutePopup()">닫기</button>
+        <button type="button" class="btn btn-outline" style="padding:10px 18px;" onclick="closeRoutePopup()">닫기</button>
       </div>
     </div>
   </div>
@@ -1055,7 +1048,7 @@
           <h3 style="font-size:15.5px; font-weight:800; color:#b45309;">🔰 초보자용 전철 · 환승 · 시내버스 실전 족보</h3>
           <p style="font-size:11.5px; color:#92400e;">역 안이나 정류장에서 길 잃지 않고 한 번에 타는 핵심 요령입니다.</p>
         </div>
-        <button class="btn btn-outline" style="padding:4px 10px;" onclick="closeBeginnerTipSubModal()">✕ 닫기</button>
+        <button type="button" class="btn btn-outline" style="padding:4px 10px;" onclick="closeBeginnerTipSubModal()">✕ 닫기</button>
       </div>
       <div class="modal-body-scroll" style="font-size:12.5px; line-height:1.6; color:#1e293b; display:flex; flex-direction:column; gap:10px;">
         <div style="background:#f8fafc; border-left:4px solid #2563eb; padding:10px 12px; border-radius:6px;">
@@ -1078,7 +1071,7 @@
         </div>
       </div>
       <div style="margin-top:12px;">
-        <button class="btn btn-primary" style="width:100%; padding:10px;" onclick="closeBeginnerTipSubModal()">확인했습니다</button>
+        <button type="button" class="btn btn-primary" style="width:100%; padding:10px;" onclick="closeBeginnerTipSubModal()">확인했습니다</button>
       </div>
     </div>
   </div>
@@ -1088,26 +1081,26 @@
     <div class="modal-card" style="max-width:460px;">
       <div class="modal-header">
         <div>
-          <h3 style="font-size:16px; font-weight:800;">🌏 [<span id="cfgModalPlanNum">1</span>안] 개별 여행 정보 & 숙소 설정</h3>
-          <p style="font-size:11.5px; color:var(--muted);">1안(나), 2안(친구) 등 안마다 날짜·도시·숙소를 완전히 다르게 설정할 수 있습니다!</p>
+          <h3 style="font-size:16px; font-weight:800;">🌏 [<span id="cfgModalPlanNum">1</span>안] 개별 여행 날짜 · 도시 · 숙소 설정</h3>
+          <p style="font-size:11.5px; color:var(--muted);">1안(나), 2안(친구) 등 안마다 날짜·도시·숙소를 완전히 따로 설정할 수 있습니다!</p>
         </div>
-        <button class="btn btn-outline" style="padding:4px 8px;" onclick="closeConfigModal()">✕</button>
+        <button type="button" class="btn btn-outline" style="padding:4px 8px;" onclick="closeConfigModal()">✕</button>
       </div>
       <div class="modal-body-scroll">
-        <div class="form-group"><label>🏷️ 이 스케줄(안)의 버튼 이름 (예: 창준 일정, 친구 일정)</label><input type="text" id="cfgPlanTabName" placeholder="예: 📌 1안 (창준)"></div>
-        <div class="form-group"><label>✈️ 상단 여행 타이틀</label><input type="text" id="cfgTripTitle" placeholder="예: 도쿄 미식 여행 / 오사카 여행"></div>
+        <div class="form-group"><label>🏷️ 이 플랜(안)의 버튼 이름 (예: 📌 1안 창준 / 2안 친구)</label><input type="text" id="cfgPlanTabName" placeholder="예: 📌 1안"></div>
+        <div class="form-group"><label>✈️ 상단 여행 타이틀</label><input type="text" id="cfgTripTitle" placeholder="예: 도쿄 여행 / 오사카 여행"></div>
         <div class="form-group"><label>🌏 검색 기준 도시명 (영문 또는 한글)</label><input type="text" id="cfgCityName" placeholder="예: Tokyo, Osaka, Fukuoka, Kyoto"></div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <div class="form-group"><label>📅 출발일</label><input type="date" id="cfgStartDate"></div>
-          <div class="form-group"><label>📅 도착일</label><input type="date" id="cfgEndDate"></div>
+          <div class="form-group"><label>📅 이 안의 출발일</label><input type="date" id="cfgStartDate"></div>
+          <div class="form-group"><label>📅 이 안의 도착일</label><input type="date" id="cfgEndDate"></div>
         </div>
         <div class="form-group"><label>🏨 숙소 이름 (변경 시 지도 좌표 자동 검색)</label><input type="text" id="cfgHotelName" placeholder="예: Hotel Sunlite Shinjuku"></div>
         <div class="form-group"><label>📍 숙소 주소</label><input type="text" id="cfgHotelAddr" placeholder="예: 5-15-8 Shinjuku"></div>
         <div class="form-group"><label>🚇 인근 역 출구 / 숙소 메모</label><input type="text" id="cfgHotelTip" placeholder="예: 신주쿠산초메역 E1출구 도보 2분"></div>
       </div>
       <div style="display:flex; gap:8px; margin-top:14px;">
-        <button class="btn btn-primary" style="flex:1; justify-content:center; padding:10px;" onclick="saveConfigModal()">💾 현재 안 설정 저장</button>
-        <button class="btn btn-outline" style="padding:10px 16px;" onclick="closeConfigModal()">닫기</button>
+        <button type="button" class="btn btn-primary" style="flex:1; justify-content:center; padding:10px;" onclick="saveConfigModal()">💾 현재 안 설정 저장</button>
+        <button type="button" class="btn btn-outline" style="padding:10px 16px;" onclick="closeConfigModal()">닫기</button>
       </div>
     </div>
   </div>
@@ -1210,8 +1203,6 @@
       { kw: ["시부야 스카이", "shibuya sky", "渋谷スカイ"], matchSub: "", hours: "10:00 ~ 22:30", payment: "사전 온라인 QR 예매 전용", tip: "옥상 안전 규정상 모자, 삼각대, 가방 반입 금지 (14층 무료 락커용 100엔 동전 준비)" }
     ];
 
-    function normalizeCategory() { return ""; }
-
     async function fetchOsmTagsAround(lat, lng) {
       if (!lat || !lng) return null;
       try {
@@ -1240,7 +1231,7 @@
       return { hours, payment, tip };
     }
 
-    // ★ 각 안(1·2·3안)별 기본 설정 생성기 (안마다 날짜·도시·숙소를 서로 다르게 보유) ★
+    // ★ 각 안(1·2·3안)별 완전히 독립된 초기 설정 생성기 ★
     function createPlanDefaultConfig(slotNum) {
       return {
         planTabName: slotNum === 1 ? "📌 1안" : `${slotNum}안`,
@@ -1309,7 +1300,6 @@
     }
 
     let appState = {
-      config: createPlanDefaultConfig(1), // 구버전 백업 호환용
       checks: {},
       plans: {
         1: createDefaultPlanData(1),
@@ -1318,37 +1308,63 @@
       }
     };
 
-    // ★ 현재 선택된 안(1안/2안/3안)의 전용 설정(config)을 가져오는 핵심 헬퍼 함수 (기존 데이터 100% 호환) ★
-    function getActiveConfig() {
-      if (!appState.plans) appState.plans = { 1: createDefaultPlanData(1), 2: createDefaultPlanData(2), 3: createDefaultPlanData(3) };
-      if (!appState.plans[currentPlan]) appState.plans[currentPlan] = createDefaultPlanData(currentPlan);
-      const p = appState.plans[currentPlan];
-      if (!p.config) {
-        const base = appState.config ? JSON.parse(JSON.stringify(appState.config)) : createPlanDefaultConfig(currentPlan);
-        if (!base.planTabName) base.planTabName = currentPlan === 1 ? "📌 1안" : `${currentPlan}안`;
-        p.config = base;
-      }
-      if (!p.config.hotel) p.config.hotel = createPlanDefaultConfig(currentPlan).hotel;
-      return p.config;
-    }
-
-    // 모든 플랜(1·2·3안)에 개별 config가 존재하는지 보장하는 마이그레이션 함수
+    // ★ 1·2·3안 각각의 config 객체를 서로 참조가 섞이지 않게 완벽히 독립시키는 핵심 함수 ★
     function ensurePerPlanConfigs() {
+      if (!appState || typeof appState !== 'object') {
+        appState = { checks: {}, plans: {} };
+      }
+      if (!appState.plans || typeof appState.plans !== 'object') {
+        appState.plans = {};
+      }
+      const fallbackHotel = createPlanDefaultConfig(1).hotel;
+
       [1, 2, 3].forEach(slot => {
-        if (!appState.plans[slot]) appState.plans[slot] = createDefaultPlanData(slot);
-        if (!appState.plans[slot].config) {
-          const base = appState.config ? JSON.parse(JSON.stringify(appState.config)) : createPlanDefaultConfig(slot);
-          base.planTabName = slot === 1 ? "📌 1안" : `${slot}안`;
-          appState.plans[slot].config = base;
+        if (!appState.plans[slot] || typeof appState.plans[slot] !== 'object') {
+          appState.plans[slot] = createDefaultPlanData(slot);
+        }
+        if (!Array.isArray(appState.plans[slot].wish)) {
+          appState.plans[slot].wish = [];
+        }
+        if (!Array.isArray(appState.plans[slot].days)) {
+          appState.plans[slot].days = [[], [], [], []];
+        }
+
+        // 만약 예전 백업본이라 플랜 안에 config가 없다면 깊은 복사(Deep Clone)로 완전히 독립된 객체 생성!
+        if (!appState.plans[slot].config || typeof appState.plans[slot].config !== 'object') {
+          const legacyBase = (appState.config && typeof appState.config === 'object')
+            ? JSON.parse(JSON.stringify(appState.config))
+            : createPlanDefaultConfig(slot);
+          legacyBase.planTabName = slot === 1 ? "📌 1안" : `${slot}안`;
+          appState.plans[slot].config = legacyBase;
+        } else {
+          // 혹시라도 다른 안과 같은 메모리 참조를 공유하고 있을 경우를 대비해 무조건 깊은 복사로 분리!
+          appState.plans[slot].config = JSON.parse(JSON.stringify(appState.plans[slot].config));
+        }
+
+        const c = appState.plans[slot].config;
+        if (!c.startDate) c.startDate = "2026-11-28";
+        if (!c.endDate) c.endDate = "2026-12-01";
+        if (!c.city) c.city = "Tokyo";
+        if (!c.tripTitle) c.tripTitle = "✈️ 스마트 여행 올인원 플래너";
+        if (!c.planTabName) c.planTabName = slot === 1 ? "📌 1안" : `${slot}안`;
+        if (!c.hotel || typeof c.hotel !== 'object') {
+          c.hotel = JSON.parse(JSON.stringify(fallbackHotel));
+        } else {
+          if (!c.hotel.name) c.hotel.name = fallbackHotel.name;
+          if (!c.hotel.lat) c.hotel.lat = fallbackHotel.lat;
+          if (!c.hotel.lng) c.hotel.lng = fallbackHotel.lng;
         }
       });
     }
 
-    // 상단 한 줄 이동 노선도 좌우 버튼 스크롤 & 전체 줄바꿈 펼치기 토글
+    function getActiveConfig() {
+      ensurePerPlanConfigs();
+      return appState.plans[currentPlan].config;
+    }
+
     function scrollRouteStrip(deltaX) {
       const track = document.getElementById('dailyRouteStripTrack');
-      if (!track) return;
-      track.scrollBy({ left: deltaX, behavior: 'smooth' });
+      if (track) track.scrollBy({ left: deltaX, behavior: 'smooth' });
     }
 
     function toggleRouteStripExpand() {
@@ -1372,7 +1388,6 @@
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
-    // 범용 역 탐색: 도쿄 역세권(3.5km 이내)이면 상세 역 정보를 반환하고, 오사카·후쿠오카 등 타 도시이면 null을 반환해 범용 안내로 자동 전환!
     function findNearestStation(lat, lng) {
       if (!lat || !lng) return null;
       let best = null;
@@ -1787,7 +1802,6 @@
         };
       }
 
-      // ★ 도쿄 외의 타 도시(오사카, 후쿠오카 등)일 때 깔끔한 범용 전철 안내 ★
       const fallbackMin = Math.max(12, Math.round(rawKm * 3.5 + 8));
       const estStops = Math.max(1, Math.round(rawKm / 1.2));
       const estFare = calcSubwayFare(rawKm, true, 'metro', 'metro');
@@ -2081,9 +2095,10 @@
     }
 
     async function manualPushToCloud(isSilent) {
+      ensurePerPlanConfigs();
       const totalSpots = [1, 2, 3].reduce((acc, p) => {
         const wLen = (appState.plans[p]?.wish || []).length;
-        const dLen = (appState.plans[p]?.days || []).reduce((s, d) => s + d.length, 0);
+        const dLen = (appState.plans[p]?.days || []).reduce((s, d) => s + (Array.isArray(d) ? d.length : 0), 0);
         return acc + wLen + dLen;
       }, 0);
 
@@ -2102,7 +2117,7 @@
         if (res.ok) {
           localStorage.setItem('universal_travel_planner_v9', JSON.stringify(appState));
           markSaved();
-          if (!isSilent) alert("✅ 서버 저장 완료! 이제 모든 기기에서 똑같은 화면이 유지됩니다.");
+          if (!isSilent) alert("✅ 서버 저장 완료! 1안·2안·3안의 개별 날짜와 일정이 모두 저장되었습니다.");
         } else {
           updateSyncBadge("⚠️ 서버 저장 실패", "#fef2f2", "#b91c1c", "#fecaca");
           if (!isSilent) alert("서버 응답 오류가 발생했습니다.");
@@ -2113,10 +2128,9 @@
       }
     }
 
-// ★ 2.5초 타임아웃 적용: 서버가 응답 안 해도 절대 먹통 되지 않고 즉시 화면 작동! ★
     async function manualPullFromCloud(isSilent) {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const timeoutId = setTimeout(() => controller.abort(), 2200);
 
       try {
         isPullingCloud = true;
@@ -2131,7 +2145,7 @@
 
         if (!res.ok) {
           isPullingCloud = false;
-          updateSyncBadge("🟢 준비 완료 (기기 데이터 표시중)", "#dcfce7", "#15803d", "#86efac");
+          updateSyncBadge("🟢 준비 완료 (로컬 데이터 표시중)", "#dcfce7", "#15803d", "#86efac");
           return false;
         }
 
@@ -2159,59 +2173,17 @@
         }
 
         isPullingCloud = false;
-        updateSyncBadge("🟢 준비 완료 (상단 [📂 열기]로 백업본을 불러오세요)", "#dcfce7", "#15803d", "#86efac");
+        updateSyncBadge("🟢 준비 완료", "#dcfce7", "#15803d", "#86efac");
         return false;
       } catch (e) {
         clearTimeout(timeoutId);
         isPullingCloud = false;
-        updateSyncBadge("🟢 준비 완료 (로컬 모드 · [☁️ 서버 저장] 가능)", "#dcfce7", "#15803d", "#86efac");
+        updateSyncBadge("🟢 준비 완료 (로컬 데이터 표시중)", "#dcfce7", "#15803d", "#86efac");
         return false;
       }
     }
 
-    // ★ 어떤 형태의 구버전 백업 데이터든 에러 없이 100% 복원되도록 보강한 안전 함수 ★
-    function ensurePerPlanConfigs() {
-      if (!appState || typeof appState !== 'object') {
-        appState = { config: createPlanDefaultConfig(1), checks: {}, plans: {} };
-      }
-      if (!appState.plans || typeof appState.plans !== 'object') {
-        appState.plans = {};
-      }
-      const fallbackHotel = createPlanDefaultConfig(1).hotel;
-
-      [1, 2, 3].forEach(slot => {
-        if (!appState.plans[slot] || typeof appState.plans[slot] !== 'object') {
-          appState.plans[slot] = createDefaultPlanData(slot);
-        }
-        if (!Array.isArray(appState.plans[slot].wish)) {
-          appState.plans[slot].wish = [];
-        }
-        if (!Array.isArray(appState.plans[slot].days)) {
-          appState.plans[slot].days = [[], [], [], []];
-        }
-        if (!appState.plans[slot].config || typeof appState.plans[slot].config !== 'object') {
-          const legacyCfg = (appState.config && typeof appState.config === 'object')
-            ? JSON.parse(JSON.stringify(appState.config))
-            : createPlanDefaultConfig(slot);
-          legacyCfg.planTabName = slot === 1 ? "📌 1안" : `${slot}안`;
-          appState.plans[slot].config = legacyCfg;
-        }
-        const c = appState.plans[slot].config;
-        if (!c.startDate) c.startDate = "2026-11-28";
-        if (!c.endDate) c.endDate = "2026-12-01";
-        if (!c.city) c.city = "Tokyo";
-        if (!c.tripTitle) c.tripTitle = "✈️ 스마트 여행 올인원 플래너";
-        if (!c.planTabName) c.planTabName = slot === 1 ? "📌 1안" : `${slot}안`;
-        if (!c.hotel || typeof c.hotel !== 'object') {
-          c.hotel = JSON.parse(JSON.stringify(fallbackHotel));
-        } else {
-          if (!c.hotel.name) c.hotel.name = fallbackHotel.name;
-          if (!c.hotel.lat) c.hotel.lat = fallbackHotel.lat;
-          if (!c.hotel.lng) c.hotel.lng = fallbackHotel.lng;
-        }
-      });
-    }
-
+    // ★ 선택한 안(slotNum)의 고유 startDate ~ endDate를 기준으로 날짜 배열 생성 ★
     function getDaysMetaList(slotNum) {
       const targetSlot = slotNum || currentPlan;
       ensurePerPlanConfigs();
@@ -2250,14 +2222,22 @@
       if (currentDayIndex >= curMeta.length) currentDayIndex = 0;
     }
 
+    // ★ 상단 날짜 변경 시: 현재 선택된 안(currentPlan)의 날짜만 정확히 변경하고 화면 즉시 갱신 ★
     function updateDateRange() {
       const sVal = document.getElementById('startDateInput').value;
       const eVal = document.getElementById('endDateInput').value;
       if (!sVal || !eVal) return;
-      if (new Date(eVal) < new Date(sVal)) { alert("도착일은 출발일과 같거나 그 이후여야 합니다."); return; }
-      const cfg = getActiveConfig();
-      cfg.startDate = sVal;
-      cfg.endDate = eVal;
+      if (new Date(eVal) < new Date(sVal)) {
+        alert("도착일은 출발일과 같거나 그 이후여야 합니다.");
+        const cfg = getActiveConfig();
+        document.getElementById('startDateInput').value = cfg.startDate;
+        document.getElementById('endDateInput').value = cfg.endDate;
+        return;
+      }
+      ensurePerPlanConfigs();
+      appState.plans[currentPlan].config.startDate = sVal;
+      appState.plans[currentPlan].config.endDate = eVal;
+      currentDayIndex = 0;
       syncDaysLength();
       saveData();
       renderAll();
@@ -2390,9 +2370,9 @@
             <div style="font-size:11px; color:#b45309; background:#fffbeb; padding:4px 6px; border-radius:4px; margin-top:3px;">💡 ${escapeHtml(item.tip)}</div>
           </div>
           <div style="display:flex; gap:5px; align-items:center; flex-wrap:wrap; padding-top:6px; border-top:1px dashed #cbd5e1;">
-            <button class="btn btn-wish" style="padding:5px 9px; font-size:11px;" onclick="addSearchResultToWish(${idx})">⭐ 위시 담기</button>
+            <button type="button" class="btn btn-wish" style="padding:5px 9px; font-size:11px;" onclick="addSearchResultToWish(${idx})">⭐ 위시 담기</button>
             <select id="sDay-${idx}" style="font-size:11px; padding:4px; border:1px solid var(--border); border-radius:5px; flex:1; background:white;">${dayOptionsHtml}</select>
-            <button class="btn btn-primary" style="padding:5px 9px; font-size:11px;" onclick="addSearchResultToDay(${idx})">+ 일정 투입</button>
+            <button type="button" class="btn btn-primary" style="padding:5px 9px; font-size:11px;" onclick="addSearchResultToDay(${idx})">+ 일정 투입</button>
           </div>
         `;
         listEl.appendChild(div);
@@ -2441,7 +2421,10 @@
       return `${String(Math.min(23, (hh || 11) + 2)).padStart(2, '0')}:${String(mm || 0).padStart(2, '0')}`;
     }
 
-    function getCurrentDayList() { syncDaysLength(); return appState.plans[currentPlan].days[currentDayIndex] || []; }
+    function getCurrentDayList() {
+      syncDaysLength();
+      return appState.plans[currentPlan].days[currentDayIndex] || [];
+    }
 
     function renderDailyRouteStrip() {
       const trackEl = document.getElementById('dailyRouteStripTrack');
@@ -2506,7 +2489,6 @@
     }
 
     function renderHeaderConfig() {
-      ensurePerPlanConfigs();
       const cfg = getActiveConfig();
       document.getElementById('headerTripTitle').innerText = cfg.tripTitle || "✈️ 스마트 여행 올인원 플래너";
       document.getElementById('headerCityBadge').innerText = cfg.city || "Tokyo";
@@ -2552,7 +2534,7 @@
             <div>
               <div class="wish-card-head">
                 <span class="badge badge-rate">⭐ ${w.rating || '4.2'}</span>
-                <div style="display:flex; gap:4px;"><a href="${gmapUrl}" target="_blank" class="btn btn-outline" style="padding:2px 6px; font-size:10px;">구글맵↗</a><button class="btn btn-danger" style="padding:2px 6px; font-size:10px;" onclick="deleteWishItem(${w.id})">삭제</button></div>
+                <div style="display:flex; gap:4px;"><a href="${gmapUrl}" target="_blank" class="btn btn-outline" style="padding:2px 6px; font-size:10px;">구글맵↗</a><button type="button" class="btn btn-danger" style="padding:2px 6px; font-size:10px;" onclick="deleteWishItem(${w.id})">삭제</button></div>
               </div>
               <div class="wish-card-title">${escapeHtml(w.name)}</div>
               <div class="wish-meta-box" style="margin-top:6px;">
@@ -2564,7 +2546,7 @@
             </div>
             <div class="wish-insert-footer">
               <select id="wDay-${w.id}">${dayOptionsHtml}</select>
-              <button class="wish-insert-btn" onclick="insertWishCardToTimeline(${w.id})">📥 타임라인 투입</button>
+              <button type="button" class="wish-insert-btn" onclick="insertWishCardToTimeline(${w.id})">📥 타임라인 투입</button>
             </div>
           </div>
         `;
@@ -2678,9 +2660,9 @@
                 <span class="badge badge-rate">⭐ ${item.rating || '4.2'}</span>
               </div>
               <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                <button class="btn btn-wish" style="padding:3px 7px; font-size:11px;" onclick="moveSpotBackToWish(${item.id})">위시로</button>
+                <button type="button" class="btn btn-wish" style="padding:3px 7px; font-size:11px;" onclick="moveSpotBackToWish(${item.id})">위시로</button>
                 <a href="${gmapSearchUrl}" target="_blank" class="btn btn-outline" style="padding:3px 7px; font-size:11px;">구글맵↗</a>
-                <button class="btn btn-danger" style="padding:3px 7px; font-size:11px;" onclick="removeSpot(${item.id})">삭제</button>
+                <button type="button" class="btn btn-danger" style="padding:3px 7px; font-size:11px;" onclick="removeSpot(${item.id})">삭제</button>
               </div>
             </div>
 
@@ -2854,16 +2836,12 @@
 
     function openConfigModal() {
       const cfg = getActiveConfig();
-      const numEl = document.getElementById('cfgModalPlanNum');
-      if (numEl) numEl.innerText = currentPlan;
-      const tabEl = document.getElementById('cfgPlanTabName');
-      if (tabEl) tabEl.value = cfg.planTabName || (currentPlan === 1 ? "📌 1안" : `${currentPlan}안`);
+      document.getElementById('cfgModalPlanNum').innerText = currentPlan;
+      document.getElementById('cfgPlanTabName').value = cfg.planTabName || (currentPlan === 1 ? "📌 1안" : `${currentPlan}안`);
       document.getElementById('cfgTripTitle').value = cfg.tripTitle || "";
       document.getElementById('cfgCityName').value = cfg.city || "";
-      const sEl = document.getElementById('cfgStartDate');
-      const eEl = document.getElementById('cfgEndDate');
-      if (sEl) sEl.value = cfg.startDate || "2026-11-28";
-      if (eEl) eEl.value = cfg.endDate || "2026-12-01";
+      document.getElementById('cfgStartDate').value = cfg.startDate || "2026-11-28";
+      document.getElementById('cfgEndDate').value = cfg.endDate || "2026-12-01";
       document.getElementById('cfgHotelName').value = cfg.hotel.name || "";
       document.getElementById('cfgHotelAddr').value = cfg.hotel.address || "";
       document.getElementById('cfgHotelTip').value = cfg.hotel.tip || "";
@@ -2872,17 +2850,17 @@
     function closeConfigModal() { document.getElementById('configModal').classList.remove('open'); }
 
     async function saveConfigModal() {
-      const cfg = getActiveConfig();
+      ensurePerPlanConfigs();
+      const cfg = appState.plans[currentPlan].config;
       const prevHotelName = cfg.hotel.name;
-      const tabEl = document.getElementById('cfgPlanTabName');
-      if (tabEl) cfg.planTabName = tabEl.value.trim() || (currentPlan === 1 ? "📌 1안" : `${currentPlan}안`);
+      cfg.planTabName = document.getElementById('cfgPlanTabName').value.trim() || (currentPlan === 1 ? "📌 1안" : `${currentPlan}안`);
       cfg.tripTitle = document.getElementById('cfgTripTitle').value.trim() || "✈️ 스마트 여행 올인원 플래너";
       cfg.city = document.getElementById('cfgCityName').value.trim() || "Tokyo";
-      const sEl = document.getElementById('cfgStartDate');
-      const eEl = document.getElementById('cfgEndDate');
-      if (sEl && eEl && sEl.value && eEl.value && new Date(eEl.value) >= new Date(sEl.value)) {
-        cfg.startDate = sEl.value;
-        cfg.endDate = eEl.value;
+      const sVal = document.getElementById('cfgStartDate').value;
+      const eVal = document.getElementById('cfgEndDate').value;
+      if (sVal && eVal && new Date(eVal) >= new Date(sVal)) {
+        cfg.startDate = sVal;
+        cfg.endDate = eVal;
       }
       cfg.hotel.name = document.getElementById('cfgHotelName').value.trim() || "숙소";
       cfg.hotel.address = document.getElementById('cfgHotelAddr').value.trim() || "";
@@ -2903,6 +2881,7 @@
         } catch (e) {}
       }
 
+      currentDayIndex = 0;
       syncDaysLength();
       saveData();
       closeConfigModal();
@@ -2912,7 +2891,7 @@
     }
 
     function switchPlan(slot) {
-      currentPlan = slot;
+      currentPlan = Number(slot);
       currentDayIndex = 0;
       ensurePerPlanConfigs();
       syncDaysLength();
@@ -2928,7 +2907,7 @@
       appState.plans[tNum].config.planTabName = `${tNum}안`;
       saveData();
       switchPlan(tNum);
-      alert(`[${tNum}안]으로 복사 완료! 상단 날짜를 바꾸면 [${tNum}안]만의 날짜로 설정됩니다.`);
+      alert(`[${tNum}안]으로 복사 완료! 이제 상단 날짜 입력칸을 바꾸면 [${tNum}안]만의 날짜로 개별 변경됩니다.`);
     }
 
     function clearCurrentPlan() {
@@ -2942,6 +2921,7 @@
     function escapeHtml(str) { return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
     function saveData() {
+      ensurePerPlanConfigs();
       localStorage.setItem('universal_travel_planner_v9', JSON.stringify(appState));
       if (!isPullingCloud) { markUnsaved(); }
     }
