@@ -2113,19 +2113,35 @@
       }
     }
 
+// ★ 2.5초 타임아웃 적용: 서버가 응답 안 해도 절대 먹통 되지 않고 즉시 화면 작동! ★
     async function manualPullFromCloud(isSilent) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+
       try {
         isPullingCloud = true;
-        updateSyncBadge("🔄 서버에서 불러오는 중...", "#dbeafe", "#1d4ed8", "#93c5fd");
-        const res = await fetch(MY_CLOUD_API_URL + `?t=${Date.now()}`, { method: 'GET', cache: 'no-store' });
-        if (!res.ok) { isPullingCloud = false; return false; }
-        const data = await res.json();
+        updateSyncBadge("🔄 서버 확인 중...", "#dbeafe", "#1d4ed8", "#93c5fd");
 
+        const res = await fetch(MY_CLOUD_API_URL + `?t=${Date.now()}`, {
+          method: 'GET',
+          cache: 'no-store',
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) {
+          isPullingCloud = false;
+          updateSyncBadge("🟢 준비 완료 (기기 데이터 표시중)", "#dcfce7", "#15803d", "#86efac");
+          return false;
+        }
+
+        const data = await res.json();
         const remoteState = (data && data.appState && data.appState.plans) ? data.appState : ((data && data.plans) ? data : null);
-        if (remoteState) {
+
+        if (remoteState && remoteState.plans) {
           const remoteCount = [1, 2, 3].reduce((acc, p) => {
-            const wLen = (remoteState.plans[p]?.wish || []).length;
-            const dLen = (remoteState.plans[p]?.days || []).reduce((s, d) => s + d.length, 0);
+            const wLen = Array.isArray(remoteState.plans[p]?.wish) ? remoteState.plans[p].wish.length : 0;
+            const dLen = Array.isArray(remoteState.plans[p]?.days) ? remoteState.plans[p].days.reduce((s, d) => s + (Array.isArray(d) ? d.length : 0), 0) : 0;
             return acc + wLen + dLen;
           }, 0);
 
@@ -2141,33 +2157,78 @@
             return true;
           }
         }
+
         isPullingCloud = false;
+        updateSyncBadge("🟢 준비 완료 (상단 [📂 열기]로 백업본을 불러오세요)", "#dcfce7", "#15803d", "#86efac");
         return false;
       } catch (e) {
+        clearTimeout(timeoutId);
         isPullingCloud = false;
-        updateSyncBadge("⚠️ 오프라인 (기기 내부 데이터 표시)", "#fef2f2", "#b91c1c", "#fecaca");
+        updateSyncBadge("🟢 준비 완료 (로컬 모드 · [☁️ 서버 저장] 가능)", "#dcfce7", "#15803d", "#86efac");
         return false;
       }
     }
 
-    // ★ 각 플랜(slotNum)별로 자신의 개별 출발일~도착일을 읽어 날짜 리스트 생성 ★
+    // ★ 어떤 형태의 구버전 백업 데이터든 에러 없이 100% 복원되도록 보강한 안전 함수 ★
+    function ensurePerPlanConfigs() {
+      if (!appState || typeof appState !== 'object') {
+        appState = { config: createPlanDefaultConfig(1), checks: {}, plans: {} };
+      }
+      if (!appState.plans || typeof appState.plans !== 'object') {
+        appState.plans = {};
+      }
+      const fallbackHotel = createPlanDefaultConfig(1).hotel;
+
+      [1, 2, 3].forEach(slot => {
+        if (!appState.plans[slot] || typeof appState.plans[slot] !== 'object') {
+          appState.plans[slot] = createDefaultPlanData(slot);
+        }
+        if (!Array.isArray(appState.plans[slot].wish)) {
+          appState.plans[slot].wish = [];
+        }
+        if (!Array.isArray(appState.plans[slot].days)) {
+          appState.plans[slot].days = [[], [], [], []];
+        }
+        if (!appState.plans[slot].config || typeof appState.plans[slot].config !== 'object') {
+          const legacyCfg = (appState.config && typeof appState.config === 'object')
+            ? JSON.parse(JSON.stringify(appState.config))
+            : createPlanDefaultConfig(slot);
+          legacyCfg.planTabName = slot === 1 ? "📌 1안" : `${slot}안`;
+          appState.plans[slot].config = legacyCfg;
+        }
+        const c = appState.plans[slot].config;
+        if (!c.startDate) c.startDate = "2026-11-28";
+        if (!c.endDate) c.endDate = "2026-12-01";
+        if (!c.city) c.city = "Tokyo";
+        if (!c.tripTitle) c.tripTitle = "✈️ 스마트 여행 올인원 플래너";
+        if (!c.planTabName) c.planTabName = slot === 1 ? "📌 1안" : `${slot}안`;
+        if (!c.hotel || typeof c.hotel !== 'object') {
+          c.hotel = JSON.parse(JSON.stringify(fallbackHotel));
+        } else {
+          if (!c.hotel.name) c.hotel.name = fallbackHotel.name;
+          if (!c.hotel.lat) c.hotel.lat = fallbackHotel.lat;
+          if (!c.hotel.lng) c.hotel.lng = fallbackHotel.lng;
+        }
+      });
+    }
+
     function getDaysMetaList(slotNum) {
       const targetSlot = slotNum || currentPlan;
       ensurePerPlanConfigs();
       const cfg = appState.plans[targetSlot].config;
       const sStr = cfg.startDate || "2026-11-28";
       const eStr = cfg.endDate || "2026-12-01";
-      const sParts = sStr.split('-').map(Number);
-      const eParts = eStr.split('-').map(Number);
-      const sDate = new Date(sParts[0], sParts[1] - 1, sParts[2]);
-      const eDate = new Date(eParts[0], eParts[1] - 1, eParts[2]);
+      const sParts = String(sStr).split('-').map(Number);
+      const eParts = String(eStr).split('-').map(Number);
+      const sDate = new Date(sParts[0] || 2026, (sParts[1] || 11) - 1, sParts[2] || 28);
+      const eDate = new Date(eParts[0] || 2026, (eParts[1] || 12) - 1, eParts[2] || 1);
       let diff = Math.round((eDate - sDate) / 86400000) + 1;
-      if (isNaN(diff) || diff < 1) diff = 1;
-      if (diff > 21) diff = 21; // 최대 3주 여행까지 지원
+      if (isNaN(diff) || diff < 1) diff = 4;
+      if (diff > 21) diff = 21;
       const weeks = ['일', '월', '화', '수', '목', '금', '토'];
       const meta = [];
       for (let i = 0; i < diff; i++) {
-        const d = new Date(sParts[0], sParts[1] - 1, sParts[2] + i);
+        const d = new Date(sDate.getFullYear(), sDate.getMonth(), sDate.getDate() + i);
         meta.push({
           idx: i,
           shortDate: `${d.getMonth()+1}/${d.getDate()}(${weeks[d.getDay()]})`,
@@ -2189,7 +2250,6 @@
       if (currentDayIndex >= curMeta.length) currentDayIndex = 0;
     }
 
-    // ★ 상단 날짜 입력칸 변경 시, 현재 선택된 안(1안 or 2안 or 3안)에만 개별 적용! ★
     function updateDateRange() {
       const sVal = document.getElementById('startDateInput').value;
       const eVal = document.getElementById('endDateInput').value;
@@ -2228,7 +2288,7 @@
       const msgEl = document.getElementById('mapStatusMsg');
       if (msgEl) msgEl.innerHTML = `<span style="color:#10b981; font-weight:700;">✅ Google Maps 실시간 연동 완료</span>`;
       const h = getActiveConfig().hotel;
-      map = new google.maps.Map(document.getElementById('map'), { center: { lat: h.lat, lng: h.lng }, zoom: 13, mapTypeControl: false, streetViewControl: false });
+      map = new google.maps.Map(document.getElementById('map'), { center: { lat: Number(h.lat) || 35.6939, lng: Number(h.lng) || 139.7082 }, zoom: 13, mapTypeControl: false, streetViewControl: false });
       infoWindow = new google.maps.InfoWindow();
       updateHotelMarkerOnMap();
       renderMapMarkers();
@@ -2238,7 +2298,7 @@
       if (!map || !window.google) return;
       const h = getActiveConfig().hotel;
       if (hotelMarker) hotelMarker.setMap(null);
-      hotelMarker = new google.maps.Marker({ position: { lat: h.lat, lng: h.lng }, map: map, title: h.name, label: { text: "🏨", fontSize: "14px" } });
+      hotelMarker = new google.maps.Marker({ position: { lat: Number(h.lat) || 35.6939, lng: Number(h.lng) || 139.7082 }, map: map, title: h.name, label: { text: "🏨", fontSize: "14px" } });
     }
 
     async function executeSmartSearch() {
@@ -2256,7 +2316,7 @@
         try {
           const { Place } = await google.maps.importLibrary("places");
           if (Place && typeof Place.searchByText === "function") {
-            const resRich = await Place.searchByText({ textQuery: fullQuery, fields: ["displayName", "formattedAddress", "location", "rating", "regularOpeningHours", "paymentOptions", "editorialSummary", "reviews"], locationBias: { center: { lat: h.lat, lng: h.lng }, radius: 40000 }, language: "ko" });
+            const resRich = await Place.searchByText({ textQuery: fullQuery, fields: ["displayName", "formattedAddress", "location", "rating", "regularOpeningHours", "paymentOptions", "editorialSummary", "reviews"], locationBias: { center: { lat: Number(h.lat) || 35.6939, lng: Number(h.lng) || 139.7082 }, radius: 40000 }, language: "ko" });
             const places = resRich.places;
             if (places && places.length > 0) {
               const normalized = await Promise.all(places.slice(0, 6).map(async (p) => {
@@ -2377,8 +2437,8 @@
     function getNextSuggestedTime(dayList) {
       if (!dayList || dayList.length === 0) return "11:00";
       const lastTime = dayList[dayList.length - 1].time || "12:00";
-      const [hh, mm] = lastTime.split(':').map(Number);
-      return `${String(Math.min(23, hh + 2)).padStart(2, '0')}:${String(mm || 0).padStart(2, '0')}`;
+      const [hh, mm] = String(lastTime).split(':').map(Number);
+      return `${String(Math.min(23, (hh || 11) + 2)).padStart(2, '0')}:${String(mm || 0).padStart(2, '0')}`;
     }
 
     function getCurrentDayList() { syncDaysLength(); return appState.plans[currentPlan].days[currentDayIndex] || []; }
@@ -2399,7 +2459,7 @@
 
       if (list.length === 0) {
         if (sumEl) sumEl.innerText = "일정 0곳";
-        trackEl.innerHTML = `<span style="font-size:12px; color:#94a3b8; padding:4px 0;">등록된 일정이 없습니다. 장소를 추가하면 버스 노선처럼 동선이 표시됩니다.</span>`;
+        trackEl.innerHTML = `<span style="font-size:12px; color:#94a3b8; padding:4px 0;">등록된 일정이 없습니다. 상단 [📂 열기(복구)]로 백업본을 불러오거나 장소를 추가하세요.</span>`;
         return;
       }
 
@@ -2408,7 +2468,7 @@
       let html = '';
       list.forEach((item, idx) => {
         const nextItem = list[idx + 1] || null;
-        const shortName = item.name.split('(')[0].trim().slice(0, 14);
+        const shortName = String(item.name || '').split('(')[0].trim().slice(0, 14);
         html += `
           <div class="strip-node" onclick="scrollToSpotCard(${item.id})">
             <span class="s-num">${idx + 1}</span>
@@ -2431,14 +2491,18 @@
     }
 
     function renderAll() {
-      syncDaysLength();
-      renderHeaderConfig();
-      renderDayTabs();
-      renderDailyRouteStrip();
-      renderWishSection();
-      renderTimeline();
-      renderChecklist();
-      renderMapMarkers();
+      try {
+        syncDaysLength();
+        renderHeaderConfig();
+        renderDayTabs();
+        renderDailyRouteStrip();
+        renderWishSection();
+        renderTimeline();
+        renderChecklist();
+        renderMapMarkers();
+      } catch (err) {
+        console.error("Render error:", err);
+      }
     }
 
     function renderHeaderConfig() {
@@ -2446,20 +2510,21 @@
       const cfg = getActiveConfig();
       document.getElementById('headerTripTitle').innerText = cfg.tripTitle || "✈️ 스마트 여행 올인원 플래너";
       document.getElementById('headerCityBadge').innerText = cfg.city || "Tokyo";
-      document.getElementById('headerPlanLabel').innerText = `${currentPlan}안`;
-      document.getElementById('dateBoxPlanBadge').innerText = `${currentPlan}안 날짜`;
+      const pLbl = document.getElementById('headerPlanLabel');
+      if (pLbl) pLbl.innerText = `${currentPlan}안`;
+      const dBadge = document.getElementById('dateBoxPlanBadge');
+      if (dBadge) dBadge.innerText = `${currentPlan}안 날짜`;
       document.getElementById('headerHotelName').innerText = cfg.hotel.name;
       document.getElementById('headerHotelTip').innerText = cfg.hotel.tip || cfg.hotel.address;
       document.getElementById('startDateInput').value = cfg.startDate;
       document.getElementById('endDateInput').value = cfg.endDate;
 
-      // 1·2·3안 버튼에 각 안의 이름과 날짜(예: 📌 1안 (11/28~12/1))를 직관적으로 함께 표시
       [1, 2, 3].forEach(slot => {
         const b = document.getElementById(`planBtn-${slot}`);
         if (!b) return;
         const pCfg = appState.plans[slot].config;
-        const sShort = (pCfg.startDate || '').slice(5).replace('-', '/');
-        const eShort = (pCfg.endDate || '').slice(5).replace('-', '/');
+        const sShort = String(pCfg.startDate || '').slice(5).replace('-', '/');
+        const eShort = String(pCfg.endDate || '').slice(5).replace('-', '/');
         const tabLabel = pCfg.planTabName || (slot === 1 ? "📌 1안" : `${slot}안`);
         b.innerText = (sShort && eShort) ? `${tabLabel} (${sShort}~${eShort})` : tabLabel;
         b.classList.toggle('active', slot === currentPlan);
@@ -2589,7 +2654,7 @@
       const list = getCurrentDayList();
       const container = document.getElementById('timelineContainer');
       if (list.length === 0) {
-        container.innerHTML = `<div style="padding:28px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:10px; font-size:12.5px;">등록된 일정이 없습니다. 상단 <strong>[🔍 구글맵 장소 검색]</strong>이나 <strong>[⭐ 위시리스트 보관함]</strong> 버튼을 눌러 장소를 추가해보세요!</div>`;
+        container.innerHTML = `<div style="padding:28px; text-align:center; color:var(--muted); border:1px dashed var(--border); border-radius:10px; font-size:12.5px;">등록된 일정이 없습니다. 상단 <strong>[📂 열기(복구)]</strong>를 눌러 백업본을 불러오거나 장소를 추가해보세요!</div>`;
         return;
       }
 
@@ -2609,7 +2674,7 @@
                   <button type="button" class="order-btn" ${isFirst ? 'disabled' : ''} onclick="moveSpotOrder(${idx}, -1)">▲</button>
                   <button type="button" class="order-btn" ${isLast ? 'disabled' : ''} onclick="moveSpotOrder(${idx}, 1)">▼</button>
                 </div>
-                <input type="time" value="${item.time}" onchange="updateSpotField(${item.id}, 'time', this.value)" style="border:1px solid #cbd5e1; border-radius:4px; padding:2px 5px; font-weight:800; font-size:12px;">
+                <input type="time" value="${item.time || '11:00'}" onchange="updateSpotField(${item.id}, 'time', this.value)" style="border:1px solid #cbd5e1; border-radius:4px; padding:2px 5px; font-weight:800; font-size:12px;">
                 <span class="badge badge-rate">⭐ ${item.rating || '4.2'}</span>
               </div>
               <div style="display:flex; gap:4px; flex-wrap:wrap;">
@@ -2789,12 +2854,16 @@
 
     function openConfigModal() {
       const cfg = getActiveConfig();
-      document.getElementById('cfgModalPlanNum').innerText = currentPlan;
-      document.getElementById('cfgPlanTabName').value = cfg.planTabName || (currentPlan === 1 ? "📌 1안" : `${currentPlan}안`);
+      const numEl = document.getElementById('cfgModalPlanNum');
+      if (numEl) numEl.innerText = currentPlan;
+      const tabEl = document.getElementById('cfgPlanTabName');
+      if (tabEl) tabEl.value = cfg.planTabName || (currentPlan === 1 ? "📌 1안" : `${currentPlan}안`);
       document.getElementById('cfgTripTitle').value = cfg.tripTitle || "";
       document.getElementById('cfgCityName').value = cfg.city || "";
-      document.getElementById('cfgStartDate').value = cfg.startDate || "2026-11-28";
-      document.getElementById('cfgEndDate').value = cfg.endDate || "2026-12-01";
+      const sEl = document.getElementById('cfgStartDate');
+      const eEl = document.getElementById('cfgEndDate');
+      if (sEl) sEl.value = cfg.startDate || "2026-11-28";
+      if (eEl) eEl.value = cfg.endDate || "2026-12-01";
       document.getElementById('cfgHotelName').value = cfg.hotel.name || "";
       document.getElementById('cfgHotelAddr').value = cfg.hotel.address || "";
       document.getElementById('cfgHotelTip').value = cfg.hotel.tip || "";
@@ -2802,18 +2871,18 @@
     }
     function closeConfigModal() { document.getElementById('configModal').classList.remove('open'); }
 
-    // 숙소나 도시 변경 시 구글맵에서 숙소 위도/경도 좌표를 자동으로 찾아 반영
     async function saveConfigModal() {
       const cfg = getActiveConfig();
       const prevHotelName = cfg.hotel.name;
-      cfg.planTabName = document.getElementById('cfgPlanTabName').value.trim() || (currentPlan === 1 ? "📌 1안" : `${currentPlan}안`);
+      const tabEl = document.getElementById('cfgPlanTabName');
+      if (tabEl) cfg.planTabName = tabEl.value.trim() || (currentPlan === 1 ? "📌 1안" : `${currentPlan}안`);
       cfg.tripTitle = document.getElementById('cfgTripTitle').value.trim() || "✈️ 스마트 여행 올인원 플래너";
       cfg.city = document.getElementById('cfgCityName').value.trim() || "Tokyo";
-      const newS = document.getElementById('cfgStartDate').value;
-      const newE = document.getElementById('cfgEndDate').value;
-      if (newS && newE && new Date(newE) >= new Date(newS)) {
-        cfg.startDate = newS;
-        cfg.endDate = newE;
+      const sEl = document.getElementById('cfgStartDate');
+      const eEl = document.getElementById('cfgEndDate');
+      if (sEl && eEl && sEl.value && eEl.value && new Date(eEl.value) >= new Date(sEl.value)) {
+        cfg.startDate = sEl.value;
+        cfg.endDate = eEl.value;
       }
       cfg.hotel.name = document.getElementById('cfgHotelName').value.trim() || "숙소";
       cfg.hotel.address = document.getElementById('cfgHotelAddr').value.trim() || "";
@@ -2859,7 +2928,7 @@
       appState.plans[tNum].config.planTabName = `${tNum}안`;
       saveData();
       switchPlan(tNum);
-      alert(`[${tNum}안]으로 복사 완료! 상단 날짜나 설정(⚙️)을 눌러 [${tNum}안]만의 날짜와 숙소를 자유롭게 변경하세요.`);
+      alert(`[${tNum}안]으로 복사 완료! 상단 날짜를 바꾸면 [${tNum}안]만의 날짜로 설정됩니다.`);
     }
 
     function clearCurrentPlan() {
@@ -2885,10 +2954,10 @@
           const stateObj = parsed.appState ? parsed.appState : parsed;
           if (stateObj && stateObj.plans) {
             appState = stateObj;
-            ensurePerPlanConfigs();
           }
         } catch(e) {}
       }
+      ensurePerPlanConfigs();
       syncDaysLength();
       renderAll();
 
